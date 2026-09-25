@@ -3,166 +3,237 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Plataforma Docente</title>
+  <title>Plataforma Educativa</title>
   <style>
     * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { margin: 0; display: flex; height: 100vh; background: #f3f4f6; color: #1f2937; }
+    body { margin: 0; background: #f3f4f6; color: #1f2937; height: 100vh; }
     
-    /* Panel Lateral (Sidebar) */
+    /* PANTALLA DE LOGIN */
+    #login-screen { display: flex; justify-content: center; align-items: center; height: 100vh; background: #111827; }
+    .login-box { background: white; padding: 40px; border-radius: 10px; width: 350px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+    .login-box h2 { margin-bottom: 20px; color: #111827; }
+    .login-box input, .login-box select { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #d1d5db; border-radius: 6px; }
+    
+    /* ESTRUCTURA DASHBOARD */
+    #app-screen { display: none; height: 100vh; }
+    .dashboard { display: flex; height: 100%; }
     .sidebar { width: 260px; background: #111827; color: white; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; }
-    .sidebar-header { font-size: 18px; font-weight: bold; padding-bottom: 15px; border-bottom: 1px solid #374151; margin-bottom: 20px; color: #f9fafb; }
-    .sidebar button { background: none; border: none; color: #9ca3af; padding: 12px 15px; text-align: left; width: 100%; cursor: pointer; font-size: 15px; border-radius: 6px; margin-bottom: 8px; transition: all 0.2s; }
-    .sidebar button:hover, .sidebar button.active { background: #1f2937; color: #ffffff; font-weight: bold; }
+    .sidebar-header { font-size: 18px; font-weight: bold; padding-bottom: 15px; border-bottom: 1px solid #374151; margin-bottom: 20px; }
+    .sidebar button { background: none; border: none; color: #9ca3af; padding: 12px 15px; text-align: left; width: 100%; cursor: pointer; font-size: 15px; border-radius: 6px; margin-bottom: 8px; }
+    .sidebar button:hover, .sidebar button.active { background: #1f2937; color: white; font-weight: bold; }
+    .user-info { font-size: 13px; color: #9ca3af; border-top: 1px solid #374151; padding-top: 15px; }
     
-    /* Contenido Principal */
     .main-content { flex: 1; padding: 35px; overflow-y: auto; }
     .section { display: none; }
     .section.active { display: block; }
     
-    /* Tarjetas y Formularios */
     .card { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 25px; }
-    .card h3 { margin-top: 0; color: #111827; }
     .form-group { margin-bottom: 15px; }
-    label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 5px; color: #374151; }
+    label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 5px; }
     input, select, textarea { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; }
-    .btn { background: #2563eb; color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: background 0.2s; }
-    .btn:hover { background: #1d4ed8; }
+    .btn { background: #2563eb; color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    .btn-danger { background: #dc2626; margin-top: 10px; }
     
-    /* Tabla de Alumnos */
     table { width: 100%; border-collapse: collapse; margin-top: 15px; }
     th, td { border: 1px solid #e5e7eb; padding: 12px; text-align: left; font-size: 14px; }
-    th { background: #f9fafb; font-weight: bold; color: #374151; }
+    th { background: #f9fafb; }
     .empty-msg { color: #6b7280; font-style: italic; text-align: center; padding: 20px; }
   </style>
 </head>
 <body>
 
-  <!-- MENÚ LATERAL -->
-  <div class="sidebar">
-    <div>
-      <div class="sidebar-header">Mi Plataforma Educativa</div>
-      <button class="active" onclick="showTab('trayectos')">📚 Trayectos y Cursos</button>
-      <button onclick="showTab('muro')">💬 Muro de Consultas</button>
-      <button onclick="showTab('alumnos')">👥 Listado de Alumnos</button>
+  <!-- 1. PANTALLA DE INGRESO -->
+  <div id="login-screen">
+    <div class="login-box">
+      <h2>Ingreso a la Plataforma</h2>
+      <div class="form-group">
+        <label style="text-align:left;">Perfil de Ingreso:</label>
+        <select id="role-select" onchange="toggleLoginInputs()">
+          <option value="estudiante">Estudiante</option>
+          <option value="docente">Docente / Administrador</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <input type="text" id="login-user" placeholder="Nombre o Usuario">
+      </div>
+      <div class="form-group" id="pass-group" style="display:none;">
+        <input type="password" id="login-pass" placeholder="Contraseña Docente (admin)">
+      </div>
+      <button class="btn" style="width:100%;" onclick="iniciarSesion()">Ingresar</button>
     </div>
   </div>
 
-  <!-- ÁREA DE CONTENIDOS -->
-  <div class="main-content">
-    
-    <!-- SECCIÓN: TRAYECTOS Y CURSOS -->
-    <div id="trayectos" class="section active">
-      <h2>Gestión de Trayectos Formativos</h2>
+  <!-- 2. PANTALLA PRINCIPAL (DASHBOARD) -->
+  <div id="app-screen">
+    <div class="dashboard">
       
-      <!-- Panel de alta de nuevos trayectos -->
-      <div class="card">
-        <h3>Dar de alta un nuevo Trayecto / Curso</h3>
-        <div class="form-group">
-          <label>Nombre del Trayecto o Materia:</label>
-          <input type="text" id="nombre-trayecto" placeholder="Ej: Trayecto de Programación Básica">
+      <!-- MENU LATERAL -->
+      <div class="sidebar">
+        <div>
+          <div class="sidebar-header">Plataforma Educativa</div>
+          <button id="btn-trayectos" class="active" onclick="showTab('trayectos')">📚 Mis Trayectos</button>
+          <button id="btn-muro" onclick="showTab('muro')">💬 Muro de Consultas</button>
+          <!-- Opción visible solo para el Docente -->
+          <button id="btn-alumnos" class="admin-only" onclick="showTab('alumnos')">👥 Gestión de Alumnos</button>
         </div>
-        <div class="form-group">
-          <label>Descripción / Introducción:</label>
-          <textarea id="desc-trayecto" rows="2" placeholder="Breve descripción del trayecto..."></textarea>
+        
+        <div class="user-info">
+          Usuario: <strong id="display-username">-</strong><br>
+          Rol: <span id="display-role">-</span><br>
+          <button class="btn btn-danger" style="padding:5px 10px; font-size:12px;" onclick="cerrarSesion()">Cerrar Sesión</button>
         </div>
-        <div class="form-group">
-          <label>Enlace al Material / Drive:</label>
-          <input type="url" id="link-trayecto" placeholder="https://drive.google.com/...">
-        </div>
-        <button class="btn" onclick="crearTrayecto()">Publicar Trayecto</button>
       </div>
 
-      <!-- Espacio donde se irán listando los trayectos -->
-      <h3>Trayectos Activos</h3>
-      <div id="lista-trayectos">
-        <div class="card empty-msg">Aún no cargaste ningún trayecto formativo. Usá el formulario de arriba para publicar el primero.</div>
+      <!-- CONTENIDO -->
+      <div class="main-content">
+        
+        <!-- SECCION TRAYECTOS -->
+        <div id="trayectos" class="section active">
+          <h2>Trayectos Formativos</h2>
+          
+          <!-- Formulario de creación: Solo visible para Docente -->
+          <div class="card admin-only">
+            <h3>Dar de alta un nuevo Trayecto / Curso</h3>
+            <div class="form-group">
+              <label>Nombre del Trayecto o Materia:</label>
+              <input type="text" id="nombre-trayecto" placeholder="Ej: Trayecto de Programación Básica">
+            </div>
+            <div class="form-group">
+              <label>Descripción / Introducción:</label>
+              <textarea id="desc-trayecto" rows="2" placeholder="Breve descripción del trayecto..."></textarea>
+            </div>
+            <div class="form-group">
+              <label>Enlace al Material / Drive:</label>
+              <input type="url" id="link-trayecto" placeholder="https://drive.google.com/...">
+            </div>
+            <button class="btn" onclick="crearTrayecto()">Publicar Trayecto</button>
+          </div>
+
+          <h3>Cursos Disponibles</h3>
+          <div id="lista-trayectos">
+            <div class="card empty-msg">No hay trayectos publicados actualmente.</div>
+          </div>
+        </div>
+
+        <!-- SECCION MURO DE CONSULTAS -->
+        <div id="muro" class="section">
+          <h2>Muro de Consultas</h2>
+          <div class="card">
+            <h3>Escribir una Consulta</h3>
+            <div class="form-group">
+              <label>Seleccionar Trayecto / Curso:</label>
+              <select id="select-trayecto-consulta">
+                <option value="">-- Seleccioná un trayecto --</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Consulta o Duda:</label>
+              <textarea id="texto-consulta" rows="3" placeholder="Escribí acá tu duda..."></textarea>
+            </div>
+            <button class="btn" onclick="publicarConsulta()">Enviar Consulta</button>
+          </div>
+
+          <h3>Historial de Consultas</h3>
+          <div id="lista-consultas">
+            <div class="card empty-msg">No hay consultas en el muro.</div>
+          </div>
+        </div>
+
+        <!-- SECCION ALUMNOS (SOLO DOCENTE) -->
+        <div id="alumnos" class="section admin-only">
+          <h2>Registro y Gestión de Alumnos</h2>
+          <div class="card">
+            <h3>Vincular Alumno a un Trayecto</h3>
+            <div style="display: flex; gap: 10px;">
+              <input type="text" id="alumno-nombre" placeholder="Nombre completo">
+              <input type="text" id="alumno-dni" placeholder="DNI / Legajo">
+              <button class="btn" onclick="registrarAlumno()">Registrar Alumno</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Nómina de Estudiantes</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Alumno</th>
+                  <th>DNI / Legajo</th>
+                  <th>Estado Tarea</th>
+                  <th>Calificación</th>
+                </tr>
+              </thead>
+              <tbody id="tabla-alumnos">
+                <tr>
+                  <td colspan="4" class="empty-msg">No hay alumnos inscriptos.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
     </div>
-
-    <!-- SECCIÓN: MURO DE CONSULTAS -->
-    <div id="muro" class="section">
-      <h2>Muro de Consultas</h2>
-      <div class="card">
-        <h3>Escribir una Consulta</h3>
-        <div class="form-group">
-          <label>Nombre y Apellido:</label>
-          <input type="text" id="nombre-consulta" placeholder="Ingresá tu nombre">
-        </div>
-        <div class="form-group">
-          <label>Seleccionar Trayecto / Curso:</label>
-          <select id="select-trayecto-consulta">
-            <option value="">-- Seleccioná un trayecto --</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Consulta o Duda:</label>
-          <textarea id="texto-consulta" rows="3" placeholder="Escribí acá la consulta..."></textarea>
-        </div>
-        <button class="btn" onclick="publicarConsulta()">Enviar Consulta</button>
-      </div>
-
-      <h3>Consultas de los Estudiantes</h3>
-      <div id="lista-consultas">
-        <div class="card empty-msg">No hay consultas registradas en el muro.</div>
-      </div>
-    </div>
-
-    <!-- SECCIÓN: LISTADO DE ALUMNOS Y NOTAS -->
-    <div id="alumnos" class="section">
-      <h2>Listado y Registro de Alumnos</h2>
-      <div class="card">
-        <h3>Inscribir / Registrar Nuevo Alumno</h3>
-        <div style="display: flex; gap: 10px;">
-          <input type="text" id="alumno-nombre" placeholder="Nombre completo">
-          <input type="text" id="alumno-dni" placeholder="DNI / Legajo">
-          <button class="btn" onclick="registrarAlumno()">Registrar</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3>Nómina de Estudiantes</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>Alumno</th>
-              <th>DNI / Legajo</th>
-              <th>Trayecto Asignado</th>
-              <th>Estado Tarea</th>
-              <th>Calificación</th>
-            </tr>
-          </thead>
-          <tbody id="tabla-alumnos">
-            <tr>
-              <td colspan="5" class="empty-msg">No hay alumnos inscriptos en el sistema.</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
   </div>
 
   <script>
-    // Cambiar entre pestañas del menú lateral
+    let currentUser = { name: '', role: '' };
+
+    function toggleLoginInputs() {
+      const role = document.getElementById('role-select').value;
+      document.getElementById('pass-group').style.display = role === 'docente' ? 'block' : 'none';
+    }
+
+    function iniciarSesion() {
+      const user = document.getElementById('login-user').value;
+      const role = document.getElementById('role-select').value;
+      const pass = document.getElementById('login-pass').value;
+
+      if (!user) return alert('Por favor ingresá tu nombre o usuario.');
+
+      if (role === 'docente' && pass !== 'admin') {
+        return alert('Contraseña docente incorrecta. (Clave por defecto: admin)');
+      }
+
+      currentUser = { name: user, role: role };
+
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('app-screen').style.display = 'block';
+
+      document.getElementById('display-username').textContent = user;
+      document.getElementById('display-role').textContent = role === 'docente' ? 'Docente (Admin)' : 'Estudiante';
+
+      // Ocultar o mostrar herramientas de Administrador
+      const adminElements = document.querySelectorAll('.admin-only');
+      adminElements.forEach(el => {
+        el.style.display = role === 'docente' ? 'block' : 'none';
+      });
+
+      showTab('trayectos');
+    }
+
+    function cerrarSesion() {
+      document.getElementById('app-screen').style.display = 'none';
+      document.getElementById('login-screen').style.display = 'flex';
+      document.getElementById('login-user').value = '';
+      document.getElementById('login-pass').value = '';
+    }
+
     function showTab(id) {
       document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
       document.querySelectorAll('.sidebar button').forEach(b => b.classList.remove('active'));
       document.getElementById(id).classList.add('active');
-      event.target.classList.add('active');
+      document.getElementById('btn-' + id).classList.add('active');
     }
 
-    // Función para crear trayectos en tiempo real
     function crearTrayecto() {
       const nombre = document.getElementById('nombre-trayecto').value;
       const desc = document.getElementById('desc-trayecto').value;
       const link = document.getElementById('link-trayecto').value;
 
-      if (!nombre) return alert('Ingresá al menos el nombre del trayecto.');
+      if (!nombre) return alert('Ingresá el nombre del trayecto.');
 
-      const listaTrayectos = document.getElementById('lista-trayectos');
-      if (listaTrayectos.querySelector('.empty-msg')) {
-        listaTrayectos.innerHTML = '';
-      }
+      const lista = document.getElementById('lista-trayectos');
+      if (lista.querySelector('.empty-msg')) lista.innerHTML = '';
 
       const card = document.createElement('div');
       card.className = 'card';
@@ -171,53 +242,40 @@
         <p>${desc}</p>
         ${link ? `<a href="${link}" target="_blank" class="btn" style="text-decoration:none; display:inline-block;">Acceder al Material de Estudio</a>` : ''}
       `;
-      listaTrayectos.prepend(card);
+      lista.prepend(card);
 
-      // Actualizar el selector de cursos del Muro de Consultas
       const select = document.getElementById('select-trayecto-consulta');
       const option = document.createElement('option');
       option.value = nombre;
       option.textContent = nombre;
       select.appendChild(option);
 
-      // Limpiar formulario
       document.getElementById('nombre-trayecto').value = '';
       document.getElementById('desc-trayecto').value = '';
       document.getElementById('link-trayecto').value = '';
     }
 
-    // Función para publicar consultas
     function publicarConsulta() {
-      const nombre = document.getElementById('nombre-consulta').value;
       const trayecto = document.getElementById('select-trayecto-consulta').value;
       const texto = document.getElementById('texto-consulta').value;
 
-      if (!nombre || !texto) return alert('Por favor completá tu nombre y la consulta.');
+      if (!texto) return alert('Escribí tu consulta.');
 
       const lista = document.getElementById('lista-consultas');
-      if (lista.querySelector('.empty-msg')) {
-        lista.innerHTML = '';
-      }
+      if (lista.querySelector('.empty-msg')) lista.innerHTML = '';
 
       const card = document.createElement('div');
       card.className = 'card';
       card.style.borderLeft = '5px solid #2563eb';
       card.innerHTML = `
-        <strong>${nombre}</strong> ${trayecto ? `<span style="color:#6b7280;">(${trayecto})</span>` : ''}
+        <strong>${currentUser.name}</strong> <span style="color:#6b7280;">(${currentUser.role}) ${trayecto ? `- ${trayecto}` : ''}</span>
         <p style="margin: 10px 0;">${texto}</p>
-        <button class="btn" style="background:#4b5563; font-size:12px; padding:5px 10px;" onclick="this.nextElementSibling.style.display='block'">Responder</button>
-        <div style="display:none; margin-top:10px;">
-          <textarea placeholder="Escribir respuesta docente..." rows="2"></textarea>
-          <button class="btn" style="font-size:12px; padding:5px 10px; margin-top:5px;" onclick="alert('Respuesta guardada')">Enviar Respuesta</button>
-        </div>
       `;
       lista.prepend(card);
 
-      document.getElementById('nombre-consulta').value = '';
       document.getElementById('texto-consulta').value = '';
     }
 
-    // Función para registrar alumnos
     function registrarAlumno() {
       const nombre = document.getElementById('alumno-nombre').value;
       const dni = document.getElementById('alumno-dni').value;
@@ -225,15 +283,12 @@
       if (!nombre) return alert('Ingresá el nombre del alumno.');
 
       const tabla = document.getElementById('tabla-alumnos');
-      if (tabla.querySelector('.empty-msg')) {
-        tabla.innerHTML = '';
-      }
+      if (tabla.querySelector('.empty-msg')) tabla.innerHTML = '';
 
       const row = document.createElement('tr');
       row.innerHTML = `
         <td>${nombre}</td>
         <td>${dni || '-'}</td>
-        <td>Sin asignar</td>
         <td>Pendiente</td>
         <td>-</td>
       `;
