@@ -32,12 +32,15 @@
     label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 5px; }
     input, select, textarea { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; }
     .btn { background: #2563eb; color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    .btn-secondary { background: #4b5563; }
     .btn-danger { background: #dc2626; margin-top: 10px; }
     
     table { width: 100%; border-collapse: collapse; margin-top: 15px; }
     th, td { border: 1px solid #e5e7eb; padding: 12px; text-align: left; font-size: 14px; }
     th { background: #f9fafb; }
     .empty-msg { color: #6b7280; font-style: italic; text-align: center; padding: 20px; }
+    
+    .material-item { background: #f9fafb; border: 1px solid #e5e7eb; padding: 10px; border-radius: 6px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; }
   </style>
 </head>
 <body>
@@ -89,7 +92,7 @@
         <div id="trayectos" class="section active">
           <h2>Trayectos Formativos</h2>
           
-          <!-- Alta de Trayectos (Solo visible para Docentes) -->
+          <!-- Formulario de Alta Simplificado -->
           <div class="card admin-only">
             <h3>Dar de Alta un Nuevo Trayecto / Curso</h3>
             <div class="form-group">
@@ -97,14 +100,10 @@
               <input type="text" id="nombre-trayecto" placeholder="Ej: Trayecto de Programación Básica">
             </div>
             <div class="form-group">
-              <label>Descripción / Introducción:</label>
-              <textarea id="desc-trayecto" rows="2" placeholder="Breve descripción del trayecto..."></textarea>
+              <label>Descripción / Programa General:</label>
+              <textarea id="desc-trayecto" rows="2" placeholder="Breve descripción del trayecto u objetivos del curso..."></textarea>
             </div>
-            <div class="form-group">
-              <label>Enlace al Material / Drive:</label>
-              <input type="url" id="link-trayecto" placeholder="https://drive.google.com/...">
-            </div>
-            <button class="btn" onclick="crearTrayecto()">Publicar Trayecto</button>
+            <button class="btn" onclick="crearTrayecto()">Crear Trayecto</button>
           </div>
 
           <h3>Trayectos Activos</h3>
@@ -160,7 +159,6 @@
   <script>
     let currentUser = { name: '', role: '' };
     
-    // Lista de docentes válidos (por defecto arrancamos con la cuenta admin)
     const docentesDB = [
       { name: 'Administrador Principal', user: 'admin', pass: 'admin' }
     ];
@@ -215,27 +213,69 @@
     }
 
     function crearTrayecto() {
-      const nombre = document.getElementById('nombre-trayecto').value;
-      const desc = document.getElementById('desc-trayecto').value;
-      const link = document.getElementById('link-trayecto').value;
+      const nombre = document.getElementById('nombre-trayecto').value.trim();
+      const desc = document.getElementById('desc-trayecto').value.trim();
 
       if (!nombre) return alert('Ingresá el nombre del trayecto.');
 
       const lista = document.getElementById('lista-trayectos');
       if (lista.querySelector('.empty-msg')) lista.innerHTML = '';
 
+      const cardId = 'trayecto-' + Date.now();
       const card = document.createElement('div');
       card.className = 'card';
       card.innerHTML = `
         <h3>${nombre}</h3>
         <p>${desc}</p>
-        ${link ? `<a href="${link}" target="_blank" class="btn" style="text-decoration:none; display:inline-block;">Acceder al Material de Estudio</a>` : ''}
+        <button class="btn btn-secondary" style="font-size:13px;" onclick="toggleDetalle('${cardId}')">📁 Ver / Gestionar Contenidos y Materiales</button>
+        
+        <div id="${cardId}" style="display:none; margin-top:20px; border-top:1px solid #e5e7eb; padding-top:15px;">
+          <h4>Contenidos y Materiales del Trayecto</h4>
+          <div class="admin-only form-group" style="background:#f9fafb; padding:15px; border-radius:6px;">
+            <label style="font-size:13px;">Agregar nuevo material / Drive:</label>
+            <input type="text" placeholder="Título del Material (Ej: Guía de Trabajos Prácticos)" style="margin-bottom:8px;">
+            <input type="url" placeholder="https://drive.google.com/..." style="margin-bottom:8px;">
+            <button class="btn" style="padding:6px 12px; font-size:12px;" onclick="agregarMaterial(this)">Agregar Material</button>
+          </div>
+          <div class="lista-materiales">
+            <p style="font-size:13px; color:#6b7280; italic;">Aún no se añadieron materiales a este trayecto.</p>
+          </div>
+        </div>
       `;
       lista.prepend(card);
 
       document.getElementById('nombre-trayecto').value = '';
       document.getElementById('desc-trayecto').value = '';
-      document.getElementById('link-trayecto').value = '';
+    }
+
+    function toggleDetalle(id) {
+      const el = document.getElementById(id);
+      el.style.display = el.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function agregarMaterial(btn) {
+      const container = btn.parentElement;
+      const tituloInput = container.querySelectorAll('input')[0];
+      const linkInput = container.querySelectorAll('input')[1];
+
+      const titulo = tituloInput.value.trim();
+      const link = linkInput.value.trim();
+
+      if (!titulo || !link) return alert('Completá el título y el enlace al material.');
+
+      const listaMat = container.nextElementSibling;
+      if (listaMat.querySelector('p')) listaMat.innerHTML = '';
+
+      const item = document.createElement('div');
+      item.className = 'material-item';
+      item.innerHTML = `
+        <span>📄 <strong>${titulo}</strong></span>
+        <a href="${link}" target="_blank" class="btn" style="text-decoration:none; font-size:12px; padding:5px 10px;">Abrir Material</a>
+      `;
+      listaMat.appendChild(item);
+
+      tituloInput.value = '';
+      linkInput.value = '';
     }
 
     function registrarDocente() {
