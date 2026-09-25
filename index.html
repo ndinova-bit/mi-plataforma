@@ -25,7 +25,7 @@
     
     .main-content { flex: 1; padding: 35px; overflow-y: auto; }
     .section { display: none; }
-    .section.active { display: block; }
+    .section.active { display: block !important; }
     
     .card { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 25px; }
     .form-group { margin-bottom: 15px; }
@@ -88,11 +88,10 @@
       <!-- CONTENIDO PRINCIPAL -->
       <div class="main-content">
         
-        <!-- SECCIÓN 1: TRAYECTOS FORMATIVOS -->
+        <!-- SECCIÓN 1: SOLAMENTE TRAYECTOS FORMATIVOS -->
         <div id="trayectos" class="section active">
           <h2>Trayectos Formativos</h2>
           
-          <!-- FORMULARIO LIMPIO: SOLO NOMBRE Y DESCRIPCIÓN -->
           <div class="card admin-only">
             <h3>Dar de Alta un Nuevo Trayecto / Curso</h3>
             <div class="form-group">
@@ -112,7 +111,7 @@
           </div>
         </div>
 
-        <!-- SECCIÓN 2: ALTA DE DOCENTES (SOLO DOCENTE/ADMIN) -->
+        <!-- SECCIÓN 2: SOLAMENTE ALTA DE DOCENTES -->
         <div id="docentes" class="section admin-only">
           <h2>Alta y Registro de Docentes</h2>
           
@@ -206,10 +205,22 @@
     }
 
     function showTab(id) {
-      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      // Oculta todas las secciones
+      document.querySelectorAll('.section').forEach(s => {
+        s.classList.remove('active');
+        s.style.display = 'none';
+      });
       document.querySelectorAll('.sidebar button').forEach(b => b.classList.remove('active'));
-      document.getElementById(id).classList.add('active');
-      document.getElementById('btn-' + id).classList.add('active');
+      
+      // Muestra únicamente la sección seleccionada
+      const targetSection = document.getElementById(id);
+      if (targetSection) {
+        targetSection.classList.add('active');
+        targetSection.style.display = 'block';
+      }
+      
+      const targetBtn = document.getElementById('btn-' + id);
+      if (targetBtn) targetBtn.classList.add('active');
     }
 
     function crearTrayecto() {
