@@ -92,7 +92,7 @@
         <div id="trayectos" class="section active">
           <h2>Trayectos Formativos</h2>
           
-          <!-- Formulario de Alta Simplificado -->
+          <!-- FORMULARIO LIMPIO: SOLO NOMBRE Y DESCRIPCIÓN -->
           <div class="card admin-only">
             <h3>Dar de Alta un Nuevo Trayecto / Curso</h3>
             <div class="form-group">
@@ -232,13 +232,13 @@
         <div id="${cardId}" style="display:none; margin-top:20px; border-top:1px solid #e5e7eb; padding-top:15px;">
           <h4>Contenidos y Materiales del Trayecto</h4>
           <div class="admin-only form-group" style="background:#f9fafb; padding:15px; border-radius:6px;">
-            <label style="font-size:13px;">Agregar nuevo material / Drive:</label>
-            <input type="text" placeholder="Título del Material (Ej: Guía de Trabajos Prácticos)" style="margin-bottom:8px;">
+            <label style="font-size:13px;">Agregar nuevo material o enlace a Drive:</label>
+            <input type="text" placeholder="Título del Material (Ej: Guía de Actividades N° 1)" style="margin-bottom:8px;">
             <input type="url" placeholder="https://drive.google.com/..." style="margin-bottom:8px;">
             <button class="btn" style="padding:6px 12px; font-size:12px;" onclick="agregarMaterial(this)">Agregar Material</button>
           </div>
           <div class="lista-materiales">
-            <p style="font-size:13px; color:#6b7280; italic;">Aún no se añadieron materiales a este trayecto.</p>
+            <p style="font-size:13px; color:#6b7280; font-style:italic;">Aún no se añadieron materiales a este trayecto.</p>
           </div>
         </div>
       `;
@@ -298,7 +298,7 @@
       `;
       tabla.appendChild(row);
 
-      alert(`Docente ${nombre} registrado exitosamente. Ahora puede ingresar con usuario '${user}'.`);
+      alert(`Docente ${nombre} registrado exitosamente.`);
 
       document.getElementById('docente-nombre').value = '';
       document.getElementById('docente-user').value = '';
