@@ -40,8 +40,12 @@
     th { background: #f9fafb; }
     .empty-msg { color: #6b7280; font-style: italic; text-align: center; padding: 20px; }
     
-    .material-item { background: #f9fafb; border: 1px solid #e5e7eb; padding: 10px 15px; border-radius: 6px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; }
+    .clase-box { background: #f9fafb; border: 1px solid #e5e7eb; padding: 15px; border-radius: 8px; margin-top: 15px; }
+    .material-item { background: white; border: 1px solid #e5e7eb; padding: 10px 15px; border-radius: 6px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; }
     .docente-badge { display: inline-block; background: #e0e7ff; color: #3730a3; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; margin-bottom: 10px; }
+    .status-badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+    .badge-programado { background: #fef3c7; color: #92400e; }
+    .badge-publicado { background: #d1fae5; color: #065f46; }
   </style>
 </head>
 <body>
@@ -119,27 +123,36 @@
           </div>
         </div>
 
-        <!-- SECCIÓN 2: GESTIÓN DE CONTENIDOS (NUEVA) -->
+        <!-- SECCIÓN 2: GESTIÓN DE CONTENIDOS -->
         <div id="contenidos" class="section admin-only">
-          <h2>Gestión de Contenidos y Materiales</h2>
+          <h2>Gestión de Contenidos y Clases Programadas</h2>
           
           <div class="card">
-            <h3>Subir / Vincular Material a un Trayecto</h3>
+            <h3>➕ Cargar Nueva Clase y Material</h3>
             <div class="form-group">
-              <label>Seleccionar Trayecto:</label>
+              <label>Seleccionar Trayecto Formativo:</label>
               <select id="select-trayecto-contenido">
-                <!-- Se llena con los trayectos disponibles -->
+                <!-- Se llena dinámicamente -->
               </select>
             </div>
             <div class="form-group">
-              <label>Título del Material:</label>
-              <input type="text" id="material-titulo" placeholder="Ej: Clase 1 - Presentación en PDF">
+              <label>Nombre / Número de la Clase:</label>
+              <input type="text" id="clase-nombre" placeholder="Ej: Clase 1 - Introducción al pensamiento computacional">
+            </div>
+            <div class="form-group">
+              <label>📅 Fecha y Hora Programada para Publicación:</label>
+              <input type="datetime-local" id="clase-fecha">
+              <small style="color:#6b7280; font-size:12px;">Si seleccionás una fecha futura, los alumnos verán la clase como programada hasta la llegada de esa fecha.</small>
+            </div>
+            <div class="form-group">
+              <label>Título del Material o Recurso:</label>
+              <input type="text" id="material-titulo" placeholder="Ej: Presentación en PDF / Guía de Ejercicios">
             </div>
             <div class="form-group">
               <label>Enlace al recurso (Google Drive, YouTube, Web):</label>
               <input type="url" id="material-link" placeholder="https://drive.google.com/...">
             </div>
-            <button class="btn" onclick="guardarMaterial()">Publicar Material</button>
+            <button class="btn" onclick="guardarClase()">Programar / Publicar Clase</button>
           </div>
         </div>
 
@@ -190,11 +203,17 @@
   <script>
     let currentUser = { name: '', user: '', role: '' };
     
-    const docentesDB = [
+    // Carga inicial o guardado en LocalStorage
+    let docentesDB = JSON.parse(localStorage.getItem('docentesDB')) || [
       { name: 'Administrador Principal', user: 'admin', pass: 'admin' }
     ];
 
-    const trayectosDB = [];
+    let trayectosDB = JSON.parse(localStorage.getItem('trayectosDB')) || [];
+
+    function guardarEstado() {
+      localStorage.setItem('docentesDB', JSON.stringify(docentesDB));
+      localStorage.setItem('trayectosDB', JSON.stringify(trayectosDB));
+    }
 
     function toggleLoginInputs() {
       const role = document.getElementById('role-select').value;
@@ -202,7 +221,7 @@
     }
 
     function actualizarSelects() {
-      // 1. Select de docentes al crear trayecto
+      // Select de docentes
       const selectDoc = document.getElementById('select-docente-trayecto');
       if (selectDoc) {
         selectDoc.innerHTML = '';
@@ -214,7 +233,7 @@
         });
       }
 
-      // 2. Select de trayectos al subir contenido
+      // Select de trayectos
       const selectTray = document.getElementById('select-trayecto-contenido');
       if (selectTray) {
         selectTray.innerHTML = '';
@@ -224,10 +243,9 @@
           selectTray.appendChild(option);
         } else {
           trayectosDB.forEach(t => {
-            // Filtrar opcionalmente por docente si se desea
             const option = document.createElement('option');
             option.value = t.id;
-            option.textContent = t.nombre + ' (A cargo: ' + t.docenteNombre + ')';
+            option.textContent = t.nombre + ' (Docente: ' + t.docenteNombre + ')';
             selectTray.appendChild(option);
           });
         }
@@ -267,6 +285,8 @@
       });
 
       actualizarSelects();
+      renderizarTablaDocentes();
+      renderizarTrayectos();
       showTab('trayectos');
     }
 
@@ -304,14 +324,51 @@
       if (!nombre) return alert('Ingresá el nombre del trayecto.');
 
       const id = 'trayecto-' + Date.now();
-      const nuevoTrayecto = { id, nombre, docenteUser, docenteNombre, desc, materiales: [] };
+      const nuevoTrayecto = { id, nombre, docenteUser, docenteNombre, desc, clases: [] };
       trayectosDB.push(nuevoTrayecto);
 
+      guardarEstado();
       renderizarTrayectos();
       actualizarSelects();
 
       document.getElementById('nombre-trayecto').value = '';
       document.getElementById('desc-trayecto').value = '';
+    }
+
+    function guardarClase() {
+      const trayectoId = document.getElementById('select-trayecto-contenido').value;
+      const claseNombre = document.getElementById('clase-nombre').value.trim();
+      const fechaVal = document.getElementById('clase-fecha').value;
+      const titulo = document.getElementById('material-titulo').value.trim();
+      const link = document.getElementById('material-link').value.trim();
+
+      if (!trayectoId || trayectoId === 'No hay trayectos creados') {
+        return alert('Primero debés crear un trayecto.');
+      }
+      if (!claseNombre || !fechaVal || !titulo || !link) {
+        return alert('Completá todos los campos (Nombre de clase, Fecha/Hora, Título y Enlace).');
+      }
+
+      const trayecto = trayectosDB.find(t => t.id === trayectoId);
+      if (trayecto) {
+        trayecto.clases.push({
+          id: 'clase-' + Date.now(),
+          nombre: claseNombre,
+          fecha: fechaVal,
+          titulo: titulo,
+          link: link
+        });
+
+        guardarEstado();
+        renderizarTrayectos();
+        alert('Clase programada/publicada con éxito.');
+
+        document.getElementById('clase-nombre').value = '';
+        document.getElementById('clase-fecha').value = '';
+        document.getElementById('material-titulo').value = '';
+        document.getElementById('material-link').value = '';
+        showTab('trayectos');
+      }
     }
 
     function renderizarTrayectos() {
@@ -322,19 +379,41 @@
       }
 
       lista.innerHTML = '';
+      const ahora = new Date();
+
       trayectosDB.forEach(t => {
         const card = document.createElement('div');
         card.className = 'card';
 
-        let htmlMateriales = '';
-        if (t.materiales.length === 0) {
-          htmlMateriales = '<p style="font-size:13px; color:#6b7280; font-style:italic;">Aún no hay materiales subidos para este trayecto.</p>';
+        let htmlClases = '';
+        
+        if (t.clases.length === 0) {
+          htmlClases = '<p style="font-size:13px; color:#6b7280; font-style:italic;">Aún no se han programado clases para este trayecto.</p>';
         } else {
-          t.materiales.forEach(m => {
-            htmlMateriales += `
-              <div class="material-item">
-                <span>📄 <strong>${m.titulo}</strong></span>
-                <a href="${m.link}" target="_blank" class="btn" style="text-decoration:none; font-size:12px; padding:5px 10px;">Abrir Material</a>
+          t.clases.forEach(c => {
+            const fechaClase = new Date(c.fecha);
+            const esFutura = fechaClase > ahora;
+            const fechaFormateada = fechaClase.toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' });
+
+            // Si es estudiante y la clase es futura, no se le muestra
+            if (currentUser.role === 'estudiante' && esFutura) {
+              return; 
+            }
+
+            let badge = esFutura 
+              ? `<span class="status-badge badge-programado">🕒 Programada para: ${fechaFormateada}</span>`
+              : `<span class="status-badge badge-publicado">✅ Publicada el: ${fechaFormateada}</span>`;
+
+            htmlClases += `
+              <div class="clase-box">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <h4 style="margin:0;">📖 ${c.nombre}</h4>
+                  ${badge}
+                </div>
+                <div class="material-item">
+                  <span>📄 <strong>${c.titulo}</strong></span>
+                  <a href="${c.link}" target="_blank" class="btn" style="text-decoration:none; font-size:12px; padding:5px 10px;">Abrir Material</a>
+                </div>
               </div>
             `;
           });
@@ -344,13 +423,10 @@
           <span class="docente-badge">👨‍🏫 Docente a cargo: ${t.docenteNombre}</span>
           <h3 style="margin-top:5px;">${t.nombre}</h3>
           <p>${t.desc}</p>
-          <button class="btn btn-secondary" style="font-size:13px;" onclick="toggleDetalle('${t.id}')">📁 Ver Materiales de Estudio</button>
+          <button class="btn btn-secondary" style="font-size:13px;" onclick="toggleDetalle('${t.id}')">📁 Ver Clases y Materiales (${t.clases.length})</button>
           
           <div id="${t.id}" style="display:none; margin-top:20px; border-top:1px solid #e5e7eb; padding-top:15px;">
-            <h4>Materiales de Estudio</h4>
-            <div id="mat-list-${t.id}">
-              ${htmlMateriales}
-            </div>
+            ${htmlClases}
           </div>
         `;
         lista.appendChild(card);
@@ -362,29 +438,6 @@
       el.style.display = el.style.display === 'none' ? 'block' : 'none';
     }
 
-    function guardarMaterial() {
-      const trayectoId = document.getElementById('select-trayecto-contenido').value;
-      const titulo = document.getElementById('material-titulo').value.trim();
-      const link = document.getElementById('material-link').value.trim();
-
-      if (!trayectoId || trayectoId === 'No hay trayectos creados') {
-        return alert('Primero debés crear un trayecto.');
-      }
-      if (!titulo || !link) {
-        return alert('Completá el título y el enlace al recurso.');
-      }
-
-      const trayecto = trayectosDB.find(t => t.id === trayectoId);
-      if (trayecto) {
-        trayecto.materiales.push({ titulo, link });
-        renderizarTrayectos();
-        alert('Material publicado exitosamente.');
-        document.getElementById('material-titulo').value = '';
-        document.getElementById('material-link').value = '';
-        showTab('trayectos');
-      }
-    }
-
     function registrarDocente() {
       const nombre = document.getElementById('docente-nombre').value.trim();
       const user = document.getElementById('docente-user').value.trim();
@@ -393,18 +446,9 @@
       if (!nombre || !user || !pass) return alert('Por favor completá todos los campos del docente.');
 
       docentesDB.push({ name: nombre, user: user, pass: pass });
+      guardarEstado();
 
-      const tabla = document.getElementById('tabla-docentes');
-      if (tabla.querySelector('.empty-msg')) tabla.innerHTML = '';
-
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${nombre}</td>
-        <td>${user}</td>
-        <td><span style="color:green; font-weight:bold;">Activo</span></td>
-      `;
-      tabla.appendChild(row);
-
+      renderizarTablaDocentes();
       actualizarSelects();
 
       alert(`Docente ${nombre} registrado exitosamente.`);
@@ -412,6 +456,26 @@
       document.getElementById('docente-nombre').value = '';
       document.getElementById('docente-user').value = '';
       document.getElementById('docente-pass').value = '';
+    }
+
+    function renderizarTablaDocentes() {
+      const tabla = document.getElementById('tabla-docentes');
+      if (docentesDB.length <= 1) {
+        tabla.innerHTML = '<tr><td colspan="3" class="empty-msg">No hay otros docentes registrados.</td></tr>';
+        return;
+      }
+
+      tabla.innerHTML = '';
+      docentesDB.forEach(d => {
+        if (d.user === 'admin') return;
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${d.name}</td>
+          <td>${d.user}</td>
+          <td><span style="color:green; font-weight:bold;">Activo</span></td>
+        `;
+        tabla.appendChild(row);
+      });
     }
   </script>
 </body>
