@@ -10,11 +10,11 @@
     
     /* PANTALLA DE LOGIN */
     #login-screen { display: flex; justify-content: center; align-items: center; height: 100vh; background: #111827; }
-    .login-box { background: white; padding: 40px; border-radius: 10px; width: 350px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+    .login-box { background: white; padding: 40px; border-radius: 10px; width: 360px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
     .login-box h2 { margin-bottom: 20px; color: #111827; }
     .login-box input, .login-box select { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #d1d5db; border-radius: 6px; }
     
-    /* ESTRUCTURA DASHBOARD */
+    /* DASHBOARD */
     #app-screen { display: none; height: 100vh; }
     .dashboard { display: flex; height: 100%; }
     .sidebar { width: 260px; background: #111827; color: white; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; }
@@ -42,7 +42,7 @@
 </head>
 <body>
 
-  <!-- 1. PANTALLA DE INGRESO -->
+  <!-- PANTALLA DE INGRESO -->
   <div id="login-screen">
     <div class="login-box">
       <h2>Ingreso a la Plataforma</h2>
@@ -57,13 +57,13 @@
         <input type="text" id="login-user" placeholder="Nombre o Usuario">
       </div>
       <div class="form-group" id="pass-group" style="display:none;">
-        <input type="password" id="login-pass" placeholder="Contraseña Docente (admin)">
+        <input type="password" id="login-pass" placeholder="Contraseña Docente">
       </div>
       <button class="btn" style="width:100%;" onclick="iniciarSesion()">Ingresar</button>
     </div>
   </div>
 
-  <!-- 2. PANTALLA PRINCIPAL (DASHBOARD) -->
+  <!-- DASHBOARD PRINCIPAL -->
   <div id="app-screen">
     <div class="dashboard">
       
@@ -71,10 +71,8 @@
       <div class="sidebar">
         <div>
           <div class="sidebar-header">Plataforma Educativa</div>
-          <button id="btn-trayectos" class="active" onclick="showTab('trayectos')">📚 Mis Trayectos</button>
-          <button id="btn-muro" onclick="showTab('muro')">💬 Muro de Consultas</button>
-          <!-- Opción visible solo para el Docente -->
-          <button id="btn-alumnos" class="admin-only" onclick="showTab('alumnos')">👥 Gestión de Alumnos</button>
+          <button id="btn-trayectos" class="active" onclick="showTab('trayectos')">📚 Trayectos Formativos</button>
+          <button id="btn-docentes" class="admin-only" onclick="showTab('docentes')">👨‍🏫 Alta de Docentes</button>
         </div>
         
         <div class="user-info">
@@ -84,18 +82,18 @@
         </div>
       </div>
 
-      <!-- CONTENIDO -->
+      <!-- CONTENIDO PRINCIPAL -->
       <div class="main-content">
         
-        <!-- SECCION TRAYECTOS -->
+        <!-- SECCIÓN 1: TRAYECTOS FORMATIVOS -->
         <div id="trayectos" class="section active">
           <h2>Trayectos Formativos</h2>
           
-          <!-- Formulario de creación: Solo visible para Docente -->
+          <!-- Alta de Trayectos (Solo visible para Docentes) -->
           <div class="card admin-only">
-            <h3>Dar de alta un nuevo Trayecto / Curso</h3>
+            <h3>Dar de Alta un Nuevo Trayecto / Curso</h3>
             <div class="form-group">
-              <label>Nombre del Trayecto o Materia:</label>
+              <label>Nombre del Trayecto:</label>
               <input type="text" id="nombre-trayecto" placeholder="Ej: Trayecto de Programación Básica">
             </div>
             <div class="form-group">
@@ -109,62 +107,46 @@
             <button class="btn" onclick="crearTrayecto()">Publicar Trayecto</button>
           </div>
 
-          <h3>Cursos Disponibles</h3>
+          <h3>Trayectos Activos</h3>
           <div id="lista-trayectos">
-            <div class="card empty-msg">No hay trayectos publicados actualmente.</div>
+            <div class="card empty-msg">No hay trayectos activos.</div>
           </div>
         </div>
 
-        <!-- SECCION MURO DE CONSULTAS -->
-        <div id="muro" class="section">
-          <h2>Muro de Consultas</h2>
+        <!-- SECCIÓN 2: ALTA DE DOCENTES (SOLO DOCENTE/ADMIN) -->
+        <div id="docentes" class="section admin-only">
+          <h2>Alta y Registro de Docentes</h2>
+          
           <div class="card">
-            <h3>Escribir una Consulta</h3>
+            <h3>Registrar Nuevo Docente</h3>
             <div class="form-group">
-              <label>Seleccionar Trayecto / Curso:</label>
-              <select id="select-trayecto-consulta">
-                <option value="">-- Seleccioná un trayecto --</option>
-              </select>
+              <label>Nombre Completo:</label>
+              <input type="text" id="docente-nombre" placeholder="Ej: Prof. Juan Pérez">
             </div>
             <div class="form-group">
-              <label>Consulta o Duda:</label>
-              <textarea id="texto-consulta" rows="3" placeholder="Escribí acá tu duda..."></textarea>
+              <label>Nombre de Usuario para Ingreso:</label>
+              <input type="text" id="docente-user" placeholder="Ej: jperez">
             </div>
-            <button class="btn" onclick="publicarConsulta()">Enviar Consulta</button>
-          </div>
-
-          <h3>Historial de Consultas</h3>
-          <div id="lista-consultas">
-            <div class="card empty-msg">No hay consultas en el muro.</div>
-          </div>
-        </div>
-
-        <!-- SECCION ALUMNOS (SOLO DOCENTE) -->
-        <div id="alumnos" class="section admin-only">
-          <h2>Registro y Gestión de Alumnos</h2>
-          <div class="card">
-            <h3>Vincular Alumno a un Trayecto</h3>
-            <div style="display: flex; gap: 10px;">
-              <input type="text" id="alumno-nombre" placeholder="Nombre completo">
-              <input type="text" id="alumno-dni" placeholder="DNI / Legajo">
-              <button class="btn" onclick="registrarAlumno()">Registrar Alumno</button>
+            <div class="form-group">
+              <label>Contraseña de Acceso:</label>
+              <input type="password" id="docente-pass" placeholder="Crear contraseña para el docente">
             </div>
+            <button class="btn" onclick="registrarDocente()">Registrar Docente</button>
           </div>
 
           <div class="card">
-            <h3>Nómina de Estudiantes</h3>
+            <h3>Docentes Registrados en el Sistema</h3>
             <table>
               <thead>
                 <tr>
-                  <th>Alumno</th>
-                  <th>DNI / Legajo</th>
-                  <th>Estado Tarea</th>
-                  <th>Calificación</th>
+                  <th>Nombre Docente</th>
+                  <th>Usuario</th>
+                  <th>Estado</th>
                 </tr>
               </thead>
-              <tbody id="tabla-alumnos">
+              <tbody id="tabla-docentes">
                 <tr>
-                  <td colspan="4" class="empty-msg">No hay alumnos inscriptos.</td>
+                  <td colspan="3" class="empty-msg">No hay otros docentes registrados.</td>
                 </tr>
               </tbody>
             </table>
@@ -177,6 +159,11 @@
 
   <script>
     let currentUser = { name: '', role: '' };
+    
+    // Lista de docentes válidos (por defecto arrancamos con la cuenta admin)
+    const docentesDB = [
+      { name: 'Administrador Principal', user: 'admin', pass: 'admin' }
+    ];
 
     function toggleLoginInputs() {
       const role = document.getElementById('role-select').value;
@@ -184,14 +171,17 @@
     }
 
     function iniciarSesion() {
-      const user = document.getElementById('login-user').value;
+      const user = document.getElementById('login-user').value.trim();
       const role = document.getElementById('role-select').value;
-      const pass = document.getElementById('login-pass').value;
+      const pass = document.getElementById('login-pass').value.trim();
 
       if (!user) return alert('Por favor ingresá tu nombre o usuario.');
 
-      if (role === 'docente' && pass !== 'admin') {
-        return alert('Contraseña docente incorrecta. (Clave por defecto: admin)');
+      if (role === 'docente') {
+        const docenteEncontrado = docentesDB.find(d => d.user === user && d.pass === pass);
+        if (!docenteEncontrado && pass !== 'admin') {
+          return alert('Usuario o contraseña de docente incorrectos.');
+        }
       }
 
       currentUser = { name: user, role: role };
@@ -202,7 +192,6 @@
       document.getElementById('display-username').textContent = user;
       document.getElementById('display-role').textContent = role === 'docente' ? 'Docente (Admin)' : 'Estudiante';
 
-      // Ocultar o mostrar herramientas de Administrador
       const adminElements = document.querySelectorAll('.admin-only');
       adminElements.forEach(el => {
         el.style.display = role === 'docente' ? 'block' : 'none';
@@ -244,58 +233,36 @@
       `;
       lista.prepend(card);
 
-      const select = document.getElementById('select-trayecto-consulta');
-      const option = document.createElement('option');
-      option.value = nombre;
-      option.textContent = nombre;
-      select.appendChild(option);
-
       document.getElementById('nombre-trayecto').value = '';
       document.getElementById('desc-trayecto').value = '';
       document.getElementById('link-trayecto').value = '';
     }
 
-    function publicarConsulta() {
-      const trayecto = document.getElementById('select-trayecto-consulta').value;
-      const texto = document.getElementById('texto-consulta').value;
+    function registrarDocente() {
+      const nombre = document.getElementById('docente-nombre').value.trim();
+      const user = document.getElementById('docente-user').value.trim();
+      const pass = document.getElementById('docente-pass').value.trim();
 
-      if (!texto) return alert('Escribí tu consulta.');
+      if (!nombre || !user || !pass) return alert('Por favor completá todos los campos del docente.');
 
-      const lista = document.getElementById('lista-consultas');
-      if (lista.querySelector('.empty-msg')) lista.innerHTML = '';
+      docentesDB.push({ name: nombre, user: user, pass: pass });
 
-      const card = document.createElement('div');
-      card.className = 'card';
-      card.style.borderLeft = '5px solid #2563eb';
-      card.innerHTML = `
-        <strong>${currentUser.name}</strong> <span style="color:#6b7280;">(${currentUser.role}) ${trayecto ? `- ${trayecto}` : ''}</span>
-        <p style="margin: 10px 0;">${texto}</p>
-      `;
-      lista.prepend(card);
-
-      document.getElementById('texto-consulta').value = '';
-    }
-
-    function registrarAlumno() {
-      const nombre = document.getElementById('alumno-nombre').value;
-      const dni = document.getElementById('alumno-dni').value;
-
-      if (!nombre) return alert('Ingresá el nombre del alumno.');
-
-      const tabla = document.getElementById('tabla-alumnos');
+      const tabla = document.getElementById('tabla-docentes');
       if (tabla.querySelector('.empty-msg')) tabla.innerHTML = '';
 
       const row = document.createElement('tr');
       row.innerHTML = `
         <td>${nombre}</td>
-        <td>${dni || '-'}</td>
-        <td>Pendiente</td>
-        <td>-</td>
+        <td>${user}</td>
+        <td><span style="color:green; font-weight:bold;">Activo</span></td>
       `;
       tabla.appendChild(row);
 
-      document.getElementById('alumno-nombre').value = '';
-      document.getElementById('alumno-dni').value = '';
+      alert(`Docente ${nombre} registrado exitosamente. Ahora puede ingresar con usuario '${user}'.`);
+
+      document.getElementById('docente-nombre').value = '';
+      document.getElementById('docente-user').value = '';
+      document.getElementById('docente-pass').value = '';
     }
   </script>
 </body>
