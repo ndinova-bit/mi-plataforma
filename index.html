@@ -163,7 +163,7 @@
   </div>
 
   <script>
-    let currentUser = { name: '', role: '' };
+    let currentUser = { name: '', user: '', role: '' };
     
     const docentesDB = [
       { name: 'Administrador Principal', user: 'admin', pass: 'admin' }
@@ -180,7 +180,7 @@
       select.innerHTML = '';
       docentesDB.forEach(doc => {
         const option = document.createElement('option');
-        option.value = doc.name;
+        option.value = doc.user;
         option.textContent = doc.name + ' (@' + doc.user + ')';
         select.appendChild(option);
       });
@@ -193,19 +193,24 @@
 
       if (!user) return alert('Por favor ingresá tu nombre o usuario.');
 
+      let nombreMostrar = user;
+
       if (role === 'docente') {
         const docenteEncontrado = docentesDB.find(d => d.user === user && d.pass === pass);
         if (!docenteEncontrado && pass !== 'admin') {
           return alert('Usuario o contraseña de docente incorrectos.');
         }
+        if (docenteEncontrado) {
+          nombreMostrar = docenteEncontrado.name;
+        }
       }
 
-      currentUser = { name: user, role: role };
+      currentUser = { name: nombreMostrar, user: user, role: role };
 
       document.getElementById('login-screen').style.display = 'none';
       document.getElementById('app-screen').style.display = 'block';
 
-      document.getElementById('display-username').textContent = user;
+      document.getElementById('display-username').textContent = nombreMostrar;
       document.getElementById('display-role').textContent = role === 'docente' ? 'Docente (Admin)' : 'Estudiante';
 
       const adminElements = document.querySelectorAll('.admin-only');
@@ -214,6 +219,7 @@
       });
 
       actualizarSelectDocentes();
+      actualizarVisibilidadFormulariosMateriales();
       showTab('trayectos');
     }
 
@@ -243,7 +249,9 @@
 
     function crearTrayecto() {
       const nombre = document.getElementById('nombre-trayecto').value.trim();
-      const docente = document.getElementById('select-docente-trayecto').value;
+      const docenteUser = document.getElementById('select-docente-trayecto').value;
+      const docenteObj = docentesDB.find(d => d.user === docenteUser);
+      const docenteNombre = docenteObj ? docenteObj.name : docenteUser;
       const desc = document.getElementById('desc-trayecto').value.trim();
 
       if (!nombre) return alert('Ingresá el nombre del trayecto.');
@@ -254,20 +262,25 @@
       const cardId = 'trayecto-' + Date.now();
       const card = document.createElement('div');
       card.className = 'card';
+      card.setAttribute('data-docente-user', docenteUser);
+
       card.innerHTML = `
-        <span class="docente-badge">👨‍🏫 Docente: ${docente}</span>
+        <span class="docente-badge">👨‍🏫 Docente a cargo: ${docenteNombre}</span>
         <h3 style="margin-top:5px;">${nombre}</h3>
         <p>${desc}</p>
-        <button class="btn btn-secondary" style="font-size:13px;" onclick="toggleDetalle('${cardId}')">📁 Ver / Gestionar Contenidos y Materiales</button>
+        <button class="btn btn-secondary" style="font-size:13px;" onclick="toggleDetalle('${cardId}')">📁 Ver Materiales de Estudio</button>
         
         <div id="${cardId}" style="display:none; margin-top:20px; border-top:1px solid #e5e7eb; padding-top:15px;">
           <h4>Contenidos y Materiales del Trayecto</h4>
-          <div class="admin-only form-group" style="background:#f9fafb; padding:15px; border-radius:6px;">
-            <label style="font-size:13px;">Agregar nuevo material o enlace a Drive:</label>
+          
+          <!-- SOLO VISIBLE PARA EL DOCENTE ASIGNADO O EL ADMIN -->
+          <div class="form-gestion-material form-group" style="background:#f9fafb; padding:15px; border-radius:6px; display:none;">
+            <label style="font-size:13px;">Subir o vincular nuevo material (Solo Docente a Cargo):</label>
             <input type="text" placeholder="Título del Material (Ej: Guía de Actividades N° 1)" style="margin-bottom:8px;">
             <input type="url" placeholder="https://drive.google.com/..." style="margin-bottom:8px;">
             <button class="btn" style="padding:6px 12px; font-size:12px;" onclick="agregarMaterial(this)">Agregar Material</button>
           </div>
+
           <div class="lista-materiales">
             <p style="font-size:13px; color:#6b7280; font-style:italic;">Aún no se añadieron materiales a este trayecto.</p>
           </div>
@@ -277,11 +290,28 @@
 
       document.getElementById('nombre-trayecto').value = '';
       document.getElementById('desc-trayecto').value = '';
+      actualizarVisibilidadFormulariosMateriales();
     }
 
     function toggleDetalle(id) {
       const el = document.getElementById(id);
       el.style.display = el.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function actualizarVisibilidadFormulariosMateriales() {
+      const trayectos = document.querySelectorAll('#lista-trayectos .card');
+      trayectos.forEach(card => {
+        const docenteAsignado = card.getAttribute('data-docente-user');
+        const formMaterial = card.querySelector('.form-gestion-material');
+        if (formMaterial) {
+          // Se muestra solo si el usuario actual es el docente asignado o es el admin principal
+          if (currentUser.role === 'docente' && (currentUser.user === docenteAsignado || currentUser.user === 'admin')) {
+            formMaterial.style.display = 'block';
+          } else {
+            formMaterial.style.display = 'none';
+          }
+        }
+      });
     }
 
     function agregarMaterial(btn) {
