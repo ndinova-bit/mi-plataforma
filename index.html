@@ -40,7 +40,7 @@
     th { background: #f9fafb; }
     .empty-msg { color: #6b7280; font-style: italic; text-align: center; padding: 20px; }
     
-    .material-item { background: #f9fafb; border: 1px solid #e5e7eb; padding: 10px; border-radius: 6px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; }
+    .material-item { background: #f9fafb; border: 1px solid #e5e7eb; padding: 10px 15px; border-radius: 6px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; }
     .docente-badge { display: inline-block; background: #e0e7ff; color: #3730a3; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; margin-bottom: 10px; }
   </style>
 </head>
@@ -76,6 +76,7 @@
         <div>
           <div class="sidebar-header">Plataforma Educativa</div>
           <button id="btn-trayectos" class="active" onclick="showTab('trayectos')">📚 Trayectos Formativos</button>
+          <button id="btn-contenidos" class="admin-only" onclick="showTab('contenidos')">📂 Gestión de Contenidos</button>
           <button id="btn-docentes" class="admin-only" onclick="showTab('docentes')">👨‍🏫 Alta de Docentes</button>
         </div>
         
@@ -118,7 +119,31 @@
           </div>
         </div>
 
-        <!-- SECCIÓN 2: ALTA DE DOCENTES -->
+        <!-- SECCIÓN 2: GESTIÓN DE CONTENIDOS (NUEVA) -->
+        <div id="contenidos" class="section admin-only">
+          <h2>Gestión de Contenidos y Materiales</h2>
+          
+          <div class="card">
+            <h3>Subir / Vincular Material a un Trayecto</h3>
+            <div class="form-group">
+              <label>Seleccionar Trayecto:</label>
+              <select id="select-trayecto-contenido">
+                <!-- Se llena con los trayectos disponibles -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Título del Material:</label>
+              <input type="text" id="material-titulo" placeholder="Ej: Clase 1 - Presentación en PDF">
+            </div>
+            <div class="form-group">
+              <label>Enlace al recurso (Google Drive, YouTube, Web):</label>
+              <input type="url" id="material-link" placeholder="https://drive.google.com/...">
+            </div>
+            <button class="btn" onclick="guardarMaterial()">Publicar Material</button>
+          </div>
+        </div>
+
+        <!-- SECCIÓN 3: ALTA DE DOCENTES -->
         <div id="docentes" class="section admin-only">
           <h2>Alta y Registro de Docentes</h2>
           
@@ -169,21 +194,44 @@
       { name: 'Administrador Principal', user: 'admin', pass: 'admin' }
     ];
 
+    const trayectosDB = [];
+
     function toggleLoginInputs() {
       const role = document.getElementById('role-select').value;
       document.getElementById('pass-group').style.display = role === 'docente' ? 'block' : 'none';
     }
 
-    function actualizarSelectDocentes() {
-      const select = document.getElementById('select-docente-trayecto');
-      if (!select) return;
-      select.innerHTML = '';
-      docentesDB.forEach(doc => {
-        const option = document.createElement('option');
-        option.value = doc.user;
-        option.textContent = doc.name + ' (@' + doc.user + ')';
-        select.appendChild(option);
-      });
+    function actualizarSelects() {
+      // 1. Select de docentes al crear trayecto
+      const selectDoc = document.getElementById('select-docente-trayecto');
+      if (selectDoc) {
+        selectDoc.innerHTML = '';
+        docentesDB.forEach(doc => {
+          const option = document.createElement('option');
+          option.value = doc.user;
+          option.textContent = doc.name + ' (@' + doc.user + ')';
+          selectDoc.appendChild(option);
+        });
+      }
+
+      // 2. Select de trayectos al subir contenido
+      const selectTray = document.getElementById('select-trayecto-contenido');
+      if (selectTray) {
+        selectTray.innerHTML = '';
+        if (trayectosDB.length === 0) {
+          const option = document.createElement('option');
+          option.textContent = 'No hay trayectos creados';
+          selectTray.appendChild(option);
+        } else {
+          trayectosDB.forEach(t => {
+            // Filtrar opcionalmente por docente si se desea
+            const option = document.createElement('option');
+            option.value = t.id;
+            option.textContent = t.nombre + ' (A cargo: ' + t.docenteNombre + ')';
+            selectTray.appendChild(option);
+          });
+        }
+      }
     }
 
     function iniciarSesion() {
@@ -218,8 +266,7 @@
         el.style.display = role === 'docente' ? 'block' : 'none';
       });
 
-      actualizarSelectDocentes();
-      actualizarVisibilidadFormulariosMateriales();
+      actualizarSelects();
       showTab('trayectos');
     }
 
@@ -256,41 +303,58 @@
 
       if (!nombre) return alert('Ingresá el nombre del trayecto.');
 
-      const lista = document.getElementById('lista-trayectos');
-      if (lista.querySelector('.empty-msg')) lista.innerHTML = '';
+      const id = 'trayecto-' + Date.now();
+      const nuevoTrayecto = { id, nombre, docenteUser, docenteNombre, desc, materiales: [] };
+      trayectosDB.push(nuevoTrayecto);
 
-      const cardId = 'trayecto-' + Date.now();
-      const card = document.createElement('div');
-      card.className = 'card';
-      card.setAttribute('data-docente-user', docenteUser);
-
-      card.innerHTML = `
-        <span class="docente-badge">👨‍🏫 Docente a cargo: ${docenteNombre}</span>
-        <h3 style="margin-top:5px;">${nombre}</h3>
-        <p>${desc}</p>
-        <button class="btn btn-secondary" style="font-size:13px;" onclick="toggleDetalle('${cardId}')">📁 Ver Materiales de Estudio</button>
-        
-        <div id="${cardId}" style="display:none; margin-top:20px; border-top:1px solid #e5e7eb; padding-top:15px;">
-          <h4>Contenidos y Materiales del Trayecto</h4>
-          
-          <!-- SOLO VISIBLE PARA EL DOCENTE ASIGNADO O EL ADMIN -->
-          <div class="form-gestion-material form-group" style="background:#f9fafb; padding:15px; border-radius:6px; display:none;">
-            <label style="font-size:13px;">Subir o vincular nuevo material (Solo Docente a Cargo):</label>
-            <input type="text" placeholder="Título del Material (Ej: Guía de Actividades N° 1)" style="margin-bottom:8px;">
-            <input type="url" placeholder="https://drive.google.com/..." style="margin-bottom:8px;">
-            <button class="btn" style="padding:6px 12px; font-size:12px;" onclick="agregarMaterial(this)">Agregar Material</button>
-          </div>
-
-          <div class="lista-materiales">
-            <p style="font-size:13px; color:#6b7280; font-style:italic;">Aún no se añadieron materiales a este trayecto.</p>
-          </div>
-        </div>
-      `;
-      lista.prepend(card);
+      renderizarTrayectos();
+      actualizarSelects();
 
       document.getElementById('nombre-trayecto').value = '';
       document.getElementById('desc-trayecto').value = '';
-      actualizarVisibilidadFormulariosMateriales();
+    }
+
+    function renderizarTrayectos() {
+      const lista = document.getElementById('lista-trayectos');
+      if (trayectosDB.length === 0) {
+        lista.innerHTML = '<div class="card empty-msg">No hay trayectos activos.</div>';
+        return;
+      }
+
+      lista.innerHTML = '';
+      trayectosDB.forEach(t => {
+        const card = document.createElement('div');
+        card.className = 'card';
+
+        let htmlMateriales = '';
+        if (t.materiales.length === 0) {
+          htmlMateriales = '<p style="font-size:13px; color:#6b7280; font-style:italic;">Aún no hay materiales subidos para este trayecto.</p>';
+        } else {
+          t.materiales.forEach(m => {
+            htmlMateriales += `
+              <div class="material-item">
+                <span>📄 <strong>${m.titulo}</strong></span>
+                <a href="${m.link}" target="_blank" class="btn" style="text-decoration:none; font-size:12px; padding:5px 10px;">Abrir Material</a>
+              </div>
+            `;
+          });
+        }
+
+        card.innerHTML = `
+          <span class="docente-badge">👨‍🏫 Docente a cargo: ${t.docenteNombre}</span>
+          <h3 style="margin-top:5px;">${t.nombre}</h3>
+          <p>${t.desc}</p>
+          <button class="btn btn-secondary" style="font-size:13px;" onclick="toggleDetalle('${t.id}')">📁 Ver Materiales de Estudio</button>
+          
+          <div id="${t.id}" style="display:none; margin-top:20px; border-top:1px solid #e5e7eb; padding-top:15px;">
+            <h4>Materiales de Estudio</h4>
+            <div id="mat-list-${t.id}">
+              ${htmlMateriales}
+            </div>
+          </div>
+        `;
+        lista.appendChild(card);
+      });
     }
 
     function toggleDetalle(id) {
@@ -298,45 +362,27 @@
       el.style.display = el.style.display === 'none' ? 'block' : 'none';
     }
 
-    function actualizarVisibilidadFormulariosMateriales() {
-      const trayectos = document.querySelectorAll('#lista-trayectos .card');
-      trayectos.forEach(card => {
-        const docenteAsignado = card.getAttribute('data-docente-user');
-        const formMaterial = card.querySelector('.form-gestion-material');
-        if (formMaterial) {
-          // Se muestra solo si el usuario actual es el docente asignado o es el admin principal
-          if (currentUser.role === 'docente' && (currentUser.user === docenteAsignado || currentUser.user === 'admin')) {
-            formMaterial.style.display = 'block';
-          } else {
-            formMaterial.style.display = 'none';
-          }
-        }
-      });
-    }
+    function guardarMaterial() {
+      const trayectoId = document.getElementById('select-trayecto-contenido').value;
+      const titulo = document.getElementById('material-titulo').value.trim();
+      const link = document.getElementById('material-link').value.trim();
 
-    function agregarMaterial(btn) {
-      const container = btn.parentElement;
-      const tituloInput = container.querySelectorAll('input')[0];
-      const linkInput = container.querySelectorAll('input')[1];
+      if (!trayectoId || trayectoId === 'No hay trayectos creados') {
+        return alert('Primero debés crear un trayecto.');
+      }
+      if (!titulo || !link) {
+        return alert('Completá el título y el enlace al recurso.');
+      }
 
-      const titulo = tituloInput.value.trim();
-      const link = linkInput.value.trim();
-
-      if (!titulo || !link) return alert('Completá el título y el enlace al material.');
-
-      const listaMat = container.nextElementSibling;
-      if (listaMat.querySelector('p')) listaMat.innerHTML = '';
-
-      const item = document.createElement('div');
-      item.className = 'material-item';
-      item.innerHTML = `
-        <span>📄 <strong>${titulo}</strong></span>
-        <a href="${link}" target="_blank" class="btn" style="text-decoration:none; font-size:12px; padding:5px 10px;">Abrir Material</a>
-      `;
-      listaMat.appendChild(item);
-
-      tituloInput.value = '';
-      linkInput.value = '';
+      const trayecto = trayectosDB.find(t => t.id === trayectoId);
+      if (trayecto) {
+        trayecto.materiales.push({ titulo, link });
+        renderizarTrayectos();
+        alert('Material publicado exitosamente.');
+        document.getElementById('material-titulo').value = '';
+        document.getElementById('material-link').value = '';
+        showTab('trayectos');
+      }
     }
 
     function registrarDocente() {
@@ -359,7 +405,7 @@
       `;
       tabla.appendChild(row);
 
-      actualizarSelectDocentes();
+      actualizarSelects();
 
       alert(`Docente ${nombre} registrado exitosamente.`);
 
