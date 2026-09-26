@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Plataforma Educativa - FP (DGCyE PBA)</title>
+  <title>Plataforma Educativa - FP (DGCyE PBA) v3</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- Librería para lectura de Excel y CSV -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -203,7 +203,7 @@
           <div id="lista-trayectos"><div class="card empty-msg">Cargando trayectos...</div></div>
         </div>
 
-        <!-- SEGUIMIENTO DE ESTUDIANTES -->
+        <!-- SEGUIMIENTO DE ESTUDIANTES (ADMIN Y DOCENTES) -->
         <div id="estudiantes" class="section docente-or-admin">
           <h2>Seguimiento Académico de Alumnos y Certificaciones</h2>
           <div class="card">
@@ -215,7 +215,7 @@
           <div id="contenedor-seguimiento"></div>
         </div>
 
-        <!-- CONTENIDOS (Solo Docentes) -->
+        <!-- CONTENIDOS (EXCLUSIVO DOCENTES) -->
         <div id="contenidos" class="section docente-only">
           <h2>Gestión de Contenidos y Trabajos Prácticos</h2>
           <div class="card">
@@ -238,7 +238,7 @@
           </div>
         </div>
 
-        <!-- REVISIONES (Solo Docentes) -->
+        <!-- REVISIONES (EXCLUSIVO DOCENTES) -->
         <div id="revisiones" class="section docente-only">
           <h2>Revisiones de Entregas</h2>
           <div class="card">
@@ -251,7 +251,7 @@
           </div>
         </div>
 
-        <!-- USUARIOS -->
+        <!-- USUARIOS (EXCLUSIVO ADMIN) -->
         <div id="usuarios" class="section admin-only">
           <h2>Alta y Administración de Usuarios</h2>
           
@@ -407,18 +407,18 @@
       if (currentUser.role === 'docente') tagRol = 'Docente';
       document.getElementById('display-role').textContent = tagRol;
 
-      // Ocultamiento estricto por rol
+      // Ocultamiento estricto y preciso por roles
       document.querySelectorAll('.admin-only').forEach(el => {
-        el.style.display = currentUser.role === 'admin' ? 'block' : 'none';
+        el.style.display = (currentUser.role === 'admin') ? 'block' : 'none';
       });
 
       document.querySelectorAll('.docente-only').forEach(el => {
-        el.style.display = currentUser.role === 'docente' ? 'block' : 'none';
+        el.style.display = (currentUser.role === 'docente') ? 'block' : 'none';
       });
 
       document.querySelectorAll('.docente-or-admin').forEach(el => {
         const esDocenteOAdmin = (currentUser.role === 'admin' || currentUser.role === 'docente');
-        el.style.display = esDocenteOAdmin ? (el.tagName === 'BUTTON' ? 'block' : el.style.display) : 'none';
+        el.style.display = esDocenteOAdmin ? (el.tagName === 'BUTTON' ? 'block' : 'block') : 'none';
       });
 
       cargarDatosDashboard();
