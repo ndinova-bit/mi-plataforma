@@ -173,8 +173,8 @@
           <div class="card" style="border-left: 4px solid #10b981;">
             <h3>📊 Carga Masiva de Estudiantes (Excel / CSV)</h3>
             <p style="font-size:13px; color:#4b5563;">
-              Subí un archivo <strong>.xlsx</strong> o <strong>.csv</strong> con las columnas: 
-              <code>Nombre Completo</code>, <code>Usuario</code>, <code>Contraseña</code>, <code>Trayecto</code>.
+              Subí un archivo <strong>.xlsx</strong> o <strong>.csv</strong>. Podés usar las columnas: 
+              <code>Apellido</code>, <code>Nombre</code> (o <code>Nombre Completo</code>), <code>Usuario</code> (o DNI), <code>Contraseña</code>, <code>Trayecto</code>.
             </p>
             <div class="form-group">
               <input type="file" id="excel-file-input" accept=".xlsx, .xls, .csv">
@@ -355,7 +355,7 @@
       }
     }
 
-    /* CARGA MASIVA DESDE EXCEL / CSV CON CONTROL DE DUPLICADOS */
+    /* CARGA MASIVA CON APELLIDO/NOMBRE Y CONVERSIÓN A MAYÚSCULAS */
     async function procesarCargaMasiva() {
       const fileInput = document.getElementById('excel-file-input');
       const file = fileInput.files[0];
@@ -372,7 +372,6 @@
 
           if (rows.length === 0) return alert('El archivo está vacío.');
 
-          // Cargar trayectos, usuarios e inscripciones actuales para comparar
           const { data: trayectosDB } = await db.from('trayectos').select('*');
           const { data: usuariosDB } = await db.from('usuarios').select('*');
           const { data: inscripcionesDB } = await db.from('inscripciones').select('*');
@@ -382,21 +381,35 @@
           let omitidos = 0;
 
           for (const row of rows) {
-            const nombre = String(row['Nombre Completo'] || row['nombre'] || '').trim();
-            const usuario = String(row['Usuario'] || row['DNI'] || row['usuario'] || '').trim();
+            // Lectura adaptable: soporta Apellido + Nombre O Nombre Completo
+            const apellido = String(row['Apellido'] || row['apellido'] || '').trim();
+            const nombreSolo = String(row['Nombre'] || row['nombre'] || '').trim();
+            const nombreCompletoRaw = String(row['Nombre Completo'] || row['nombre_completo'] || '').trim();
+
+            let nombreFinal = '';
+            if (apellido || nombreSolo) {
+              nombreFinal = `${apellido} ${nombreSolo}`.trim();
+            } else {
+              nombreFinal = nombreCompletoRaw;
+            }
+
+            // CONVERSIÓN OBLIGATORIA A MAYÚSCULAS
+            nombreFinal = nombreFinal.toUpperCase();
+
+            const usuario = String(row['Usuario'] || row['DNI'] || row['dni'] || row['usuario'] || '').trim();
             const pass = String(row['Contraseña'] || row['pass'] || row['Contrasena'] || '').trim();
             const nombreTrayecto = String(row['Trayecto'] || row['trayecto'] || '').trim();
 
-            if (!nombre || !usuario || !pass) continue;
+            if (!nombreFinal || !usuario || !pass) continue;
 
             // 1. Verificar si el usuario ya existe
             let userExiste = usuariosDB ? usuariosDB.find(u => u.usuario.toLowerCase() === usuario.toLowerCase()) : null;
 
             if (!userExiste) {
               const { data: nuevoU, error } = await db.from('usuarios').insert([{
-                nombre,
-                usuario,
-                pass,
+                nombre: nombreFinal,
+                usuario: usuario,
+                pass: pass,
                 rol: 'estudiante'
               }]).select();
 
