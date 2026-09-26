@@ -145,8 +145,8 @@
           <div class="sidebar-header">Plataforma Educativa - FP</div>
           <button id="btn-trayectos" class="active" onclick="showTab('trayectos')">📚 Trayectos Formativos</button>
           <button id="btn-estudiantes" class="docente-or-admin" onclick="showTab('estudiantes')">🎓 Seguimiento Alumnos</button>
-          <button id="btn-contenidos" class="docente-or-admin" onclick="showTab('contenidos')">📂 Cargar Contenidos y TPs</button>
-          <button id="btn-revisiones" class="docente-or-admin" onclick="showTab('revisiones')">📝 Corregir Entregas</button>
+          <button id="btn-contenidos" class="docente-only" onclick="showTab('contenidos')">📂 Cargar Contenidos y TPs</button>
+          <button id="btn-revisiones" class="docente-only" onclick="showTab('revisiones')">📝 Corregir Entregas</button>
           <button id="btn-usuarios" class="admin-only" onclick="showTab('usuarios')">👥 Gestión de Usuarios</button>
         </div>
         <div class="user-info">
@@ -216,7 +216,7 @@
         </div>
 
         <!-- CONTENIDOS -->
-        <div id="contenidos" class="section docente-or-admin">
+        <div id="contenidos" class="section docente-only">
           <h2>Gestión de Contenidos y Trabajos Prácticos</h2>
           <div class="card">
             <h3>📖 Cargar Clase</h3>
@@ -239,7 +239,7 @@
         </div>
 
         <!-- REVISIONES -->
-        <div id="revisiones" class="section docente-or-admin">
+        <div id="revisiones" class="section docente-only">
           <h2>Revisiones de Entregas</h2>
           <div class="card">
             <table>
@@ -407,8 +407,13 @@
       if (currentUser.role === 'docente') tagRol = 'Docente';
       document.getElementById('display-role').textContent = tagRol;
 
+      // Permisos específicos por rol
       document.querySelectorAll('.admin-only').forEach(el => {
         el.style.display = currentUser.role === 'admin' ? 'block' : 'none';
+      });
+
+      document.querySelectorAll('.docente-only').forEach(el => {
+        el.style.display = currentUser.role === 'docente' ? 'block' : 'none';
       });
 
       document.querySelectorAll('.docente-or-admin').forEach(el => {
@@ -471,7 +476,7 @@
     async function cargarDatosDashboard() {
       await actualizarSelects();
       await renderizarTrayectos();
-      if (currentUser.role === 'admin' || currentUser.role === 'docente') {
+      if (currentUser.role === 'docente') {
         await renderizarRevisiones();
       }
       if (currentUser.role === 'admin') {
@@ -554,13 +559,13 @@
         }
       });
 
-      // Mapeamos únicamente las columnas existentes en la tabla Supabase 'trayectos':
-      // 'nombre', 'resolucion', 'docente_user', 'docente_nombre', 'descripcion', 'modulos'
       const fullDescripcion = `Hs Reloj: ${horas || '-'} | CFP N° ${cfp || '-'} - Distrito: ${distrito || '-'} | Emisión: ${fecha_entrega || '-'} | ${desc}`;
 
       const { data, error } = await db.from('trayectos').insert([{ 
         nombre, 
         resolucion: certificacion, 
+        horas: horas || '',
+        fecha_entrega: fecha_entrega || '',
         docente_user: docentesUsers || 'Sin asignar', 
         docente_nombre: docentesNombres || 'Sin asignar', 
         descripcion: fullDescripcion,
@@ -713,7 +718,7 @@
         const uInfo = usuarios ? usuarios.find(u => u.usuario === i.estudiante_user) : null;
         const nombreAlumno = uInfo ? uInfo.nombre : i.estudiante_user;
 
-        let htmlTrabajos = '<table><thead><tr><th>Trabajo Práctico</th><th>Estado</th><th>Fecha Entrega</th><th>Archivo</th><th>Nota / Feedback</th></tr></thead><tbody>';
+        let htmlTrabajos = '<table><thead><tr><th>Trabajo Práctico</th><th>Estado</th><th>Fecha Entrega</th><th>Archivo</th><th>Nota / Feedback (Docente)</th></tr></thead><tbody>';
 
         if (!contenidos || contenidos.length === 0) {
           htmlTrabajos += '<tr><td colspan="5" class="empty-msg">No hay TPs asignados en este trayecto.</td></tr>';
@@ -732,7 +737,7 @@
                   <td><span class="badge-estado ${badgeClass}">${estadoTexto}</span></td>
                   <td>${entrega.fecha}</td>
                   <td><a href="${entrega.link}" target="_blank" class="btn" style="padding:3px 6px; font-size:11px;">Ver Trabajo</a></td>
-                  <td>${entrega.nota || '-'}</td>
+                  <td><strong>${entrega.nota || 'Aún sin calificar'}</strong></td>
                 </tr>`;
             } else {
               htmlTrabajos += `
@@ -788,8 +793,7 @@
       document.getElementById('cert-txt-dni').textContent = dniFormateado;
       document.getElementById('cert-txt-trayecto').textContent = completarConPuntos(trayecto.nombre, 50);
 
-      // Parseo de horas desde descripcion
-      let hsReloj = '360';
+      let hsReloj = trayecto.horas || '360';
       if (trayecto.descripcion && trayecto.descripcion.includes('Hs Reloj:')) {
         const matchHs = trayecto.descripcion.match(/Hs Reloj: (.*?) \|/);
         if (matchHs) hsReloj = matchHs[1];
@@ -797,7 +801,7 @@
       document.getElementById('cert-txt-horas').textContent = hsReloj;
       document.getElementById('cert-txt-certificacion').textContent = completarConPuntos(trayecto.resolucion || trayecto.nombre, 45);
 
-      let fechaEmision = '15 de Diciembre de 2026';
+      let fechaEmision = trayecto.fecha_entrega || '15 de Diciembre de 2026';
       if (trayecto.descripcion && trayecto.descripcion.includes('Emisión:')) {
         const matchFecha = trayecto.descripcion.match(/Emisión: (.*?) \|/);
         if (matchFecha) fechaEmision = matchFecha[1];
