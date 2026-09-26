@@ -527,7 +527,71 @@
       }
     }
 
-      async function renderizarTrayectos() {
+    async function crearTrayecto() {
+      const nombre = document.getElementById('nombre-trayecto').value.trim();
+      const certificacion = document.getElementById('certificacion-trayecto').value.trim();
+      const horas = document.getElementById('horas-trayecto').value;
+      const cfp = document.getElementById('cfp-trayecto').value.trim();
+      const distrito = document.getElementById('distrito-trayecto').value.trim();
+      const fecha_entrega = document.getElementById('fecha-entrega-trayecto').value.trim();
+      const desc = document.getElementById('desc-trayecto').value.trim();
+
+      if (!nombre) {
+        return alert('Por favor, ingresá el nombre del trayecto o curso.');
+      }
+
+      const chksSelected = Array.from(document.querySelectorAll('.chk-docente-trayecto:checked'));
+      const docentesUsers = chksSelected.map(cb => cb.value).join(', ');
+      const docentesNombres = chksSelected.map(cb => cb.getAttribute('data-nombre')).join(', ');
+
+      const modulosRows = document.querySelectorAll('#contenedor-modulos .modulo-row');
+      const modulosArray = [];
+      modulosRows.forEach(row => {
+        const nom = row.querySelector('.mod-nombre').value.trim();
+        const cod = row.querySelector('.mod-codigo').value.trim();
+        if (nom) {
+          modulosArray.push({ nombre: nom, codigo: cod });
+        }
+      });
+
+      const fullDescripcion = `CFP N° ${cfp} - Distrito: ${distrito} | Emisión: ${fecha_entrega} | ${desc}`;
+
+      const { data, error } = await db.from('trayectos').insert([{ 
+        nombre, 
+        resolucion: certificacion, 
+        horas, 
+        docente_user: docentesUsers || 'Sin asignar', 
+        docente_nombre: docentesNombres || 'Sin asignar', 
+        descripcion: fullDescripcion,
+        modulos: JSON.stringify(modulosArray)
+      }]).select();
+
+      if (error) {
+        console.error('Error Supabase:', error);
+        return alert('Error de Supabase al guardar: ' + error.message);
+      }
+
+      alert('¡Trayecto Formativo guardado con éxito!');
+
+      document.getElementById('nombre-trayecto').value = '';
+      document.getElementById('certificacion-trayecto').value = '';
+      document.getElementById('horas-trayecto').value = '';
+      document.getElementById('cfp-trayecto').value = '';
+      document.getElementById('distrito-trayecto').value = '';
+      document.getElementById('fecha-entrega-trayecto').value = '';
+      document.getElementById('desc-trayecto').value = '';
+      document.querySelectorAll('.chk-docente-trayecto').forEach(cb => cb.checked = false);
+      document.getElementById('contenedor-modulos').innerHTML = `
+        <div class="modulo-row">
+          <input type="text" class="mod-nombre" placeholder="Nombre del Módulo" style="width: 70%;">
+          <input type="text" class="mod-codigo" placeholder="Código (Ej: GH0057.1)" style="width: 25%;">
+          <button class="btn btn-danger" onclick="eliminarFilaModulo(this)" style="padding:6px 10px;">X</button>
+        </div>`;
+
+      await cargarDatosDashboard();
+    }
+
+    async function renderizarTrayectos() {
       const container = document.getElementById('lista-trayectos');
       let { data: trayectos, error } = await db.from('trayectos').select('*');
       const { data: contenidos } = await db.from('contenidos').select('*');
