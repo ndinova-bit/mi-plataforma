@@ -215,7 +215,7 @@
           <div id="contenedor-seguimiento"></div>
         </div>
 
-        <!-- CONTENIDOS -->
+        <!-- CONTENIDOS (Solo Docentes) -->
         <div id="contenidos" class="section docente-only">
           <h2>Gestión de Contenidos y Trabajos Prácticos</h2>
           <div class="card">
@@ -238,7 +238,7 @@
           </div>
         </div>
 
-        <!-- REVISIONES -->
+        <!-- REVISIONES (Solo Docentes) -->
         <div id="revisiones" class="section docente-only">
           <h2>Revisiones de Entregas</h2>
           <div class="card">
@@ -407,7 +407,7 @@
       if (currentUser.role === 'docente') tagRol = 'Docente';
       document.getElementById('display-role').textContent = tagRol;
 
-      // Permisos específicos por rol
+      // Ocultamiento estricto por rol
       document.querySelectorAll('.admin-only').forEach(el => {
         el.style.display = currentUser.role === 'admin' ? 'block' : 'none';
       });
