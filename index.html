@@ -175,7 +175,7 @@
             </div>
 
             <div class="grid-2">
-              <div class="form-group"><label>Fecha de Confección / Emisión:</label><input type="text" id="fecha-entrega-trayecto" placeholder="Ej: 01 de Julio de 2026"></div>
+              <div class="form-group"><label>Fecha de Confección / Emisión:</label><input type="text" id="fecha-entrega-trayecto" placeholder="Ej: 15 de Diciembre de 2026"></div>
               <div class="form-group">
                 <label>Docentes a Cargo (Opcional):</label>
                 <div id="checkboxes-docentes-trayecto" class="checkbox-group"></div>
@@ -335,7 +335,7 @@
       </div>
 
       <div class="cert-line-group" style="margin-top: 15px;">
-        <span class="cert-val-fecha" id="cert-txt-fecha-frente">01 de Julio de 2026</span>
+        <span class="cert-val-fecha" id="cert-txt-fecha-frente">15 de Diciembre de 2026</span>
       </div>
 
       <div class="cert-firmas-box">
@@ -355,7 +355,7 @@
       </div>
 
       <div class="cert-reverso-footer">
-        Fecha de egreso <span class="cert-val-fecha" id="cert-txt-fecha-egreso">29 de Noviembre de 2026</span>.......... N° de egresado <span class="cert-val-fecha" id="cert-txt-num-egresado">000000</span>
+        Fecha de egreso <span class="cert-val-fecha" id="cert-txt-fecha-egreso">15 de Diciembre de 2026</span>.......... N° de egresado <span class="cert-val-fecha" id="cert-txt-num-egresado">000000</span>
       </div>
 
       <div class="cert-firmas-box" style="margin-top: 10px;">
@@ -554,14 +554,16 @@
         }
       });
 
+      // Se guarda la información en los campos estándar de Supabase
+      const fullDescripcion = `CFP N° ${cfp} - Distrito: ${distrito} | Emisión: ${fecha_entrega} | ${desc}`;
+
       const { data, error } = await db.from('trayectos').insert([{ 
         nombre, 
         resolucion: certificacion, 
         horas, 
-        fecha_entrega, 
         docente_user: docentesUsers || 'Sin asignar', 
         docente_nombre: docentesNombres || 'Sin asignar', 
-        descripcion: `CFP N° ${cfp} - Distrito: ${distrito} | ${desc}`,
+        descripcion: fullDescripcion,
         modulos: JSON.stringify(modulosArray)
       }]).select();
 
@@ -602,20 +604,17 @@
         return;
       }
 
-      // Vistas diferenciadas por Rol
       if (currentUser.role === 'estudiante') {
         const { data: inscripciones } = await db.from('inscripciones').select('trayecto_id').eq('estudiante_user', currentUser.user);
         const idsInscriptos = inscripciones ? inscripciones.map(i => i.trayecto_id) : [];
         trayectos = trayectos ? trayectos.filter(t => idsInscriptos.includes(t.id)) : [];
       } else if (currentUser.role === 'docente') {
-        // Un docente solo ve sus trayectos
         trayectos = trayectos ? trayectos.filter(t => {
           if (!t.docente_user) return false;
           const docentesArr = t.docente_user.split(',').map(s => s.trim());
           return docentesArr.includes(currentUser.user);
         }) : [];
       }
-      // NOTA: Si es 'admin', no se filtra nada y ve la lista completa.
 
       if (!trayectos || trayectos.length === 0) {
         container.innerHTML = '<div class="card empty-msg">No hay trayectos creados o asignados a este usuario.</div>';
@@ -677,7 +676,7 @@
           <span class="docente-badge">Docente(s): ${t.docente_nombre || 'Sin asignar'}</span>
           <h3>${t.nombre}</h3>
           <p style="font-size:13px; color:#4b5563;">
-            <strong>Carga Horaria:</strong> ${t.horas || '-'} hs reloj | <strong>Emisión:</strong> ${t.fecha_entrega || '-'}
+            <strong>Carga Horaria:</strong> ${t.horas || '-'} hs reloj
           </p>
           <p>${t.descripcion || ''}</p>
           <button class="btn btn-secondary" onclick="document.getElementById('det-${t.id}').style.display = document.getElementById('det-${t.id}').style.display === 'none'?'block':'none'">Ver Contenidos y TPs</button>
@@ -769,7 +768,7 @@
       const trayecto = JSON.parse(decodeURIComponent(trayectoJson));
       const alumno = decodeURIComponent(alumnoNombre);
 
-      const fEgreso = prompt('Ingrese Fecha de Egreso (Ej: 29 de Noviembre de 2026):', '29 de Noviembre de 2026');
+      const fEgreso = prompt('Ingrese Fecha de Egreso (Ej: 15 de Diciembre de 2026):', '15 de Diciembre de 2026');
       if (!fEgreso) return;
 
       const numEgresado = prompt('Ingrese N° de Egresado asignado:', '547854');
@@ -791,7 +790,13 @@
       document.getElementById('cert-txt-trayecto').textContent = completarConPuntos(trayecto.nombre, 50);
       document.getElementById('cert-txt-horas').textContent = trayecto.horas || '360';
       document.getElementById('cert-txt-certificacion').textContent = completarConPuntos(trayecto.resolucion || trayecto.nombre, 45);
-      document.getElementById('cert-txt-fecha-frente').textContent = trayecto.fecha_entrega || '01 de Julio de 2026';
+
+      let fechaEmision = '15 de Diciembre de 2026';
+      if (trayecto.descripcion && trayecto.descripcion.includes('Emisión:')) {
+        const matchFecha = trayecto.descripcion.match(/Emisión: (.*?) \|/);
+        if (matchFecha) fechaEmision = matchFecha[1];
+      }
+      document.getElementById('cert-txt-fecha-frente').textContent = fechaEmision;
 
       let modulosList = [];
       try {
