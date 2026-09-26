@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Plataforma Educativa</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Librería para lectura de Excel y CSV -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
     * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     body { margin: 0; background: #f3f4f6; color: #1f2937; height: 100vh; }
@@ -100,7 +102,6 @@
         <div id="trayectos" class="section active">
           <h2>Trayectos Formativos</h2>
           
-          <!-- Alta de trayectos: SOLO VISIBLE PARA ADMIN -->
           <div class="card admin-only">
             <h3>Crear Nuevo Trayecto</h3>
             <div class="form-group"><label>Nombre del Trayecto:</label><input type="text" id="nombre-trayecto"></div>
@@ -167,8 +168,22 @@
         <!-- USUARIOS: SOLO VISIBLE PARA ADMIN -->
         <div id="usuarios" class="section admin-only">
           <h2>Alta y Administración de Usuarios</h2>
+          
+          <!-- CARGA MASIVA -->
+          <div class="card" style="border-left: 4px solid #10b981;">
+            <h3>📊 Carga Masiva de Estudiantes (Excel / CSV)</h3>
+            <p style="font-size:13px; color:#4b5563;">
+              Subí un archivo <strong>.xlsx</strong> o <strong>.csv</strong> con las columnas: 
+              <code>Nombre Completo</code>, <code>Usuario</code>, <code>Contraseña</code>, <code>Trayecto</code>.
+            </p>
+            <div class="form-group">
+              <input type="file" id="excel-file-input" accept=".xlsx, .xls, .csv">
+            </div>
+            <button class="btn btn-success" onclick="procesarCargaMasiva()">📤 Importar Estudiantes desde Archivo</button>
+          </div>
+
           <div class="card">
-            <h3>Registrar Nuevo Usuario</h3>
+            <h3>Registrar Nuevo Usuario Individual</h3>
             <div class="form-group"><label>Nombre Completo:</label><input type="text" id="user-nombre"></div>
             <div class="form-group"><label>Nombre de Usuario:</label><input type="text" id="user-usuario"></div>
             <div class="form-group"><label>Contraseña:</label><input type="password" id="user-pass"></div>
@@ -186,6 +201,7 @@
             </div>
             <button class="btn" onclick="registrarUsuario()">Crear Usuario</button>
           </div>
+
           <div class="card">
             <h3>Usuarios Registrados</h3>
             <table>
@@ -339,6 +355,88 @@
       }
     }
 
+    /* CARGA MASIVA DESDE EXCEL / CSV CON CONTROL DE DUPLICADOS */
+    async function procesarCargaMasiva() {
+      const fileInput = document.getElementById('excel-file-input');
+      const file = fileInput.files[0];
+
+      if (!file) return alert('Por favor seleccioná un archivo de Excel o CSV.');
+
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheet = workbook.SheetNames[0];
+          const rows = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet]);
+
+          if (rows.length === 0) return alert('El archivo está vacío.');
+
+          // Cargar trayectos, usuarios e inscripciones actuales para comparar
+          const { data: trayectosDB } = await db.from('trayectos').select('*');
+          const { data: usuariosDB } = await db.from('usuarios').select('*');
+          const { data: inscripcionesDB } = await db.from('inscripciones').select('*');
+
+          let creados = 0;
+          let inscriptosNuevos = 0;
+          let omitidos = 0;
+
+          for (const row of rows) {
+            const nombre = String(row['Nombre Completo'] || row['nombre'] || '').trim();
+            const usuario = String(row['Usuario'] || row['DNI'] || row['usuario'] || '').trim();
+            const pass = String(row['Contraseña'] || row['pass'] || row['Contrasena'] || '').trim();
+            const nombreTrayecto = String(row['Trayecto'] || row['trayecto'] || '').trim();
+
+            if (!nombre || !usuario || !pass) continue;
+
+            // 1. Verificar si el usuario ya existe
+            let userExiste = usuariosDB ? usuariosDB.find(u => u.usuario.toLowerCase() === usuario.toLowerCase()) : null;
+
+            if (!userExiste) {
+              const { data: nuevoU, error } = await db.from('usuarios').insert([{
+                nombre,
+                usuario,
+                pass,
+                rol: 'estudiante'
+              }]).select();
+
+              if (!error && nuevoU && nuevoU.length > 0) {
+                userExiste = nuevoU[0];
+                creados++;
+              }
+            } else {
+              omitidos++;
+            }
+
+            // 2. Asociar al Trayecto especificado en el Excel
+            if (nombreTrayecto && trayectosDB) {
+              const trayectoEncontrado = trayectosDB.find(t => t.nombre.toLowerCase().trim() === nombreTrayecto.toLowerCase());
+              if (trayectoEncontrado) {
+                const yaInscripto = inscripcionesDB ? inscripcionesDB.some(i => i.estudiante_user === usuario && i.trayecto_id === trayectoEncontrado.id) : false;
+                if (!yaInscripto) {
+                  await db.from('inscripciones').insert([{
+                    estudiante_user: usuario,
+                    trayecto_id: trayectoEncontrado.id
+                  }]);
+                  inscriptosNuevos++;
+                }
+              }
+            }
+          }
+
+          alert(` Carga masiva completada con éxito:\n\n- Nuevos alumnos creados: ${creados}\n- Nuevas inscripciones a trayectos: ${inscriptosNuevos}\n- Alumnos que ya existían (omitidos): ${omitidos}`);
+          fileInput.value = '';
+          cargarDatosDashboard();
+
+        } catch (err) {
+          console.error(err);
+          alert('Hubo un error al procesar el archivo. Verificá que el formato sea correcto.');
+        }
+      };
+
+      reader.readAsArrayBuffer(file);
+    }
+
     async function crearTrayecto() {
       const nombre = document.getElementById('nombre-trayecto').value.trim();
       const desc = document.getElementById('desc-trayecto').value.trim();
@@ -457,7 +555,6 @@
         .map(s => parseInt(s.trim()) - 1)
         .filter(i => !isNaN(i) && i >= 0 && i < todosTrayectos.length);
 
-      // Eliminar inscripciones actuales y volver a crear las seleccionadas
       await db.from('inscripciones').delete().eq('estudiante_user', usuarioEstudiante);
 
       for (const idx of indicesSeleccionados) {
@@ -475,7 +572,6 @@
       if (rol === 'estudiante') {
         await db.from('inscripciones').delete().eq('estudiante_user', usuario);
       } else if (rol === 'docente') {
-        // Remover al docente de todos los trayectos asignados
         const { data: todosTrayectos } = await db.from('trayectos').select('*');
         if (todosTrayectos) {
           for (const t of todosTrayectos) {
