@@ -43,7 +43,7 @@
     .clase-box { background: #f9fafb; border: 1px solid #e5e7eb; padding: 15px; border-radius: 8px; margin-top: 15px; }
     .material-item { background: white; border: 1px solid #e5e7eb; padding: 10px 15px; border-radius: 6px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; }
     .docente-badge { display: inline-block; background: #e0e7ff; color: #3730a3; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; margin-bottom: 10px; }
-    .status-badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+    .status-badge { display: inline-block; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; }
     .badge-programado { background: #fef3c7; color: #92400e; }
     .badge-publicado { background: #d1fae5; color: #065f46; }
   </style>
@@ -140,9 +140,9 @@
               <input type="text" id="clase-nombre" placeholder="Ej: Clase 1 - Introducción al pensamiento computacional">
             </div>
             <div class="form-group">
-              <label>📅 Fecha y Hora Programada para Publicación:</label>
-              <input type="datetime-local" id="clase-fecha">
-              <small style="color:#6b7280; font-size:12px;">Si seleccionás una fecha futura, los alumnos verán la clase como programada hasta la llegada de esa fecha.</small>
+              <label>📅 Fecha de Publicación:</label>
+              <input type="date" id="clase-fecha">
+              <small style="color:#6b7280; font-size:12px;">El contenido se habilitará automáticamente para los estudiantes al llegar esta fecha.</small>
             </div>
             <div class="form-group">
               <label>Título del Material o Recurso:</label>
@@ -203,7 +203,7 @@
   <script>
     let currentUser = { name: '', user: '', role: '' };
     
-    // Carga inicial o guardado en LocalStorage
+    // Persistencia LocalStorage
     let docentesDB = JSON.parse(localStorage.getItem('docentesDB')) || [
       { name: 'Administrador Principal', user: 'admin', pass: 'admin' }
     ];
@@ -221,7 +221,7 @@
     }
 
     function actualizarSelects() {
-      // Select de docentes
+      // Select docentes
       const selectDoc = document.getElementById('select-docente-trayecto');
       if (selectDoc) {
         selectDoc.innerHTML = '';
@@ -233,7 +233,7 @@
         });
       }
 
-      // Select de trayectos
+      // Select trayectos
       const selectTray = document.getElementById('select-trayecto-contenido');
       if (selectTray) {
         selectTray.innerHTML = '';
@@ -346,7 +346,7 @@
         return alert('Primero debés crear un trayecto.');
       }
       if (!claseNombre || !fechaVal || !titulo || !link) {
-        return alert('Completá todos los campos (Nombre de clase, Fecha/Hora, Título y Enlace).');
+        return alert('Completá todos los campos (Nombre de clase, Fecha, Título y Enlace).');
       }
 
       const trayecto = trayectosDB.find(t => t.id === trayectoId);
@@ -354,14 +354,14 @@
         trayecto.clases.push({
           id: 'clase-' + Date.now(),
           nombre: claseNombre,
-          fecha: fechaVal,
+          fecha: fechaVal, // Formato YYYY-MM-DD
           titulo: titulo,
           link: link
         });
 
         guardarEstado();
         renderizarTrayectos();
-        alert('Clase programada/publicada con éxito.');
+        alert('Clase guardada correctamente.');
 
         document.getElementById('clase-nombre').value = '';
         document.getElementById('clase-fecha').value = '';
@@ -379,7 +379,9 @@
       }
 
       lista.innerHTML = '';
-      const ahora = new Date();
+      
+      // Obtener la fecha actual en formato YYYY-MM-DD
+      const hoy = new Date().toISOString().split('T')[0];
 
       trayectosDB.forEach(t => {
         const card = document.createElement('div');
@@ -388,20 +390,22 @@
         let htmlClases = '';
         
         if (t.clases.length === 0) {
-          htmlClases = '<p style="font-size:13px; color:#6b7280; font-style:italic;">Aún no se han programado clases para este trayecto.</p>';
+          htmlClases = '<p style="font-size:13px; color:#6b7280; font-style:italic;">Aún no se han cargado clases para este trayecto.</p>';
         } else {
           t.clases.forEach(c => {
-            const fechaClase = new Date(c.fecha);
-            const esFutura = fechaClase > ahora;
-            const fechaFormateada = fechaClase.toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' });
+            const esFutura = c.fecha > hoy;
+            
+            // Formatear la fecha para mostrar (DD/MM/AAAA)
+            const partes = c.fecha.split('-');
+            const fechaFormateada = `${partes[2]}/${partes[1]}/${partes[0]}`;
 
-            // Si es estudiante y la clase es futura, no se le muestra
+            // Si el usuario es estudiante y la clase es futura, la ocultamos
             if (currentUser.role === 'estudiante' && esFutura) {
               return; 
             }
 
             let badge = esFutura 
-              ? `<span class="status-badge badge-programado">🕒 Programada para: ${fechaFormateada}</span>`
+              ? `<span class="status-badge badge-programado">🕒 Programada para el: ${fechaFormateada}</span>`
               : `<span class="status-badge badge-publicado">✅ Publicada el: ${fechaFormateada}</span>`;
 
             htmlClases += `
