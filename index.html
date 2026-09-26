@@ -234,12 +234,14 @@
       if (currentUser.role === 'docente') tagRol = 'Docente';
       document.getElementById('display-role').textContent = tagRol;
 
+      // Aplicar filtros de visibilidad según el rol
       document.querySelectorAll('.admin-only').forEach(el => {
         el.style.display = currentUser.role === 'admin' ? 'block' : 'none';
       });
 
       document.querySelectorAll('.docente-or-admin').forEach(el => {
-        el.style.display = (currentUser.role === 'admin' || currentUser.role === 'docente') ? 'block' : 'none';
+        const esDocenteOAdmin = (currentUser.role === 'admin' || currentUser.role === 'docente');
+        el.style.display = esDocenteOAdmin ? (el.tagName === 'BUTTON' ? 'block' : el.style.display) : 'none';
       });
 
       cargarDatosDashboard();
@@ -494,7 +496,7 @@
           });
         }
 
-        htmlTrabajos += 'tbody></table>';
+        htmlTrabajos += '</tbody></table>';
 
         const card = document.createElement('div');
         card.className = 'card';
