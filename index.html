@@ -162,7 +162,9 @@
           <div class="card">
             <h3>Usuarios Registrados</h3>
             <table>
-              <thead><tr><th>Nombre</th><th>Usuario</th><th>Rol</th><th>Trayectos</th></tr></thead>
+              <thead>
+                <tr><th>Nombre</th><th>Usuario</th><th>Rol</th><th>Trayectos</th><th>Acciones</th></tr>
+              </thead>
               <tbody id="tabla-usuarios"></tbody>
             </table>
           </div>
@@ -467,8 +469,23 @@
               <td>@${u.usuario}</td>
               <td><strong>${u.rol.toUpperCase()}</strong></td>
               <td><span style="font-size:12px; color:#4b5563;">${listaTrayectos}</span></td>
+              <td>
+                <button class="btn btn-secondary" style="padding:4px 8px; font-size:12px;" onclick="cambiarClaveUsuario('${u.id}', '${u.usuario}')">🔑 Cambiar Clave</button>
+              </td>
             </tr>`;
         }).join('');
+      }
+    }
+
+    async function cambiarClaveUsuario(id, usuario) {
+      const nuevaPass = prompt(`Ingresá la nueva contraseña para el usuario @${usuario}:`);
+      if (!nuevaPass) return;
+
+      const { error } = await db.from('usuarios').update({ pass: nuevaPass }).eq('id', id);
+      if (error) {
+        alert('Error al actualizar la contraseña.');
+      } else {
+        alert(`Contraseña de @${usuario} actualizada con éxito.`);
       }
     }
   </script>
