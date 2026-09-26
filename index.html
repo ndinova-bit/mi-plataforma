@@ -3,10 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Plataforma Educativa</title>
+  <title>Plataforma Educativa - FP</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- Librería para lectura de Excel y CSV -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <!-- Librería para generar PDFs (Certificados Oficiales) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     body { margin: 0; background: #f3f4f6; color: #1f2937; height: 100vh; }
@@ -30,6 +32,8 @@
     
     .card { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 25px; }
     .form-group { margin-bottom: 15px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
     label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 5px; }
     input, select, textarea { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; }
     .btn { background: #2563eb; color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; }
@@ -56,6 +60,20 @@
     .badge-ok { background: #d1fae5; color: #065f46; }
     .badge-pending { background: #fef3c7; color: #92400e; }
     .badge-missing { background: #fee2e2; color: #991b1b; }
+
+    .modulo-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
+
+    /* ESTILOS DE IMPRESIÓN / CERTIFICADO OFICIAL */
+    #certificado-container { display: none; }
+    .cert-page { width: 297mm; height: 210mm; padding: 20mm; background: white; color: #111; box-sizing: border-box; position: relative; font-family: 'Georgia', 'Times New Roman', serif; }
+    .cert-border { border: 5px double #111; height: 100%; padding: 15mm; box-sizing: border-box; text-align: center; display: flex; flex-direction: column; justify-content: space-between; }
+    .cert-title { font-size: 28px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; }
+    .cert-subtitle { font-size: 18px; font-style: italic; margin-bottom: 25px; }
+    .cert-body { font-size: 16px; line-height: 1.8; text-align: justify; margin: 20px 0; }
+    .cert-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; font-family: 'Segoe UI', sans-serif; }
+    .cert-table th, .cert-table td { border: 1px solid #000; padding: 6px 8px; text-align: left; }
+    .cert-table th { background-color: #f2f2f2; font-weight: bold; text-align: center; }
+    .cert-dotted { font-family: monospace; letter-spacing: 1px; color: #555; text-align: center; }
   </style>
 </head>
 <body>
@@ -83,7 +101,7 @@
     <div class="dashboard">
       <div class="sidebar">
         <div>
-          <div class="sidebar-header">Plataforma Educativa</div>
+          <div class="sidebar-header">Plataforma Educativa - FP</div>
           <button id="btn-trayectos" class="active" onclick="showTab('trayectos')">📚 Trayectos Formativos</button>
           <button id="btn-estudiantes" class="docente-or-admin" onclick="showTab('estudiantes')">🎓 Seguimiento Alumnos</button>
           <button id="btn-contenidos" class="docente-or-admin" onclick="showTab('contenidos')">📂 Cargar Contenidos y TPs</button>
@@ -102,15 +120,43 @@
         <div id="trayectos" class="section active">
           <h2>Trayectos Formativos</h2>
           
-          <div class="card admin-only">
-            <h3>Crear Nuevo Trayecto</h3>
-            <div class="form-group"><label>Nombre del Trayecto:</label><input type="text" id="nombre-trayecto"></div>
-            <div class="form-group">
-              <label>Docentes a Cargo (Podés seleccionar varios):</label>
-              <div id="checkboxes-docentes-trayecto" class="checkbox-group"></div>
+          <div class="card admin-only" style="border-top: 4px solid #2563eb;">
+            <h3>Alta de Trayecto Formativo (Formación Profesional)</h3>
+            <div class="grid-2">
+              <div class="form-group"><label>Nombre del Trayecto / Especialidad:</label><input type="text" id="nombre-trayecto" placeholder="Ej: PROGRAMADOR"></div>
+              <div class="form-group"><label>Resolución / Disposición:</label><input type="text" id="resolucion-trayecto" placeholder="Ej: RES-2023-1452-GDEBA"></div>
             </div>
-            <div class="form-group"><label>Descripción:</label><textarea id="desc-trayecto" rows="2"></textarea></div>
-            <button class="btn" onclick="crearTrayecto()">Crear Trayecto</button>
+
+            <div class="grid-3">
+              <div class="form-group"><label>Carga Horaria Total (Hs Reloj):</label><input type="number" id="horas-trayecto" placeholder="Ej: 350"></div>
+              <div class="form-group"><label>Fecha de Inicio (DD-MM-YYYY):</label><input type="text" id="fecha-inicio-trayecto" placeholder="15-03-2026"></div>
+              <div class="form-group"><label>Fecha de Fin (DD-MM-YYYY):</label><input type="text" id="fecha-fin-trayecto" placeholder="15-11-2026"></div>
+            </div>
+
+            <div class="grid-2">
+              <div class="form-group"><label>Fecha Entrega Certificados (DD-MM-YYYY):</label><input type="text" id="fecha-entrega-trayecto" placeholder="30-11-2026"></div>
+              <div class="form-group">
+                <label>Docentes a Cargo (Podés seleccionar varios):</label>
+                <div id="checkboxes-docentes-trayecto" class="checkbox-group"></div>
+              </div>
+            </div>
+
+            <div class="form-group"><label>Descripción / Alcance Perfil Profesional:</label><textarea id="desc-trayecto" rows="2"></textarea></div>
+
+            <hr style="margin:20px 0; border:0; border-top:1px solid #e5e7eb;">
+            <h4>📐 Estructura Curricular y Módulos (Reverso del Certificado)</h4>
+            <div id="contenedor-modulos">
+              <div class="modulo-row">
+                <input type="text" class="mod-codigo" placeholder="Código (Ej: MOD-01)" style="width: 20%;">
+                <input type="text" class="mod-nombre" placeholder="Nombre del Módulo" style="width: 55%;">
+                <input type="number" class="mod-horas" placeholder="Hs Reloj" style="width: 20%;">
+                <button class="btn btn-danger" onclick="eliminarFilaModulo(this)" style="padding:6px 10px;">X</button>
+              </div>
+            </div>
+            <button class="btn btn-secondary" onclick="agregarFilaModulo()" style="margin-bottom:15px; font-size:12px;">➕ Agregar Otro Módulo</button>
+
+            <br>
+            <button class="btn btn-success" onclick="crearTrayecto()">💾 Guardar Trayecto Formativo</button>
           </div>
 
           <h3>Mis Trayectos</h3>
@@ -119,7 +165,7 @@
 
         <!-- SEGUIMIENTO DE ESTUDIANTES -->
         <div id="estudiantes" class="section docente-or-admin">
-          <h2>Seguimiento Académico de Alumnos</h2>
+          <h2>Seguimiento Académico de Alumnos y Certificaciones</h2>
           <div class="card">
             <div class="form-group">
               <label>Seleccionar Trayecto Formativo:</label>
@@ -169,7 +215,6 @@
         <div id="usuarios" class="section admin-only">
           <h2>Alta y Administración de Usuarios</h2>
           
-          <!-- CARGA MASIVA -->
           <div class="card" style="border-left: 4px solid #10b981;">
             <h3>📊 Carga Masiva de Estudiantes (Excel / CSV)</h3>
             <p style="font-size:13px; color:#4b5563;">
@@ -211,6 +256,62 @@
               <tbody id="tabla-usuarios"></tbody>
             </table>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PLANTILLA OCULTA PARA IMPRESIÓN DE CERTIFICADO (FRENTE Y REVERSO) -->
+  <div id="certificado-container">
+    <!-- FRENTE (ANVERSO) -->
+    <div class="cert-page" id="cert-frente">
+      <div class="cert-border">
+        <div>
+          <div style="font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">DIRECCIÓN GENERAL DE CULTURA Y EDUCACIÓN</div>
+          <div style="font-size: 12px; margin-bottom: 20px;">EDUCACIÓN DE ADULTOS Y FORMACIÓN PROFESIONAL</div>
+          <div class="cert-title">CERTIFICADO DE FORMACIÓN PROFESIONAL</div>
+          <div class="cert-subtitle" id="cert-txt-trayecto">TRAYECTO FORMATIVO</div>
+        </div>
+        <div class="cert-body">
+          Por cuanto el/la alumno/a <strong id="cert-txt-alumno">NOMBRE ALUMNO</strong>, DNI N° <strong id="cert-txt-dni">00000000</strong>,
+          ha aprobado el plan de estudios correspondiente al Trayecto Formativo de <strong id="cert-txt-trayecto-body">TRAYECTO</strong>,
+          con una carga horaria total de <strong id="cert-txt-horas">0</strong> horas reloj, según Resolución/Disposición N° <strong id="cert-txt-resolucion">-</strong>,
+          cursado desde el <strong id="cert-txt-inicio">DD-MM-YYYY</strong> hasta el <strong id="cert-txt-fin">DD-MM-YYYY</strong>.
+          <br><br>
+          Se le otorga el presente Certificado Oficial expedido el día <strong id="cert-txt-entrega">DD-MM-YYYY</strong>.
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-top: 40px; font-size: 12px;">
+          <div style="text-align: center; width: 30%; border-top: 1px solid #000; padding-top: 5px;">Secretaría Académica</div>
+          <div style="text-align: center; width: 30%; border-top: 1px solid #000; padding-top: 5px;">Sello de la Institución</div>
+          <div style="text-align: center; width: 30%; border-top: 1px solid #000; padding-top: 5px;">Dirección del Centro</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REVERSO (DORSO CON FILAS Y RENGLONES PUNTEADOS AUTOMÁTICOS) -->
+    <div class="cert-page" id="cert-reverso">
+      <div class="cert-border">
+        <div>
+          <div style="font-size: 16px; font-weight: bold; text-transform: uppercase;">ESTRUCTURA CURRICULAR Y CALIFICACIONES MODULARES</div>
+          <div style="font-size: 12px; margin-bottom: 10px;">ANVERSO NORMADO DE REGISTRO</div>
+          <table class="cert-table">
+            <thead>
+              <tr>
+                <th style="width: 20%;">CÓDIGO</th>
+                <th style="width: 50%;">DENOMINACIÓN DEL MÓDULO</th>
+                <th style="width: 15%;">HORAS RELOJ</th>
+                <th style="width: 15%;">CALIFICACIÓN</th>
+              </tr>
+            </thead>
+            <tbody id="cert-tbody-modulos">
+              <!-- Se completa con JS dinámicamente y se rellena con líneas punteadas -->
+            </tbody>
+          </table>
+        </div>
+        <div style="font-size: 11px; text-align: left; line-height: 1.5; margin-top: 15px;">
+          <strong>OBSERVACIONES:</strong> El presente documento no presenta raspaduras ni enmiendas. Todos los renglones vacíos han sido anulados con líneas punteadas normativas.
+          <br>
+          Fecha de Cierre de Libro de Actas: <span id="cert-txt-entrega-reverso">DD-MM-YYYY</span>..................................................................................................................................
         </div>
       </div>
     </div>
@@ -296,6 +397,22 @@
       }
     }
 
+    function agregarFilaModulo() {
+      const contenedor = document.getElementById('contenedor-modulos');
+      const div = document.createElement('div');
+      div.className = 'modulo-row';
+      div.innerHTML = `
+        <input type="text" class="mod-codigo" placeholder="Código (Ej: MOD-01)" style="width: 20%;">
+        <input type="text" class="mod-nombre" placeholder="Nombre del Módulo" style="width: 55%;">
+        <input type="number" class="mod-horas" placeholder="Hs Reloj" style="width: 20%;">
+        <button class="btn btn-danger" onclick="eliminarFilaModulo(this)" style="padding:6px 10px;">X</button>`;
+      contenedor.appendChild(div);
+    }
+
+    function eliminarFilaModulo(btn) {
+      btn.parentElement.remove();
+    }
+
     async function cargarDatosDashboard() {
       await actualizarSelects();
       await renderizarTrayectos();
@@ -355,367 +472,72 @@
       }
     }
 
-    /* CARGA MASIVA ULTRA ROBUSTA (Acepta Mayúsculas/Minúsculas en Encabezados) */
-    async function procesarCargaMasiva() {
-      const fileInput = document.getElementById('excel-file-input');
-      const file = fileInput.files[0];
-
-      if (!file) return alert('Por favor seleccioná un archivo de Excel o CSV.');
-
-      const reader = new FileReader();
-      reader.onload = async function(e) {
-        try {
-          const data = new Uint8Array(e.target.result);
-          const workbook = XLSX.read(data, { type: 'array' });
-          const firstSheet = workbook.SheetNames[0];
-          const rawRows = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet]);
-
-          if (rawRows.length === 0) return alert('El archivo está vacío.');
-
-          const { data: trayectosDB } = await db.from('trayectos').select('*');
-          const { data: usuariosDB } = await db.from('usuarios').select('*');
-          const { data: inscripcionesDB } = await db.from('inscripciones').select('*');
-
-          let creados = 0;
-          let inscriptosNuevos = 0;
-          let omitidos = 0;
-
-          for (const row of rawRows) {
-            // Normalizar las claves de la fila a minúsculas sin espacios
-            const normalizedRow = {};
-            Object.keys(row).forEach(key => {
-              normalizedRow[key.trim().toLowerCase()] = String(row[key]).trim();
-            });
-
-            const apellido = normalizedRow['apellido'] || '';
-            const nombreSolo = normalizedRow['nombre'] || '';
-            const nombreCompletoRaw = normalizedRow['nombre completo'] || normalizedRow['nombrecompleto'] || normalizedRow['alumnos'] || '';
-
-            let nombreFinal = '';
-            if (apellido || nombreSolo) {
-              nombreFinal = `${apellido} ${nombreSolo}`.trim();
-            } else {
-              nombreFinal = nombreCompletoRaw;
-            }
-
-            nombreFinal = nombreFinal.toUpperCase();
-
-            const usuario = normalizedRow['usuario'] || normalizedRow['dni'] || '';
-            const pass = normalizedRow['contraseña'] || normalizedRow['contrasena'] || normalizedRow['pass'] || normalizedRow['clave'] || '';
-            const nombreTrayecto = normalizedRow['trayecto'] || normalizedRow['curso'] || normalizedRow['materia'] || '';
-
-            if (!nombreFinal || !usuario || !pass) continue;
-
-            let userExiste = usuariosDB ? usuariosDB.find(u => u.usuario.toLowerCase() === usuario.toLowerCase()) : null;
-
-            if (!userExiste) {
-              const { data: nuevoU, error } = await db.from('usuarios').insert([{
-                nombre: nombreFinal,
-                usuario: usuario,
-                pass: pass,
-                rol: 'estudiante'
-              }]).select();
-
-              if (!error && nuevoU && nuevoU.length > 0) {
-                userExiste = nuevoU[0];
-                creados++;
-              }
-            } else {
-              omitidos++;
-            }
-
-            if (nombreTrayecto && trayectosDB) {
-              const trayectoEncontrado = trayectosDB.find(t => t.nombre.toLowerCase().trim() === nombreTrayecto.toLowerCase().trim());
-              if (trayectoEncontrado) {
-                const yaInscripto = inscripcionesDB ? inscripcionesDB.some(i => i.estudiante_user.toLowerCase() === usuario.toLowerCase() && i.trayecto_id === trayectoEncontrado.id) : false;
-                if (!yaInscripto) {
-                  await db.from('inscripciones').insert([{
-                    estudiante_user: usuario,
-                    trayecto_id: trayectoEncontrado.id
-                  }]);
-                  inscriptosNuevos++;
-                }
-              }
-            }
-          }
-
-          alert(` Carga masiva completada con éxito:\n\n- Nuevos alumnos creados: ${creados}\n- Nuevas inscripciones a trayectos: ${inscriptosNuevos}\n- Alumnos que ya existían (omitidos): ${omitidos}`);
-          fileInput.value = '';
-          cargarDatosDashboard();
-
-        } catch (err) {
-          console.error(err);
-          alert('Hubo un error al procesar el archivo. Verificá que el formato sea correcto.');
-        }
-      };
-
-      reader.readAsArrayBuffer(file);
-    }
-
     async function crearTrayecto() {
       const nombre = document.getElementById('nombre-trayecto').value.trim();
+      const resolucion = document.getElementById('resolucion-trayecto').value.trim();
+      const horas = document.getElementById('horas-trayecto').value;
+      const fecha_inicio = document.getElementById('fecha-inicio-trayecto').value.trim();
+      const fecha_fin = document.getElementById('fecha-fin-trayecto').value.trim();
+      const fecha_entrega = document.getElementById('fecha-entrega-trayecto').value.trim();
       const desc = document.getElementById('desc-trayecto').value.trim();
 
       const chksSelected = Array.from(document.querySelectorAll('.chk-docente-trayecto:checked'));
-      if (!nombre || chksSelected.length === 0) return alert('Completá el nombre y seleccioná al menos un docente.');
+      if (!nombre || chksSelected.length === 0) return alert('Completá el nombre del trayecto y seleccioná al menos un docente.');
 
       const docentesUsers = chksSelected.map(cb => cb.value).join(', ');
       const docentesNombres = chksSelected.map(cb => cb.getAttribute('data-nombre')).join(', ');
 
-      await db.from('trayectos').insert([{ nombre, docente_user: docentesUsers, docente_nombre: docentesNombres, descripcion: desc }]);
+      const modulosRows = document.querySelectorAll('#contenedor-modulos .modulo-row');
+      const modulosArray = [];
+      modulosRows.forEach(row => {
+        const cod = row.querySelector('.mod-codigo').value.trim();
+        const nom = row.querySelector('.mod-nombre').value.trim();
+        const hs = row.querySelector('.mod-horas').value;
+        if (nom) {
+          modulosArray.push({ codigo: cod, nombre: nom, horas: hs });
+        }
+      });
+
+      await db.from('trayectos').insert([{ 
+        nombre, 
+        resolucion, 
+        horas, 
+        fecha_inicio, 
+        fecha_fin, 
+        fecha_entrega, 
+        docente_user: docentesUsers, 
+        docente_nombre: docentesNombres, 
+        descripcion: desc,
+        modulos: JSON.stringify(modulosArray)
+      }]);
       
-      alert('Trayecto creado con éxito.');
+      alert('Trayecto Formativo guardado con éxito.');
       document.getElementById('nombre-trayecto').value = '';
+      document.getElementById('resolucion-trayecto').value = '';
+      document.getElementById('horas-trayecto').value = '';
+      document.getElementById('fecha-inicio-trayecto').value = '';
+      document.getElementById('fecha-fin-trayecto').value = '';
+      document.getElementById('fecha-entrega-trayecto').value = '';
       document.getElementById('desc-trayecto').value = '';
       cargarDatosDashboard();
     }
 
-    async function gestionarDocentesTrayecto(trayectoId, actualesUser) {
-      if (listaDocentesGlobal.length === 0) return alert('No hay docentes registrados.');
+    async function editarFechasTrayecto(trayectoId, finicioActual, ffinActual, fentregaActual) {
+      const nInicio = prompt('Fecha de Inicio (DD-MM-YYYY):', finicioActual || '15-03-2026');
+      if (nInicio === null) return;
+      const nFin = prompt('Fecha de Finalización (DD-MM-YYYY):', ffinActual || '15-11-2026');
+      if (nFin === null) return;
+      const nEntrega = prompt('Fecha de Entrega de Certificado (DD-MM-YYYY):', fentregaActual || '30-11-2026');
+      if (nEntrega === null) return;
 
-      const actualesArr = actualesUser ? actualesUser.split(',').map(s => s.trim()) : [];
-      let opcionesText = 'Ingresá los números de los docentes asignados separados por coma (ej: 1,2):\n\n';
-      
-      listaDocentesGlobal.forEach((d, idx) => {
-        const estaAsignado = actualesArr.includes(d.usuario) ? '[ASIGNADO]' : '';
-        opcionesText += `${idx + 1}. ${d.nombre} (@${d.usuario}) ${estaAsignado}\n`;
-      });
-
-      const seleccion = prompt(opcionesText);
-      if (seleccion === null) return;
-
-      const indices = seleccion.split(',').map(s => parseInt(s.trim()) - 1).filter(i => !isNaN(i) && i >= 0 && i < listaDocentesGlobal.length);
-
-      if (indices.length === 0) return alert('No seleccionaste ningún docente válido.');
-
-      const nuevosUsers = indices.map(i => listaDocentesGlobal[i].usuario).join(', ');
-      const nuevosNombres = indices.map(i => listaDocentesGlobal[i].nombre).join(', ');
-
-      await db.from('trayectos').update({ 
-        docente_user: nuevosUsers, 
-        docente_nombre: nuevosNombres 
+      await db.from('trayectos').update({
+        fecha_inicio: nInicio,
+        fecha_fin: nFin,
+        fecha_entrega: nEntrega
       }).eq('id', trayectoId);
 
-      alert(`Docentes actualizados: ${nuevosNombres}`);
+      alert('Fechas de planificación actualizadas correctamente.');
       cargarDatosDashboard();
-    }
-
-    async function gestionarTrayectosDeDocente(usuarioDocente, nombreDocente) {
-      const { data: todosTrayectos } = await db.from('trayectos').select('*');
-      if (!todosTrayectos || todosTrayectos.length === 0) return alert('No hay trayectos creados.');
-
-      let opcionesText = `Modificar trayectos para ${nombreDocente} (@${usuarioDocente}):\nIngresá los números de los trayectos separados por coma (ej: 1,2):\n\n`;
-
-      todosTrayectos.forEach((t, idx) => {
-        const docentesArr = t.docente_user ? t.docente_user.split(',').map(s => s.trim()) : [];
-        const estaAsignado = docentesArr.includes(usuarioDocente) ? '[ASIGNADO]' : '';
-        opcionesText += `${idx + 1}. ${t.nombre} ${estaAsignado}\n`;
-      });
-
-      const seleccion = prompt(opcionesText);
-      if (seleccion === null) return;
-
-      const indicesSeleccionados = seleccion.split(',')
-        .map(s => parseInt(s.trim()) - 1)
-        .filter(i => !isNaN(i) && i >= 0 && i < todosTrayectos.length);
-
-      for (const t of todosTrayectos) {
-        let docentesUsers = t.docente_user ? t.docente_user.split(',').map(s => s.trim()).filter(Boolean) : [];
-        let docentesNombres = t.docente_nombre ? t.docente_nombre.split(',').map(s => s.trim()).filter(Boolean) : [];
-
-        const indexInTrayecto = todosTrayectos.indexOf(t);
-        const debeEstarAsignado = indicesSeleccionados.includes(indexInTrayecto);
-
-        if (debeEstarAsignado) {
-          if (!docentesUsers.includes(usuarioDocente)) {
-            docentesUsers.push(usuarioDocente);
-            docentesNombres.push(nombreDocente);
-          }
-        } else {
-          const posUser = docentesUsers.indexOf(usuarioDocente);
-          if (posUser !== -1) {
-            docentesUsers.splice(posUser, 1);
-            docentesNombres.splice(posUser, 1);
-          }
-        }
-
-        await db.from('trayectos').update({
-          docente_user: docentesUsers.join(', '),
-          docente_nombre: docentesNombres.join(', ')
-        }).eq('id', t.id);
-      }
-
-      alert('Trayectos actualizados para el docente.');
-      cargarDatosDashboard();
-    }
-
-    async function gestionarTrayectosDeEstudiante(usuarioEstudiante, nombreEstudiante) {
-      const { data: todosTrayectos } = await db.from('trayectos').select('*');
-      if (!todosTrayectos || todosTrayectos.length === 0) return alert('No hay trayectos creados.');
-
-      const { data: misInscripciones } = await db.from('inscripciones').select('trayecto_id').eq('estudiante_user', usuarioEstudiante);
-      const misIdsActuales = misInscripciones ? misInscripciones.map(i => i.trayecto_id) : [];
-
-      let opcionesText = `Modificar trayectos para ${nombreEstudiante} (@${usuarioEstudiante}):\nIngresá los números de los trayectos separados por coma (ej: 1,2):\n\n`;
-
-      todosTrayectos.forEach((t, idx) => {
-        const estaAsignado = misIdsActuales.includes(t.id) ? '[ASIGNADO]' : '';
-        opcionesText += `${idx + 1}. ${t.nombre} ${estaAsignado}\n`;
-      });
-
-      const seleccion = prompt(opcionesText);
-      if (seleccion === null) return;
-
-      const indicesSeleccionados = seleccion.split(',')
-        .map(s => parseInt(s.trim()) - 1)
-        .filter(i => !isNaN(i) && i >= 0 && i < todosTrayectos.length);
-
-      await db.from('inscripciones').delete().eq('estudiante_user', usuarioEstudiante);
-
-      for (const idx of indicesSeleccionados) {
-        const t = todosTrayectos[idx];
-        await db.from('inscripciones').insert([{ estudiante_user: usuarioEstudiante, trayecto_id: t.id }]);
-      }
-
-      alert('Trayectos actualizados para el estudiante.');
-      cargarDatosDashboard();
-    }
-
-    async function eliminarUsuario(id, usuario, nombre, rol) {
-      if (!confirm(`¿Estás seguro de que querés eliminar al usuario @${usuario} (${nombre})? Esta acción borrará su acceso.`)) return;
-
-      if (rol === 'estudiante') {
-        await db.from('inscripciones').delete().eq('estudiante_user', usuario);
-      } else if (rol === 'docente') {
-        const { data: todosTrayectos } = await db.from('trayectos').select('*');
-        if (todosTrayectos) {
-          for (const t of todosTrayectos) {
-            let docentesUsers = t.docente_user ? t.docente_user.split(',').map(s => s.trim()).filter(Boolean) : [];
-            let docentesNombres = t.docente_nombre ? t.docente_nombre.split(',').map(s => s.trim()).filter(Boolean) : [];
-
-            if (docentesUsers.includes(usuario)) {
-              docentesUsers = docentesUsers.filter(u => u !== usuario);
-              docentesNombres = docentesNombres.filter(n => n !== nombre);
-              await db.from('trayectos').update({
-                docente_user: docentesUsers.join(', '),
-                docente_nombre: docentesNombres.join(', ')
-              }).eq('id', t.id);
-            }
-          }
-        }
-      }
-
-      const { error } = await db.from('usuarios').delete().eq('id', id);
-
-      if (error) {
-        alert('Hubo un error al eliminar el usuario.');
-      } else {
-        alert(`Usuario @${usuario} eliminado exitosamente.`);
-        cargarDatosDashboard();
-      }
-    }
-
-    async function renderizarSeguimientoEstudiantes() {
-      const trayectoId = document.getElementById('select-trayecto-seguimiento').value;
-      const contenedor = document.getElementById('contenedor-seguimiento');
-
-      if (!trayectoId) {
-        contenedor.innerHTML = '<div class="card empty-msg">Seleccioná un trayecto para ver los alumnos.</div>';
-        return;
-      }
-
-      const { data: inscripciones } = await db.from('inscripciones').select('*').eq('trayecto_id', trayectoId);
-      const { data: usuarios } = await db.from('usuarios').select('*');
-      const { data: contenidos } = await db.from('contenidos').select('*').eq('trayecto_id', trayectoId).eq('tipo', 'actividad');
-      const { data: entregas } = await db.from('entregas').select('*').eq('trayecto_id', trayectoId);
-
-      if (!inscripciones || inscripciones.length === 0) {
-        contenedor.innerHTML = '<div class="card empty-msg">No hay alumnos inscriptos en este trayecto.</div>';
-        return;
-      }
-
-      contenedor.innerHTML = '';
-
-      inscripciones.forEach(i => {
-        const uInfo = usuarios ? usuarios.find(u => u.usuario === i.estudiante_user) : null;
-        const nombreAlumno = uInfo ? uInfo.nombre : i.estudiante_user;
-
-        let htmlTrabajos = '<table><thead><tr><th>Trabajo Práctico</th><th>Estado</th><th>Fecha Entrega</th><th>Archivo</th><th>Nota / Feedback</th></tr></thead><tbody>';
-
-        if (!contenidos || contenidos.length === 0) {
-          htmlTrabajos += '<tr><td colspan="5" class="empty-msg">No hay TPs asignados en este trayecto.</td></tr>';
-        } else {
-          contenidos.forEach(act => {
-            const entrega = entregas ? entregas.find(e => e.actividad_id === act.id && e.estudiante === i.estudiante_user) : null;
-
-            if (entrega) {
-              const tieneNota = entrega.nota && entrega.nota !== 'Pendiente';
-              const badgeClass = tieneNota ? 'badge-ok' : 'badge-pending';
-              const estadoTexto = tieneNota ? 'Corregido' : 'Pendiente revisión';
-
-              htmlTrabajos += `
-                <tr>
-                  <td><strong>${act.titulo}</strong></td>
-                  <td><span class="badge-estado ${badgeClass}">${estadoTexto}</span></td>
-                  <td>${entrega.fecha}</td>
-                  <td><a href="${entrega.link}" target="_blank" class="btn" style="padding:3px 6px; font-size:11px;">Ver Trabajo</a></td>
-                  <td>${entrega.nota || '-'}</td>
-                </tr>`;
-            } else {
-              htmlTrabajos += `
-                <tr>
-                  <td><strong>${act.titulo}</strong></td>
-                  <td><span class="badge-estado badge-missing">Sin entregar</span></td>
-                  <td>-</td>
-                  <td>-</td>
-                  <td>-</td>
-                </tr>`;
-            }
-          });
-        }
-
-        htmlTrabajos += '</tbody></table>';
-
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.innerHTML = `
-          <h3>🎓 ${nombreAlumno} <span style="font-size:14px; color:#6b7280; font-weight:normal;">(@${i.estudiante_user})</span></h3>
-          ${htmlTrabajos}`;
-        contenedor.appendChild(card);
-      });
-    }
-
-    async function guardarClase() {
-      const trayecto_id = document.getElementById('select-trayecto-contenido').value;
-      const titulo = document.getElementById('clase-nombre').value.trim();
-      const fecha = document.getElementById('clase-fecha').value;
-      let desc = document.getElementById('material-titulo').value.trim();
-      const link = document.getElementById('material-link').value.trim();
-
-      if (!trayecto_id) return alert('Seleccioná un trayecto.');
-
-      desc += ` (Cargado por: ${currentUser.name})`;
-
-      await db.from('contenidos').insert([{ trayecto_id, tipo: 'clase', titulo, descripcion: desc, link, fecha }]);
-      alert('Clase publicada.');
-      cargarDatosDashboard();
-      showTab('trayectos');
-    }
-
-    async function guardarActividad() {
-      const trayecto_id = document.getElementById('select-trayecto-actividad').value;
-      const titulo = document.getElementById('actividad-titulo').value.trim();
-      let desc = document.getElementById('actividad-desc').value.trim();
-      const fecha = document.getElementById('actividad-limite').value;
-
-      if (!trayecto_id) return alert('Seleccioná un trayecto.');
-
-      desc += `\n[Asignado por: ${currentUser.name}]`;
-
-      await db.from('contenidos').insert([{ trayecto_id, tipo: 'actividad', titulo, descripcion: desc, fecha }]);
-      alert('Trabajo Práctico asignado.');
-      cargarDatosDashboard();
-      showTab('trayectos');
     }
 
     async function renderizarTrayectos() {
@@ -786,15 +608,19 @@
             </div>`;
         });
 
-        const btnGestionarDocentes = currentUser.role === 'admin' 
-          ? `<button class="btn btn-warning" style="font-size:12px; padding:4px 8px; margin-left:10px;" onclick="gestionarDocentesTrayecto('${t.id}', '${t.docente_user}')">👥 Modificar Docentes</button>` 
+        const btnEditarFechas = (currentUser.role === 'admin' || currentUser.role === 'docente')
+          ? `<button class="btn btn-secondary" style="font-size:12px; padding:4px 8px; margin-left:8px;" onclick="editarFechasTrayecto('${t.id}', '${t.fecha_inicio||''}', '${t.fecha_fin||''}', '${t.fecha_entrega||''}')">📅 Modificar Fechas</button>`
           : '';
 
         const card = document.createElement('div');
         card.className = 'card';
         card.innerHTML = `
-          <span class="docente-badge">Docente(s): ${t.docente_nombre || 'Sin asignar'}</span> ${btnGestionarDocentes}
+          <span class="docente-badge">Docente(s): ${t.docente_nombre || 'Sin asignar'}</span> ${btnEditarFechas}
           <h3>${t.nombre}</h3>
+          <p style="font-size:13px; color:#4b5563;">
+            <strong>Resolución:</strong> ${t.resolucion || '-'} | <strong>Carga Horaria:</strong> ${t.horas || '-'} hs reloj<br>
+            <strong>Inicio:</strong> ${t.fecha_inicio || '-'} | <strong>Fin:</strong> ${t.fecha_fin || '-'} | <strong>Entrega Certificado:</strong> ${t.fecha_entrega || '-'}
+          </p>
           <p>${t.descripcion || ''}</p>
           <button class="btn btn-secondary" onclick="document.getElementById('det-${t.id}').style.display = document.getElementById('det-${t.id}').style.display === 'none'?'block':'none'">Ver Contenidos y TPs</button>
           <div id="det-${t.id}" style="display:none; margin-top:15px;">
@@ -805,6 +631,238 @@
       });
     }
 
+    async function renderizarSeguimientoEstudiantes() {
+      const trayectoId = document.getElementById('select-trayecto-seguimiento').value;
+      const contenedor = document.getElementById('contenedor-seguimiento');
+
+      if (!trayectoId) {
+        contenedor.innerHTML = '<div class="card empty-msg">Seleccioná un trayecto para ver los alumnos.</div>';
+        return;
+      }
+
+      const { data: trayectoInfo } = await db.from('trayectos').select('*').eq('id', trayectoId).single();
+      const { data: inscripciones } = await db.from('inscripciones').select('*').eq('trayecto_id', trayectoId);
+      const { data: usuarios } = await db.from('usuarios').select('*');
+      const { data: contenidos } = await db.from('contenidos').select('*').eq('trayecto_id', trayectoId).eq('tipo', 'actividad');
+      const { data: entregas } = await db.from('entregas').select('*').eq('trayecto_id', trayectoId);
+
+      if (!inscripciones || inscripciones.length === 0) {
+        contenedor.innerHTML = '<div class="card empty-msg">No hay alumnos inscriptos en este trayecto.</div>';
+        return;
+      }
+
+      contenedor.innerHTML = '';
+
+      inscripciones.forEach(i => {
+        const uInfo = usuarios ? usuarios.find(u => u.usuario === i.estudiante_user) : null;
+        const nombreAlumno = uInfo ? uInfo.nombre : i.estudiante_user;
+
+        let htmlTrabajos = '<table><thead><tr><th>Trabajo Práctico</th><th>Estado</th><th>Fecha Entrega</th><th>Archivo</th><th>Nota / Feedback</th></tr></thead><tbody>';
+        let completadosCount = 0;
+
+        if (!contenidos || contenidos.length === 0) {
+          htmlTrabajos += '<tr><td colspan="5" class="empty-msg">No hay TPs asignados en este trayecto.</td></tr>';
+        } else {
+          contenidos.forEach(act => {
+            const entrega = entregas ? entregas.find(e => e.actividad_id === act.id && e.estudiante === i.estudiante_user) : null;
+
+            if (entrega) {
+              const tieneNota = entrega.nota && entrega.nota !== 'Pendiente';
+              const badgeClass = tieneNota ? 'badge-ok' : 'badge-pending';
+              const estadoTexto = tieneNota ? 'Corregido' : 'Pendiente revisión';
+              if (tieneNota) completadosCount++;
+
+              htmlTrabajos += `
+                <tr>
+                  <td><strong>${act.titulo}</strong></td>
+                  <td><span class="badge-estado ${badgeClass}">${estadoTexto}</span></td>
+                  <td>${entrega.fecha}</td>
+                  <td><a href="${entrega.link}" target="_blank" class="btn" style="padding:3px 6px; font-size:11px;">Ver Trabajo</a></td>
+                  <td>${entrega.nota || '-'}</td>
+                </tr>`;
+            } else {
+              htmlTrabajos += `
+                <tr>
+                  <td><strong>${act.titulo}</strong></td>
+                  <td><span class="badge-estado badge-missing">Sin entregar</span></td>
+                  <td>-</td>
+                  <td>-</td>
+                  <td>-</td>
+                </tr>`;
+            }
+          });
+        }
+
+        htmlTrabajos += '</tbody></table>';
+
+        const btnEmitirCertificado = `<button class="btn btn-success" style="font-size:12px; padding:6px 12px; margin-left:15px;" onclick="generarCertificadoPDF('${encodeURIComponent(JSON.stringify(trayectoInfo))}', '${encodeURIComponent(nombreAlumno)}', '${i.estudiante_user}')">📜 Emitir Certificado Oficial PDF</button>`;
+
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h3>🎓 ${nombreAlumno} <span style="font-size:14px; color:#6b7280; font-weight:normal;">(@${i.estudiante_user})</span></h3>
+            ${btnEmitirCertificado}
+          </div>
+          ${htmlTrabajos}`;
+        contenedor.appendChild(card);
+      });
+    }
+
+    async function generarCertificadoPDF(trayectoJson, alumnoNombre, usuarioDni) {
+      const trayecto = JSON.parse(decodeURIComponent(trayectoJson));
+      const alumno = decodeURIComponent(alumnoNombre);
+
+      document.getElementById('cert-txt-trayecto').textContent = trayecto.nombre.toUpperCase();
+      document.getElementById('cert-txt-trayecto-body').textContent = trayecto.nombre.toUpperCase();
+      document.getElementById('cert-txt-alumno').textContent = alumno.toUpperCase();
+      document.getElementById('cert-txt-dni').textContent = usuarioDni;
+      document.getElementById('cert-txt-horas').textContent = trayecto.horas || '0';
+      document.getElementById('cert-txt-resolucion').textContent = trayecto.resolucion || '-';
+      document.getElementById('cert-txt-inicio').textContent = trayecto.fecha_inicio || 'DD-MM-YYYY';
+      document.getElementById('cert-txt-fin').textContent = trayecto.fecha_fin || 'DD-MM-YYYY';
+      document.getElementById('cert-txt-entrega').textContent = trayecto.fecha_entrega || 'DD-MM-YYYY';
+      document.getElementById('cert-txt-entrega-reverso').textContent = trayecto.fecha_entrega || 'DD-MM-YYYY';
+
+      const tbody = document.getElementById('cert-tbody-modulos');
+      tbody.innerHTML = '';
+
+      let modulosList = [];
+      try {
+        modulosList = JSON.parse(trayecto.modulos || '[]');
+      } catch (e) { modulosList = []; }
+
+      const FILAS_TOTALES = 8;
+      let filasAgregadas = 0;
+
+      modulosList.forEach(m => {
+        filasAgregadas++;
+        tbody.innerHTML += `
+          <tr>
+            <td style="text-align:center;">${m.codigo || '-'}</td>
+            <td>${m.nombre.toUpperCase()}</td>
+            <td style="text-align:center;">${m.horas || '-'} hs</td>
+            <td style="text-align:center;">APROBADO</td>
+          </tr>`;
+      });
+
+      // Relleno obligatorio de filas con líneas punteadas
+      while (filasAgregadas < FILAS_TOTALES) {
+        filasAgregadas++;
+        tbody.innerHTML += `
+          <tr>
+            <td class="cert-dotted">....................</td>
+            <td class="cert-dotted">....................................................................................................</td>
+            <td class="cert-dotted">....................</td>
+            <td class="cert-dotted">....................</td>
+          </tr>`;
+      }
+
+      const element = document.getElementById('certificado-container');
+      element.style.display = 'block';
+
+      const opt = {
+        margin:       0,
+        filename:     `Certificado_${usuarioDni}_${trayecto.nombre}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2 },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
+      };
+
+      await html2pdf().set(opt).from(element).save();
+      element.style.display = 'none';
+    }
+
+    /* CARGA MASIVA ULTRA ROBUSTA */
+    async function procesarCargaMasiva() {
+      const fileInput = document.getElementById('excel-file-input');
+      const file = fileInput.files[0];
+
+      if (!file) return alert('Por favor seleccioná un archivo de Excel o CSV.');
+
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheet = workbook.SheetNames[0];
+          const rawRows = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet]);
+
+          if (rawRows.length === 0) return alert('El archivo está vacío.');
+
+          const { data: trayectosDB } = await db.from('trayectos').select('*');
+          const { data: usuariosDB } = await db.from('usuarios').select('*');
+          const { data: inscripcionesDB } = await db.from('inscripciones').select('*');
+
+          let creados = 0;
+          let inscriptosNuevos = 0;
+          let omitidos = 0;
+
+          for (const row of rawRows) {
+            const normalizedRow = {};
+            Object.keys(row).forEach(key => {
+              normalizedRow[key.trim().toLowerCase()] = String(row[key]).trim();
+            });
+
+            const apellido = normalizedRow['apellido'] || '';
+            const nombreSolo = normalizedRow['nombre'] || '';
+            const nombreCompletoRaw = normalizedRow['nombre completo'] || normalizedRow['nombrecompleto'] || normalizedRow['alumnos'] || '';
+
+            let nombreFinal = (apellido || nombreSolo) ? `${apellido} ${nombreSolo}`.trim() : nombreCompletoRaw;
+            nombreFinal = nombreFinal.toUpperCase();
+
+            const usuario = normalizedRow['usuario'] || normalizedRow['dni'] || '';
+            const pass = normalizedRow['contraseña'] || normalizedRow['contrasena'] || normalizedRow['pass'] || normalizedRow['clave'] || '';
+            const nombreTrayecto = normalizedRow['trayecto'] || normalizedRow['curso'] || normalizedRow['materia'] || '';
+
+            if (!nombreFinal || !usuario || !pass) continue;
+
+            let userExiste = usuariosDB ? usuariosDB.find(u => u.usuario.toLowerCase() === usuario.toLowerCase()) : null;
+
+            if (!userExiste) {
+              const { data: nuevoU, error } = await db.from('usuarios').insert([{
+                nombre: nombreFinal,
+                usuario: usuario,
+                pass: pass,
+                rol: 'estudiante'
+              }]).select();
+
+              if (!error && nuevoU && nuevoU.length > 0) {
+                userExiste = nuevoU[0];
+                creados++;
+              }
+            } else {
+              omitidos++;
+            }
+
+            if (nombreTrayecto && trayectosDB) {
+              const trayectoEncontrado = trayectosDB.find(t => t.nombre.toLowerCase().trim() === nombreTrayecto.toLowerCase().trim());
+              if (trayectoEncontrado) {
+                const yaInscripto = inscripcionesDB ? inscripcionesDB.some(i => i.estudiante_user.toLowerCase() === usuario.toLowerCase() && i.trayecto_id === trayectoEncontrado.id) : false;
+                if (!yaInscripto) {
+                  await db.from('inscripciones').insert([{
+                    estudiante_user: usuario,
+                    trayecto_id: trayectoEncontrado.id
+                  }]);
+                  inscriptosNuevos++;
+                }
+              }
+            }
+          }
+
+          alert(`Carga masiva completada con éxito:\n\n- Nuevos alumnos creados: ${creados}\n- Nuevas inscripciones a trayectos: ${inscriptosNuevos}\n- Alumnos que ya existían (omitidos): ${omitidos}`);
+          fileInput.value = '';
+          cargarDatosDashboard();
+
+        } catch (err) {
+          console.error(err);
+          alert('Hubo un error al procesar el archivo. Verificá que el formato sea correcto.');
+        }
+      };
+
+      reader.readAsArrayBuffer(file);
+    }
+
     async function entregarTP(trayecto_id, actividad_id) {
       const link = prompt('Pegá el enlace a tu trabajo (Google Drive, PDF, etc.):');
       if (!link) return;
@@ -813,6 +871,39 @@
       await db.from('entregas').insert([{ trayecto_id, actividad_id, estudiante: currentUser.user, link, fecha: hoy }]);
       alert('¡Trabajo enviado!');
       cargarDatosDashboard();
+    }
+
+    async function guardarClase() {
+      const trayecto_id = document.getElementById('select-trayecto-contenido').value;
+      const titulo = document.getElementById('clase-nombre').value.trim();
+      const fecha = document.getElementById('clase-fecha').value;
+      let desc = document.getElementById('material-titulo').value.trim();
+      const link = document.getElementById('material-link').value.trim();
+
+      if (!trayecto_id) return alert('Seleccioná un trayecto.');
+
+      desc += ` (Cargado por: ${currentUser.name})`;
+
+      await db.from('contenidos').insert([{ trayecto_id, tipo: 'clase', titulo, descripcion: desc, link, fecha }]);
+      alert('Clase publicada.');
+      cargarDatosDashboard();
+      showTab('trayectos');
+    }
+
+    async function guardarActividad() {
+      const trayecto_id = document.getElementById('select-trayecto-actividad').value;
+      const titulo = document.getElementById('actividad-titulo').value.trim();
+      let desc = document.getElementById('actividad-desc').value.trim();
+      const fecha = document.getElementById('actividad-limite').value;
+
+      if (!trayecto_id) return alert('Seleccioná un trayecto.');
+
+      desc += `\n[Asignado por: ${currentUser.name}]`;
+
+      await db.from('contenidos').insert([{ trayecto_id, tipo: 'actividad', titulo, descripcion: desc, fecha }]);
+      alert('Trabajo Práctico asignado.');
+      cargarDatosDashboard();
+      showTab('trayectos');
     }
 
     async function renderizarRevisiones() {
@@ -948,6 +1039,17 @@
       } else {
         alert(`Contraseña de @${usuario} actualizada con éxito.`);
       }
+    }
+
+    async function eliminarUsuario(id, usuario, nombre, rol) {
+      if (!confirm(`¿Estás seguro de que querés eliminar al usuario @${usuario} (${nombre})? Esta acción borrará su acceso.`)) return;
+
+      if (rol === 'estudiante') {
+        await db.from('inscripciones').delete().eq('estudiante_user', usuario);
+      }
+      await db.from('usuarios').delete().eq('id', id);
+      alert(`Usuario @${usuario} eliminado exitosamente.`);
+      cargarDatosDashboard();
     }
   </script>
 </body>
