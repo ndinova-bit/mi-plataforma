@@ -163,7 +163,7 @@
               </select>
             </div>
             <div class="form-group" id="box-inscripciones">
-              <label>Asignar Estudiante a Trayectos:</label>
+              <label id="lbl-inscripciones">Asignar Estudiante a Trayectos:</label>
               <div id="checkboxes-trayectos" class="checkbox-group"></div>
             </div>
             <button class="btn" onclick="registrarUsuario()">Crear Usuario</button>
@@ -172,7 +172,7 @@
             <h3>Usuarios Registrados</h3>
             <table>
               <thead>
-                <tr><th>Nombre</th><th>Usuario</th><th>Rol</th><th>Inscripciones (Estudiantes)</th><th>Acciones</th></tr>
+                <tr><th>Nombre</th><th>Usuario</th><th>Rol</th><th>Trayectos Asignados</th><th>Acciones</th></tr>
               </thead>
               <tbody id="tabla-usuarios"></tbody>
             </table>
@@ -245,8 +245,13 @@
     function toggleInscripcionesBox() {
       const rol = document.getElementById('user-rol').value;
       const box = document.getElementById('box-inscripciones');
+      const lbl = document.getElementById('lbl-inscripciones');
       if (rol === 'estudiante') {
         box.style.display = 'block';
+        lbl.textContent = 'Asignar Estudiante a Trayectos:';
+      } else if (rol === 'docente') {
+        box.style.display = 'block';
+        lbl.textContent = 'Asignar Docente a Trayectos:';
       } else {
         box.style.display = 'none';
       }
@@ -354,6 +359,55 @@
       }).eq('id', trayectoId);
 
       alert(`Docentes actualizados: ${nuevosNombres}`);
+      cargarDatosDashboard();
+    }
+
+    async function gestionarTrayectosDeDocente(usuarioDocente, nombreDocente) {
+      const { data: todosTrayectos } = await db.from('trayectos').select('*');
+      if (!todosTrayectos || todosTrayectos.length === 0) return alert('No hay trayectos creados.');
+
+      let opcionesText = `Modificar trayectos para ${nombreDocente} (@${usuarioDocente}):\nIngresá los números de los trayectos separados por coma (ej: 1,2):\n\n`;
+
+      todosTrayectos.forEach((t, idx) => {
+        const docentesArr = t.docente_user ? t.docente_user.split(',').map(s => s.trim()) : [];
+        const estaAsignado = docentesArr.includes(usuarioDocente) ? '[ASIGNADO]' : '';
+        opcionesText += `${idx + 1}. ${t.nombre} ${estaAsignado}\n`;
+      });
+
+      const seleccion = prompt(opcionesText);
+      if (seleccion === null) return;
+
+      const indicesSeleccionados = seleccion.split(',')
+        .map(s => parseInt(s.trim()) - 1)
+        .filter(i => !isNaN(i) && i >= 0 && i < todosTrayectos.length);
+
+      for (const t of todosTrayectos) {
+        let docentesUsers = t.docente_user ? t.docente_user.split(',').map(s => s.trim()).filter(Boolean) : [];
+        let docentesNombres = t.docente_nombre ? t.docente_nombre.split(',').map(s => s.trim()).filter(Boolean) : [];
+
+        const indexInTrayecto = todosTrayectos.indexOf(t);
+        const debeEstarAsignado = indicesSeleccionados.includes(indexInTrayecto);
+
+        if (debeEstarAsignado) {
+          if (!docentesUsers.includes(usuarioDocente)) {
+            docentesUsers.push(usuarioDocente);
+            docentesNombres.push(nombreDocente);
+          }
+        } else {
+          const posUser = docentesUsers.indexOf(usuarioDocente);
+          if (posUser !== -1) {
+            docentesUsers.splice(posUser, 1);
+            docentesNombres.splice(posUser, 1);
+          }
+        }
+
+        await db.from('trayectos').update({
+          docente_user: docentesUsers.join(', '),
+          docente_nombre: docentesNombres.join(', ')
+        }).eq('id', t.id);
+      }
+
+      alert('Trayectos actualizados para el docente.');
       cargarDatosDashboard();
     }
 
@@ -533,10 +587,31 @@
       const { error } = await db.from('usuarios').insert([{ nombre, usuario, pass, rol }]);
       if (error) return alert('El usuario ya existe o hubo un error.');
 
+      const seleccionados = Array.from(document.querySelectorAll('.chk-trayecto:checked')).map(cb => cb.value);
+
       if (rol === 'estudiante') {
-        const seleccionados = Array.from(document.querySelectorAll('.chk-trayecto:checked')).map(cb => cb.value);
         for (const tId of seleccionados) {
           await db.from('inscripciones').insert([{ estudiante_user: usuario, trayecto_id: tId }]);
+        }
+      } else if (rol === 'docente' && seleccionados.length > 0) {
+        const { data: todosTrayectos } = await db.from('trayectos').select('*');
+        if (todosTrayectos) {
+          for (const tId of seleccionados) {
+            const tray = todosTrayectos.find(t => t.id == tId);
+            if (tray) {
+              let docentesUsers = tray.docente_user ? tray.docente_user.split(',').map(s => s.trim()).filter(Boolean) : [];
+              let docentesNombres = tray.docente_nombre ? tray.docente_nombre.split(',').map(s => s.trim()).filter(Boolean) : [];
+
+              if (!docentesUsers.includes(usuario)) {
+                docentesUsers.push(usuario);
+                docentesNombres.push(nombre);
+                await db.from('trayectos').update({
+                  docente_user: docentesUsers.join(', '),
+                  docente_nombre: docentesNombres.join(', ')
+                }).eq('id', tId);
+              }
+            }
+          }
         }
       }
 
@@ -544,8 +619,7 @@
       document.getElementById('user-nombre').value = '';
       document.getElementById('user-usuario').value = '';
       document.getElementById('user-pass').value = '';
-      renderizarUsuarios();
-      actualizarSelects();
+      cargarDatosDashboard();
     }
 
     async function renderizarUsuarios() {
@@ -557,6 +631,7 @@
       if (usuarios) {
         tabla.innerHTML = usuarios.map(u => {
           let listaInscripciones = '-';
+          let btnAsignarDocente = '';
 
           if (u.rol === 'estudiante' && inscripciones && trayectos) {
             const misInsc = inscripciones.filter(i => i.estudiante_user === u.usuario);
@@ -565,6 +640,11 @@
               return t ? t.nombre : null;
             }).filter(Boolean);
             listaInscripciones = misNombres.length > 0 ? misNombres.join(', ') : 'Ninguno';
+          } else if (u.rol === 'docente' && trayectos) {
+            const misTrayectos = trayectos.filter(t => t.docente_user && t.docente_user.split(',').map(s => s.trim()).includes(u.usuario));
+            const misNombres = misTrayectos.map(t => t.nombre);
+            listaInscripciones = misNombres.length > 0 ? misNombres.join(', ') : 'Ninguno';
+            btnAsignarDocente = `<button class="btn btn-warning" style="padding:4px 8px; font-size:12px; margin-right:5px;" onclick="gestionarTrayectosDeDocente('${u.usuario}', '${u.nombre}')">📚 Asignar Trayectos</button>`;
           }
 
           return `
@@ -574,6 +654,7 @@
               <td><strong>${u.rol.toUpperCase()}</strong></td>
               <td><span style="font-size:12px; color:#4b5563;">${listaInscripciones}</span></td>
               <td>
+                ${btnAsignarDocente}
                 <button class="btn btn-secondary" style="padding:4px 8px; font-size:12px;" onclick="cambiarClaveUsuario('${u.id}', '${u.usuario}')">🔑 Cambiar Clave</button>
               </td>
             </tr>`;
