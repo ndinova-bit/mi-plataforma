@@ -63,7 +63,7 @@
 
     .modulo-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
 
-    /* ESTILOS SEGÚN NORMATIVA CIRCULAR 4/2020 - ISO A5 (210mm x 148mm) */
+    /* ESTILOS CIRCULAR 4/2020 - ISO A5 (210mm x 148mm) */
     #certificado-container { display: none; }
     .cert-page {
       width: 210mm;
@@ -92,42 +92,12 @@
       line-height: 1.4;
     }
 
-    .cert-val-nombre {
-      font-family: Arial, sans-serif;
-      font-size: 14pt;
-      font-weight: bold;
-      text-transform: uppercase;
-    }
-
-    .cert-val-du {
-      font-family: Arial, sans-serif;
-      font-size: 12pt;
-    }
-
-    .cert-val-trayecto {
-      font-family: Arial, sans-serif;
-      font-size: 12pt;
-    }
-
-    .cert-val-horas {
-      font-family: Arial, sans-serif;
-      font-size: 12pt;
-    }
-
-    .cert-val-certificacion {
-      font-family: Arial, sans-serif;
-      font-size: 12pt;
-    }
-
-    .cert-val-fecha {
-      font-family: Arial, sans-serif;
-      font-size: 12pt;
-    }
-
-    .cert-val-modulo {
-      font-family: Arial, sans-serif;
-      font-size: 10pt;
-    }
+    .cert-val-nombre { font-family: Arial, sans-serif; font-size: 14pt; font-weight: bold; text-transform: uppercase; }
+    .cert-val-du { font-family: Arial, sans-serif; font-size: 12pt; }
+    .cert-val-trayecto { font-family: Arial, sans-serif; font-size: 12pt; }
+    .cert-val-horas { font-family: Arial, sans-serif; font-size: 12pt; }
+    .cert-val-certificacion { font-family: Arial, sans-serif; font-size: 12pt; }
+    .cert-val-fecha { font-family: Arial, sans-serif; font-size: 12pt; }
 
     .cert-firmas-box {
       display: flex;
@@ -143,17 +113,8 @@
       padding-top: 3px;
     }
 
-    .cert-reverso-list {
-      font-size: 10pt;
-      line-height: 1.4;
-      margin: 8px 0;
-    }
-
-    .cert-reverso-footer {
-      margin-top: 10px;
-      font-size: 11pt;
-      line-height: 1.5;
-    }
+    .cert-reverso-list { font-size: 10pt; line-height: 1.4; margin: 8px 0; }
+    .cert-reverso-footer { margin-top: 10px; font-size: 11pt; line-height: 1.5; }
   </style>
 </head>
 <body>
@@ -340,7 +301,7 @@
     </div>
   </div>
 
-  <!-- PLANTILLA DE CERTIFICADO FORMATO CIRCULAR 4/2020 (NORMA ISO A5: 148mm x 210mm) -->
+  <!-- PLANTILLA CERTIFICADO CIRCULAR 4/2020 (NORMA ISO A5: 148mm x 210mm) -->
   <div id="certificado-container">
     <!-- FRENTE (PÁGINA 1) -->
     <div class="cert-page" id="cert-frente">
@@ -370,7 +331,7 @@
       </div>
 
       <div class="cert-line-group">
-        POR TANTO, se le otorga el presente CERTIFICADO DE <span class="cert-val-certificacion" id="cert-txt-certificacion">DENOMINACIÓN CERTIFICACIÓN...................................................</span>
+        POR TANTO, se le otorga el presente CERTIFICADO DE <span class="cert-val-certificacion" id="cert-txt-certificacion">DENOMINACIÓN CERTIFICACIÓN...................................</span>
       </div>
 
       <div class="cert-line-group" style="margin-top: 15px;">
@@ -390,7 +351,7 @@
       </div>
 
       <div id="cert-contenedor-modulos-list" class="cert-reverso-list">
-        <!-- Renglos 1 a 10 con formato normativo y punteado -->
+        <!-- Renglones 1 a 10 normados -->
       </div>
 
       <div class="cert-reverso-footer">
@@ -576,7 +537,9 @@
       const desc = document.getElementById('desc-trayecto').value.trim();
 
       const chksSelected = Array.from(document.querySelectorAll('.chk-docente-trayecto:checked'));
-      if (!nombre || chksSelected.length === 0) return alert('Completá el nombre del trayecto y seleccioná al menos un docente.');
+      if (!nombre || chksSelected.length === 0) {
+        return alert('Por favor, completá el nombre del trayecto y seleccioná al menos un docente.');
+      }
 
       const docentesUsers = chksSelected.map(cb => cb.value).join(', ');
       const docentesNombres = chksSelected.map(cb => cb.getAttribute('data-nombre')).join(', ');
@@ -591,7 +554,7 @@
         }
       });
 
-      await db.from('trayectos').insert([{ 
+      const { data, error } = await db.from('trayectos').insert([{ 
         nombre, 
         resolucion: certificacion, 
         horas, 
@@ -600,10 +563,31 @@
         docente_nombre: docentesNombres, 
         descripcion: `CFP N° ${cfp} - Distrito: ${distrito} | ${desc}`,
         modulos: JSON.stringify(modulosArray)
-      }]);
-      
-      alert('Trayecto Formativo guardado con éxito.');
-      cargarDatosDashboard();
+      }]).select();
+
+      if (error) {
+        console.error('Error Supabase:', error);
+        return alert('Error al guardar en Supabase: ' + error.message);
+      }
+
+      alert('¡Trayecto Formativo guardado con éxito!');
+
+      document.getElementById('nombre-trayecto').value = '';
+      document.getElementById('certificacion-trayecto').value = '';
+      document.getElementById('horas-trayecto').value = '';
+      document.getElementById('cfp-trayecto').value = '';
+      document.getElementById('distrito-trayecto').value = '';
+      document.getElementById('fecha-entrega-trayecto').value = '';
+      document.getElementById('desc-trayecto').value = '';
+      document.querySelectorAll('.chk-docente-trayecto').forEach(cb => cb.checked = false);
+      document.getElementById('contenedor-modulos').innerHTML = `
+        <div class="modulo-row">
+          <input type="text" class="mod-nombre" placeholder="Nombre del Módulo" style="width: 70%;">
+          <input type="text" class="mod-codigo" placeholder="Código (Ej: GH0057.1)" style="width: 25%;">
+          <button class="btn btn-danger" onclick="eliminarFilaModulo(this)" style="padding:6px 10px;">X</button>
+        </div>`;
+
+      await cargarDatosDashboard();
     }
 
     async function renderizarTrayectos() {
@@ -621,7 +605,7 @@
       }
 
       if (!trayectos || trayectos.length === 0) {
-        container.innerHTML = '<div class="card empty-msg">No hay trayectos asignados para mostrar.</div>';
+        container.innerHTML = '<div class="card empty-msg">No hay trayectos creados o asignados.</div>';
         return;
       }
 
@@ -768,7 +752,6 @@
       });
     }
 
-    // GENERADOR FORMATO RIGUROSO CIRCULAR 4-2020 (PROVINCIA DE BUENOS AIRES)
     async function generarCertificadoPDF(trayectoJson, alumnoNombre, usuarioDni) {
       const trayecto = JSON.parse(decodeURIComponent(trayectoJson));
       const alumno = decodeURIComponent(alumnoNombre);
@@ -779,11 +762,9 @@
       const numEgresado = prompt('Ingrese N° de Egresado asignado:', '547854');
       if (!numEgresado) return;
 
-      // Formatear D.U. con puntos (Ej: 70025241 -> 70.025.241)
       let dniFormateado = usuarioDni.replace(/\D/g, '');
       dniFormateado = dniFormateado.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 
-      // Formatear texto con punteado normativo si no llena el espacio
       function completarConPuntos(texto, maxChars = 60) {
         let t = texto.trim();
         if (t.length < maxChars) {
@@ -792,7 +773,6 @@
         return t;
       }
 
-      // FRENTE
       document.getElementById('cert-txt-alumno').textContent = alumno.toUpperCase();
       document.getElementById('cert-txt-dni').textContent = dniFormateado;
       document.getElementById('cert-txt-trayecto').textContent = completarConPuntos(trayecto.nombre, 50);
@@ -800,7 +780,6 @@
       document.getElementById('cert-txt-certificacion').textContent = completarConPuntos(trayecto.resolucion || trayecto.nombre, 45);
       document.getElementById('cert-txt-fecha-frente').textContent = trayecto.fecha_entrega || '01 de Julio de 2026';
 
-      // REVERSO
       let modulosList = [];
       try {
         modulosList = JSON.parse(trayecto.modulos || '[]');
@@ -827,7 +806,6 @@
       document.getElementById('cert-txt-fecha-egreso').textContent = fEgreso;
       document.getElementById('cert-txt-num-egresado').textContent = numEgresado;
 
-      // Extraer CFP y Distrito si fueron guardados en la descripción
       let cfpVal = '415';
       let distritoVal = 'Lomas de Zamora';
       if (trayecto.descripcion) {
@@ -843,7 +821,6 @@
       const element = document.getElementById('certificado-container');
       element.style.display = 'block';
 
-      // Opciones para generar exactamente norma ISO A5 Apaisada (210mm x 148mm)
       const opt = {
         margin:       0,
         filename:     `Certificado_FP_${usuarioDni}_${trayecto.nombre}.pdf`,
