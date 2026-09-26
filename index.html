@@ -98,7 +98,10 @@
           <div class="card admin-only">
             <h3>Crear Nuevo Trayecto</h3>
             <div class="form-group"><label>Nombre del Trayecto:</label><input type="text" id="nombre-trayecto"></div>
-            <div class="form-group"><label>Docente a Cargo:</label><select id="select-docente-trayecto"></select></div>
+            <div class="form-group">
+              <label>Docentes a Cargo (Podés seleccionar varios):</label>
+              <div id="checkboxes-docentes-trayecto" class="checkbox-group"></div>
+            </div>
             <div class="form-group"><label>Descripción:</label><textarea id="desc-trayecto" rows="2"></textarea></div>
             <button class="btn" onclick="crearTrayecto()">Crear Trayecto</button>
           </div>
@@ -264,19 +267,22 @@
       const { data: docentes } = await db.from('usuarios').select('*').eq('rol', 'docente');
       listaDocentesGlobal = docentes || [];
 
-      const selectDoc = document.getElementById('select-docente-trayecto');
-      if (selectDoc) {
+      const boxDocentesTrayecto = document.getElementById('checkboxes-docentes-trayecto');
+      if (boxDocentesTrayecto) {
         if (listaDocentesGlobal.length > 0) {
-          selectDoc.innerHTML = listaDocentesGlobal.map(d => `<option value="${d.usuario}">${d.nombre} (@${d.usuario})</option>`).join('');
+          boxDocentesTrayecto.innerHTML = listaDocentesGlobal.map(d => `
+            <label class="checkbox-item">
+              <input type="checkbox" value="${d.usuario}" data-nombre="${d.nombre}" class="chk-docente-trayecto"> ${d.nombre} (@${d.usuario})
+            </label>`).join('');
         } else {
-          selectDoc.innerHTML = '<option value="">Sin docentes registrados</option>';
+          boxDocentesTrayecto.innerHTML = '<span style="font-size:12px; color:#6b7280;">No hay docentes registrados.</span>';
         }
       }
 
       let { data: trayectos } = await db.from('trayectos').select('*');
 
       if (currentUser.role === 'docente') {
-        trayectos = trayectos ? trayectos.filter(t => t.docente_user === currentUser.user) : [];
+        trayectos = trayectos ? trayectos.filter(t => t.docente_user && t.docente_user.split(',').map(s=>s.trim()).includes(currentUser.user)) : [];
       }
 
       const selectC = document.getElementById('select-trayecto-contenido');
@@ -305,14 +311,15 @@
 
     async function crearTrayecto() {
       const nombre = document.getElementById('nombre-trayecto').value.trim();
-      const docUser = document.getElementById('select-docente-trayecto').value;
       const desc = document.getElementById('desc-trayecto').value.trim();
 
-      if (!nombre || !docUser) return alert('Completá el nombre y seleccioná un docente.');
+      const chksSelected = Array.from(document.querySelectorAll('.chk-docente-trayecto:checked'));
+      if (!nombre || chksSelected.length === 0) return alert('Completá el nombre y seleccioná al menos un docente.');
 
-      const { data: docData } = await db.from('usuarios').select('nombre').eq('usuario', docUser).single();
+      const docentesUsers = chksSelected.map(cb => cb.value).join(', ');
+      const docentesNombres = chksSelected.map(cb => cb.getAttribute('data-nombre')).join(', ');
 
-      await db.from('trayectos').insert([{ nombre, docente_user: docUser, docente_nombre: docData ? docData.nombre : docUser, descripcion: desc }]);
+      await db.from('trayectos').insert([{ nombre, docente_user: docentesUsers, docente_nombre: docentesNombres, descripcion: desc }]);
       
       alert('Trayecto creado con éxito.');
       document.getElementById('nombre-trayecto').value = '';
@@ -320,39 +327,46 @@
       cargarDatosDashboard();
     }
 
-    async function reasignarDocente(trayectoId) {
+    async function gestionarDocentesTrayecto(trayectoId, actualesUser) {
       if (listaDocentesGlobal.length === 0) return alert('No hay docentes registrados.');
 
-      let opcionesText = 'Seleccioná el número del nuevo docente:\n\n';
+      const actualesArr = actualesUser ? actualesUser.split(',').map(s => s.trim()) : [];
+      let opcionesText = 'Ingresá los números de los docentes asignados separados por coma (ej: 1,2):\n\n';
+      
       listaDocentesGlobal.forEach((d, idx) => {
-        opcionesText += `${idx + 1}. ${d.nombre} (@${d.usuario})\n`;
+        const estaAsignado = actualesArr.includes(d.usuario) ? '[ASIGNADO]' : '';
+        opcionesText += `${idx + 1}. ${d.nombre} (@${d.usuario}) ${estaAsignado}\n`;
       });
 
       const seleccion = prompt(opcionesText);
-      const index = parseInt(seleccion) - 1;
+      if (seleccion === null) return;
 
-      if (!isNaN(index) && index >= 0 && index < listaDocentesGlobal.length) {
-        const nuevoDocente = listaDocentesGlobal[index];
-        await db.from('trayectos').update({ 
-          docente_user: nuevoDocente.usuario, 
-          docente_nombre: nuevoDocente.nombre 
-        }).eq('id', trayectoId);
+      const indices = seleccion.split(',').map(s => parseInt(s.trim()) - 1).filter(i => !isNaN(i) && i >= 0 && i < listaDocentesGlobal.length);
 
-        alert(`El trayecto ahora está a cargo de: ${nuevoDocente.nombre}`);
-        cargarDatosDashboard();
-      } else if (seleccion !== null) {
-        alert('Opción inválida.');
-      }
+      if (indices.length === 0) return alert('No seleccionaste ningún docente válido.');
+
+      const nuevosUsers = indices.map(i => listaDocentesGlobal[i].usuario).join(', ');
+      const nuevosNombres = indices.map(i => listaDocentesGlobal[i].nombre).join(', ');
+
+      await db.from('trayectos').update({ 
+        docente_user: nuevosUsers, 
+        docente_nombre: nuevosNombres 
+      }).eq('id', trayectoId);
+
+      alert(`Docentes actualizados: ${nuevosNombres}`);
+      cargarDatosDashboard();
     }
 
     async function guardarClase() {
       const trayecto_id = document.getElementById('select-trayecto-contenido').value;
       const titulo = document.getElementById('clase-nombre').value.trim();
       const fecha = document.getElementById('clase-fecha').value;
-      const desc = document.getElementById('material-titulo').value.trim();
+      let desc = document.getElementById('material-titulo').value.trim();
       const link = document.getElementById('material-link').value.trim();
 
       if (!trayecto_id) return alert('Seleccioná un trayecto.');
+
+      desc += ` (Cargado por: ${currentUser.name})`;
 
       await db.from('contenidos').insert([{ trayecto_id, tipo: 'clase', titulo, descripcion: desc, link, fecha }]);
       alert('Clase publicada.');
@@ -363,10 +377,12 @@
     async function guardarActividad() {
       const trayecto_id = document.getElementById('select-trayecto-actividad').value;
       const titulo = document.getElementById('actividad-titulo').value.trim();
-      const desc = document.getElementById('actividad-desc').value.trim();
+      let desc = document.getElementById('actividad-desc').value.trim();
       const fecha = document.getElementById('actividad-limite').value;
 
       if (!trayecto_id) return alert('Seleccioná un trayecto.');
+
+      desc += `\n[Asignado por: ${currentUser.name}]`;
 
       await db.from('contenidos').insert([{ trayecto_id, tipo: 'actividad', titulo, descripcion: desc, fecha }]);
       alert('Trabajo Práctico asignado.');
@@ -385,7 +401,7 @@
         const idsInscriptos = inscripciones ? inscripciones.map(i => i.trayecto_id) : [];
         trayectos = trayectos ? trayectos.filter(t => idsInscriptos.includes(t.id)) : [];
       } else if (currentUser.role === 'docente') {
-        trayectos = trayectos ? trayectos.filter(t => t.docente_user === currentUser.user) : [];
+        trayectos = trayectos ? trayectos.filter(t => t.docente_user && t.docente_user.split(',').map(s=>s.trim()).includes(currentUser.user)) : [];
       }
 
       if (!trayectos || trayectos.length === 0) {
@@ -442,14 +458,14 @@
             </div>`;
         });
 
-        const btnCambiarDocente = currentUser.role === 'admin' 
-          ? `<button class="btn btn-warning" style="font-size:12px; padding:4px 8px; margin-left:10px;" onclick="reasignarDocente('${t.id}')">👤 Cambiar Docente</button>` 
+        const btnGestionarDocentes = currentUser.role === 'admin' 
+          ? `<button class="btn btn-warning" style="font-size:12px; padding:4px 8px; margin-left:10px;" onclick="gestionarDocentesTrayecto('${t.id}', '${t.docente_user}')">👥 Modificar Docentes</button>` 
           : '';
 
         const card = document.createElement('div');
         card.className = 'card';
         card.innerHTML = `
-          <span class="docente-badge">Docente: ${t.docente_nombre}</span> ${btnCambiarDocente}
+          <span class="docente-badge">Docente(s): ${t.docente_nombre || 'Sin asignar'}</span> ${btnGestionarDocentes}
           <h3>${t.nombre}</h3>
           <p>${t.descripcion || ''}</p>
           <button class="btn btn-secondary" onclick="document.getElementById('det-${t.id}').style.display = document.getElementById('det-${t.id}').style.display === 'none'?'block':'none'">Ver Contenidos</button>
@@ -478,7 +494,7 @@
       const tabla = document.getElementById('tabla-revisiones');
 
       if (currentUser.role === 'docente') {
-        const misTrayectosIds = trayectos ? trayectos.filter(t => t.docente_user === currentUser.user).map(t => t.id) : [];
+        const misTrayectosIds = trayectos ? trayectos.filter(t => t.docente_user && t.docente_user.split(',').map(s=>s.trim()).includes(currentUser.user)).map(t => t.id) : [];
         entregas = entregas ? entregas.filter(e => misTrayectosIds.includes(e.trayecto_id)) : [];
       }
 
@@ -501,7 +517,8 @@
     }
 
     async function guardarNota(id, nota) {
-      await db.from('entregas').update({ nota }).eq('id', id);
+      const notaFinal = `${nota} (Corregido por: ${currentUser.name})`;
+      await db.from('entregas').update({ nota: notaFinal }).eq('id', id);
       alert('Nota/Feedback guardado correctamente.');
     }
 
