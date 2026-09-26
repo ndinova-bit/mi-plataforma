@@ -4,19 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Plataforma Educativa</title>
-  <!-- Supabase CDN JS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     body { margin: 0; background: #f3f4f6; color: #1f2937; height: 100vh; }
     
-    /* PANTALLA DE LOGIN */
     #login-screen { display: flex; justify-content: center; align-items: center; height: 100vh; background: #111827; }
     .login-box { background: white; padding: 40px; border-radius: 10px; width: 360px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
     .login-box h2 { margin-bottom: 20px; color: #111827; }
     .login-box input, .login-box select { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #d1d5db; border-radius: 6px; }
     
-    /* DASHBOARD */
     #app-screen { display: none; height: 100vh; }
     .dashboard { display: flex; height: 100%; }
     .sidebar { width: 260px; background: #111827; color: white; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; }
@@ -47,9 +44,10 @@
     .actividad-box { border-left: 4px solid #2563eb; }
     .material-item { background: white; border: 1px solid #e5e7eb; padding: 10px 15px; border-radius: 6px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; }
     .docente-badge { display: inline-block; background: #e0e7ff; color: #3730a3; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; margin-bottom: 10px; }
-    .status-badge { display: inline-block; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; }
-    .badge-programado { background: #fef3c7; color: #92400e; }
-    .badge-publicado { background: #d1fae5; color: #065f46; }
+    
+    .checkbox-group { display: flex; flex-direction: column; gap: 8px; margin-top: 5px; max-height: 120px; overflow-y: auto; border: 1px solid #d1d5db; padding: 10px; border-radius: 6px; }
+    .checkbox-item { display: flex; align-items: center; gap: 8px; font-weight: normal; font-size: 14px; cursor: pointer; }
+    .checkbox-item input { width: auto; margin: 0; }
   </style>
 </head>
 <body>
@@ -65,12 +63,8 @@
           <option value="docente">Docente / Administrador</option>
         </select>
       </div>
-      <div class="form-group">
-        <input type="text" id="login-user" placeholder="Usuario">
-      </div>
-      <div class="form-group">
-        <input type="password" id="login-pass" placeholder="Contraseña">
-      </div>
+      <div class="form-group"><input type="text" id="login-user" placeholder="Usuario"></div>
+      <div class="form-group"><input type="password" id="login-pass" placeholder="Contraseña"></div>
       <button class="btn" style="width:100%;" onclick="iniciarSesion()">Ingresar</button>
     </div>
   </div>
@@ -104,7 +98,7 @@
             <div class="form-group"><label>Descripción:</label><textarea id="desc-trayecto" rows="2"></textarea></div>
             <button class="btn" onclick="crearTrayecto()">Crear Trayecto</button>
           </div>
-          <h3>Trayectos Activos</h3>
+          <h3>Mis Trayectos</h3>
           <div id="lista-trayectos"><div class="card empty-msg">Cargando trayectos...</div></div>
         </div>
 
@@ -154,17 +148,21 @@
             <div class="form-group"><label>Contraseña:</label><input type="password" id="user-pass"></div>
             <div class="form-group">
               <label>Rol:</label>
-              <select id="user-rol">
+              <select id="user-rol" onchange="toggleInscripcionesBox()">
                 <option value="estudiante">Estudiante</option>
                 <option value="docente">Docente / Admin</option>
               </select>
+            </div>
+            <div class="form-group" id="box-inscripciones">
+              <label>Asignar a Trayectos:</label>
+              <div id="checkboxes-trayectos" class="checkbox-group"></div>
             </div>
             <button class="btn" onclick="registrarUsuario()">Crear Usuario</button>
           </div>
           <div class="card">
             <h3>Usuarios Registrados</h3>
             <table>
-              <thead><tr><th>Nombre</th><th>Usuario</th><th>Rol</th></tr></thead>
+              <thead><tr><th>Nombre</th><th>Usuario</th><th>Rol</th><th>Trayectos</th></tr></thead>
               <tbody id="tabla-usuarios"></tbody>
             </table>
           </div>
@@ -174,7 +172,6 @@
   </div>
 
   <script>
-    // Configuración de Supabase
     const SUPABASE_URL = 'https://dxgqtdaexlegsaohdywx.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_q3iliYP60gR5bP6vtTwoHA_8FWqg7iz';
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -186,7 +183,7 @@
       const p = document.getElementById('login-pass').value.trim();
       const r = document.getElementById('role-select').value;
 
-      if (!u || !p) return alert('Por favor ingresá usuario y contraseña.');
+      if (!u || !p) return alert('Ingresá usuario y contraseña.');
 
       const { data, error } = await db.from('usuarios').select('*').eq('usuario', u).eq('pass', p).eq('rol', r);
 
@@ -225,6 +222,11 @@
       if (btn) btn.classList.add('active');
     }
 
+    function toggleInscripcionesBox() {
+      const rol = document.getElementById('user-rol').value;
+      document.getElementById('box-inscripciones').style.display = rol === 'estudiante' ? 'block' : 'none';
+    }
+
     async function cargarDatosDashboard() {
       await actualizarSelects();
       await renderizarTrayectos();
@@ -244,6 +246,7 @@
       const { data: trayectos } = await db.from('trayectos').select('*');
       const selectC = document.getElementById('select-trayecto-contenido');
       const selectA = document.getElementById('select-trayecto-actividad');
+      const boxCheckboxes = document.getElementById('checkboxes-trayectos');
 
       const options = trayectos && trayectos.length > 0 
         ? trayectos.map(t => `<option value="${t.id}">${t.nombre}</option>`).join('')
@@ -251,6 +254,13 @@
 
       if (selectC) selectC.innerHTML = options;
       if (selectA) selectA.innerHTML = options;
+
+      if (boxCheckboxes && trayectos) {
+        boxCheckboxes.innerHTML = trayectos.map(t => `
+          <label class="checkbox-item">
+            <input type="checkbox" value="${t.id}" class="chk-trayecto"> ${t.nombre}
+          </label>`).join('');
+      }
     }
 
     async function crearTrayecto() {
@@ -295,12 +305,18 @@
 
     async function renderizarTrayectos() {
       const container = document.getElementById('lista-trayectos');
-      const { data: trayectos } = await db.from('trayectos').select('*');
+      let { data: trayectos } = await db.from('trayectos').select('*');
       const { data: contenidos } = await db.from('contenidos').select('*');
       const { data: entregas } = await db.from('entregas').select('*');
 
+      if (currentUser.role === 'estudiante') {
+        const { data: inscripciones } = await db.from('inscripciones').select('trayecto_id').eq('estudiante_user', currentUser.user);
+        const idsInscriptos = inscripciones ? inscripciones.map(i => i.trayecto_id) : [];
+        trayectos = trayectos ? trayectos.filter(t => idsInscriptos.includes(t.id)) : [];
+      }
+
       if (!trayectos || trayectos.length === 0) {
-        container.innerHTML = '<div class="card empty-msg">No hay trayectos creados aún.</div>';
+        container.innerHTML = '<div class="card empty-msg">No tenés trayectos asignados actualmente.</div>';
         return;
       }
 
@@ -413,6 +429,13 @@
       const { error } = await db.from('usuarios').insert([{ nombre, usuario, pass, rol }]);
       if (error) return alert('El usuario ya existe o hubo un error.');
 
+      if (rol === 'estudiante') {
+        const seleccionados = Array.from(document.querySelectorAll('.chk-trayecto:checked')).map(cb => cb.value);
+        for (const tId of seleccionados) {
+          await db.from('inscripciones').insert([{ estudiante_user: usuario, trayecto_id: tId }]);
+        }
+      }
+
       alert(`Usuario ${usuario} creado exitosamente.`);
       document.getElementById('user-nombre').value = '';
       document.getElementById('user-usuario').value = '';
@@ -422,14 +445,30 @@
 
     async function renderizarUsuarios() {
       const { data: usuarios } = await db.from('usuarios').select('*');
+      const { data: inscripciones } = await db.from('inscripciones').select('*');
+      const { data: trayectos } = await db.from('trayectos').select('*');
       const tabla = document.getElementById('tabla-usuarios');
+
       if (usuarios) {
-        tabla.innerHTML = usuarios.map(u => `
-          <tr>
-            <td>${u.nombre}</td>
-            <td>@${u.usuario}</td>
-            <td><strong>${u.rol.toUpperCase()}</strong></td>
-          </tr>`).join('');
+        tabla.innerHTML = usuarios.map(u => {
+          let listaTrayectos = '-';
+          if (u.rol === 'estudiante' && inscripciones && trayectos) {
+            const misInsc = inscripciones.filter(i => i.estudiante_user === u.usuario);
+            const misNombres = misInsc.map(i => {
+              const t = trayectos.find(tr => tr.id === i.trayecto_id);
+              return t ? t.nombre : null;
+            }).filter(Boolean);
+            listaTrayectos = misNombres.length > 0 ? misNombres.join(', ') : 'Ninguno';
+          }
+
+          return `
+            <tr>
+              <td>${u.nombre}</td>
+              <td>@${u.usuario}</td>
+              <td><strong>${u.rol.toUpperCase()}</strong></td>
+              <td><span style="font-size:12px; color:#4b5563;">${listaTrayectos}</span></td>
+            </tr>`;
+        }).join('');
       }
     }
   </script>
