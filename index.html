@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Plataforma Educativa - FP (DGCyE PBA) v9.3</title>
+  <title>Plataforma Educativa - FP (DGCyE PBA) v9.4</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- Librería para lectura de Excel y CSV -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -692,7 +692,7 @@
       }
     }
 
-    async function guardarNotaConceptual(inscripcionId, moduloNombre, nota) {
+    async function guardarNotaConceptual(inscripcionId, moduloNombre, nota, fundamentacion) {
       const val = parseInt(nota);
       if (isNaN(val) || val < 0 || val > 100) {
         return alert('Ingresá una nota válida del 0 al 100.');
@@ -702,13 +702,16 @@
       let mapConcept = {};
       try { mapConcept = JSON.parse(insc.notas_conceptuales || '{}'); } catch(e){}
 
-      mapConcept[moduloNombre] = val;
+      mapConcept[moduloNombre] = {
+        nota: val,
+        fundamentacion: (fundamentacion || '').trim()
+      };
 
       const { error } = await db.from('inscripciones').update({ notas_conceptuales: JSON.stringify(mapConcept) }).eq('id', inscripcionId);
       if (error) {
         alert('Error al guardar la nota conceptual: ' + error.message);
       } else {
-        alert('Nota conceptual guardada.');
+        alert('Nota conceptual y fundamentación guardadas con éxito.');
         renderizarSeguimientoEstudiantes();
       }
     }
@@ -751,7 +754,7 @@
         if (totalModulos === 0) {
           htmlTablaModulos += '<p class="empty-msg" style="padding:10px;">Este trayecto no posee módulos registrados.</p>';
         } else {
-          htmlTablaModulos += '<table class="tabla-modulos-eval"><thead><tr><th>Módulo / Unidad Curricular</th><th>Código</th><th>Promedio TPs</th><th>Nota Conceptual / Taller (0-100)</th><th>Condición Modular (Mín. 70)</th></tr></thead><tbody>';
+          htmlTablaModulos += '<table class="tabla-modulos-eval"><thead><tr><th>Módulo / Unidad Curricular</th><th>Código</th><th>Promedio TPs</th><th>Nota Conceptual / Taller (0-100) y Fundamentación</th><th>Condición Modular (Mín. 70)</th></tr></thead><tbody>';
 
           modulosList.forEach((m, idx) => {
             const tpsModulo = contenidos ? contenidos.filter(c => c.modulo_asociado === m.nombre) : [];
@@ -769,7 +772,18 @@
               promTPs = suma / entregasCalificadas.length;
             }
 
-            const valConcept = mapConcept[m.nombre] !== undefined ? parseFloat(mapConcept[m.nombre]) : null;
+            const conceptData = mapConcept[m.nombre];
+            let valConcept = null;
+            let txtFundamentacion = '';
+
+            if (conceptData !== undefined) {
+              if (typeof conceptData === 'object') {
+                valConcept = conceptData.nota !== undefined ? parseFloat(conceptData.nota) : null;
+                txtFundamentacion = conceptData.fundamentacion || '';
+              } else {
+                valConcept = parseFloat(conceptData);
+              }
+            }
 
             let promedioFinal = 0;
             let badgeHtml = '';
@@ -796,18 +810,24 @@
             }
 
             const inputConceptHtml = currentUser.role !== 'estudiante' 
-              ? `<div style="display:flex; gap:5px; align-items:center;">
-                   <input type="number" min="0" max="100" value="${valConcept !== null ? valConcept : ''}" placeholder="0-100" id="cnc-${i.id}-${idx}" style="width:70px; padding:3px 6px; font-size:12px;">
-                   <button class="btn btn-secondary" style="padding:3px 6px; font-size:11px;" onclick="guardarNotaConceptual('${i.id}', '${m.nombre}', document.getElementById('cnc-${i.id}-${idx}').value)">💾</button>
+              ? `<div style="display:flex; flex-direction:column; gap:5px;">
+                   <div style="display:flex; gap:5px; align-items:center;">
+                     <input type="number" min="0" max="100" value="${valConcept !== null ? valConcept : ''}" placeholder="0-100" id="cnc-${i.id}-${idx}" style="width:70px; padding:3px 6px; font-size:12px;">
+                     <button class="btn btn-secondary" style="padding:3px 6px; font-size:11px;" onclick="guardarNotaConceptual('${i.id}', '${m.nombre}', document.getElementById('cnc-${i.id}-${idx}').value, document.getElementById('fnd-${i.id}-${idx}').value)">💾</button>
+                   </div>
+                   <input type="text" value="${txtFundamentacion}" placeholder="Fundamentación / Obs. (opcional)" id="fnd-${i.id}-${idx}" style="padding:3px 6px; font-size:11px; width:100%;">
                  </div>`
-              : `<span>${valConcept !== null ? valConcept + ' pts' : '-'}</span>`;
+              : `<div>
+                   <strong>${valConcept !== null ? valConcept + ' pts' : '-'}</strong>
+                   ${txtFundamentacion ? `<br><small style="color:#4b5563;">Obs: ${txtFundamentacion}</small>` : ''}
+                 </div>`;
 
             htmlTablaModulos += `
               <tr>
                 <td><strong>${idx + 1}. ${m.nombre}</strong></td>
                 <td><code>${m.codigo || '-'}</code></td>
                 <td><strong>${promTPs !== null ? Math.round(promTPs) + ' / 100' : 'Sin TPs'}</strong></td>
-                <td>${inputConceptHtml}</td>
+                <td style="min-width:220px;">${inputConceptHtml}</td>
                 <td>${badgeHtml}</td>
               </tr>`;
           });
