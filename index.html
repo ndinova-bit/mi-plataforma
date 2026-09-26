@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Plataforma Educativa - FP (DGCyE PBA) v9</title>
+  <title>Plataforma Educativa - FP (DGCyE PBA) v9.1 - Control Total Admin</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- Librería para lectura de Excel y CSV -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -546,6 +546,7 @@
       cargarDatosDashboard();
     }
 
+    // ELIMINAR TRAYECTO COMPLETO (ADMIN)
     async function eliminarTrayecto(id, nombreEnc) {
       const nombre = decodeURIComponent(nombreEnc);
       if (!confirm(`¿Estás seguro de que querés eliminar el trayecto "${nombre}"? Esta acción borrará el curso permanentemente.`)) return;
@@ -559,6 +560,7 @@
       }
     }
 
+    // ELIMINAR UN MÓDULO INDIVIDUAL (ADMIN)
     async function eliminarModuloDeTrayecto(trayectoId, moduloIndex) {
       if (!confirm('¿Eliminar este módulo del trayecto?')) return;
 
