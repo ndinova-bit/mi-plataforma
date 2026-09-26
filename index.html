@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Plataforma Educativa - FP (DGCyE PBA) v3</title>
+  <title>Plataforma Educativa - FP (DGCyE PBA) v4</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- Librería para lectura de Excel y CSV -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -61,7 +61,9 @@
     .badge-pending { background: #fef3c7; color: #92400e; }
     .badge-missing { background: #fee2e2; color: #991b1b; }
 
-    .modulo-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
+    .modulo-card { background: #f8fafc; border: 1px solid #cbd5e1; padding: 12px; border-radius: 6px; margin-bottom: 10px; }
+    .modulo-row-header { display: flex; gap: 10px; margin-bottom: 8px; }
+    .modulo-row-dates { display: flex; gap: 10px; align-items: center; font-size: 12px; }
 
     /* ESTILOS CIRCULAR 4/2020 - ISO A5 (210mm x 148mm) */
     #certificado-container { display: none; }
@@ -185,12 +187,20 @@
             <div class="form-group"><label>Descripción / Alcance Perfil Profesional:</label><textarea id="desc-trayecto" rows="2"></textarea></div>
 
             <hr style="margin:20px 0; border:0; border-top:1px solid #e5e7eb;">
-            <h4>📐 Estructura Curricular y Módulos (Reverso Anverso Normado)</h4>
+            <h4>📐 Estructura Curricular y Módulos con Período de Dictado</h4>
             <div id="contenedor-modulos">
-              <div class="modulo-row">
-                <input type="text" class="mod-nombre" placeholder="Nombre del Módulo" style="width: 70%;">
-                <input type="text" class="mod-codigo" placeholder="Código (Ej: GH0057.1)" style="width: 25%;">
-                <button class="btn btn-danger" onclick="eliminarFilaModulo(this)" style="padding:6px 10px;">X</button>
+              <div class="modulo-card">
+                <div class="modulo-row-header">
+                  <input type="text" class="mod-nombre" placeholder="Nombre del Módulo" style="width: 65%;">
+                  <input type="text" class="mod-codigo" placeholder="Código (Ej: GH0057.1)" style="width: 25%;">
+                  <button class="btn btn-danger" onclick="eliminarFilaModulo(this)" style="padding:6px 10px;">X</button>
+                </div>
+                <div class="modulo-row-dates">
+                  <label style="margin:0; font-weight:normal;">Inicio:</label>
+                  <input type="date" class="mod-inicio" style="padding:4px 8px; font-size:12px;">
+                  <label style="margin:0; font-weight:normal;">Fin:</label>
+                  <input type="date" class="mod-fin" style="padding:4px 8px; font-size:12px;">
+                </div>
               </div>
             </div>
             <button class="btn btn-secondary" onclick="agregarFilaModulo()" style="margin-bottom:15px; font-size:12px;">➕ Agregar Otro Módulo</button>
@@ -203,7 +213,7 @@
           <div id="lista-trayectos"><div class="card empty-msg">Cargando trayectos...</div></div>
         </div>
 
-        <!-- SEGUIMIENTO DE ESTUDIANTES (ADMIN Y DOCENTES) -->
+        <!-- SEGUIMIENTO DE ESTUDIANTES -->
         <div id="estudiantes" class="section docente-or-admin">
           <h2>Seguimiento Académico de Alumnos y Certificaciones</h2>
           <div class="card">
@@ -215,7 +225,7 @@
           <div id="contenedor-seguimiento"></div>
         </div>
 
-        <!-- CONTENIDOS (EXCLUSIVO DOCENTES) -->
+        <!-- CONTENIDOS (DOCENTES) -->
         <div id="contenidos" class="section docente-only">
           <h2>Gestión de Contenidos y Trabajos Prácticos</h2>
           <div class="card">
@@ -238,7 +248,7 @@
           </div>
         </div>
 
-        <!-- REVISIONES (EXCLUSIVO DOCENTES) -->
+        <!-- REVISIONES (DOCENTES) -->
         <div id="revisiones" class="section docente-only">
           <h2>Revisiones de Entregas</h2>
           <div class="card">
@@ -251,7 +261,7 @@
           </div>
         </div>
 
-        <!-- USUARIOS (EXCLUSIVO ADMIN) -->
+        <!-- USUARIOS (ADMIN) -->
         <div id="usuarios" class="section admin-only">
           <h2>Alta y Administración de Usuarios</h2>
           
@@ -407,7 +417,6 @@
       if (currentUser.role === 'docente') tagRol = 'Docente';
       document.getElementById('display-role').textContent = tagRol;
 
-      // Ocultamiento estricto y preciso por roles
       document.querySelectorAll('.admin-only').forEach(el => {
         el.style.display = (currentUser.role === 'admin') ? 'block' : 'none';
       });
@@ -418,7 +427,7 @@
 
       document.querySelectorAll('.docente-or-admin').forEach(el => {
         const esDocenteOAdmin = (currentUser.role === 'admin' || currentUser.role === 'docente');
-        el.style.display = esDocenteOAdmin ? (el.tagName === 'BUTTON' ? 'block' : 'block') : 'none';
+        el.style.display = esDocenteOAdmin ? 'block' : 'none';
       });
 
       cargarDatosDashboard();
@@ -461,16 +470,24 @@
     function agregarFilaModulo() {
       const contenedor = document.getElementById('contenedor-modulos');
       const div = document.createElement('div');
-      div.className = 'modulo-row';
+      div.className = 'modulo-card';
       div.innerHTML = `
-        <input type="text" class="mod-nombre" placeholder="Nombre del Módulo" style="width: 70%;">
-        <input type="text" class="mod-codigo" placeholder="Código (Ej: GH0057.1)" style="width: 25%;">
-        <button class="btn btn-danger" onclick="eliminarFilaModulo(this)" style="padding:6px 10px;">X</button>`;
+        <div class="modulo-row-header">
+          <input type="text" class="mod-nombre" placeholder="Nombre del Módulo" style="width: 65%;">
+          <input type="text" class="mod-codigo" placeholder="Código (Ej: GH0057.1)" style="width: 25%;">
+          <button class="btn btn-danger" onclick="eliminarFilaModulo(this)" style="padding:6px 10px;">X</button>
+        </div>
+        <div class="modulo-row-dates">
+          <label style="margin:0; font-weight:normal;">Inicio:</label>
+          <input type="date" class="mod-inicio" style="padding:4px 8px; font-size:12px;">
+          <label style="margin:0; font-weight:normal;">Fin:</label>
+          <input type="date" class="mod-fin" style="padding:4px 8px; font-size:12px;">
+        </div>`;
       contenedor.appendChild(div);
     }
 
     function eliminarFilaModulo(btn) {
-      btn.parentElement.remove();
+      btn.closest('.modulo-card').remove();
     }
 
     async function cargarDatosDashboard() {
@@ -549,13 +566,15 @@
       const docentesUsers = chksSelected.map(cb => cb.value).join(', ');
       const docentesNombres = chksSelected.map(cb => cb.getAttribute('data-nombre')).join(', ');
 
-      const modulosRows = document.querySelectorAll('#contenedor-modulos .modulo-row');
+      const modulosCards = document.querySelectorAll('#contenedor-modulos .modulo-card');
       const modulosArray = [];
-      modulosRows.forEach(row => {
-        const nom = row.querySelector('.mod-nombre').value.trim();
-        const cod = row.querySelector('.mod-codigo').value.trim();
+      modulosCards.forEach(card => {
+        const nom = card.querySelector('.mod-nombre').value.trim();
+        const cod = card.querySelector('.mod-codigo').value.trim();
+        const inicio = card.querySelector('.mod-inicio').value;
+        const fin = card.querySelector('.mod-fin').value;
         if (nom) {
-          modulosArray.push({ nombre: nom, codigo: cod });
+          modulosArray.push({ nombre: nom, codigo: cod, inicio: inicio || '', fin: fin || '' });
         }
       });
 
@@ -588,10 +607,18 @@
       document.getElementById('desc-trayecto').value = '';
       document.querySelectorAll('.chk-docente-trayecto').forEach(cb => cb.checked = false);
       document.getElementById('contenedor-modulos').innerHTML = `
-        <div class="modulo-row">
-          <input type="text" class="mod-nombre" placeholder="Nombre del Módulo" style="width: 70%;">
-          <input type="text" class="mod-codigo" placeholder="Código (Ej: GH0057.1)" style="width: 25%;">
-          <button class="btn btn-danger" onclick="eliminarFilaModulo(this)" style="padding:6px 10px;">X</button>
+        <div class="modulo-card">
+          <div class="modulo-row-header">
+            <input type="text" class="mod-nombre" placeholder="Nombre del Módulo" style="width: 65%;">
+            <input type="text" class="mod-codigo" placeholder="Código (Ej: GH0057.1)" style="width: 25%;">
+            <button class="btn btn-danger" onclick="eliminarFilaModulo(this)" style="padding:6px 10px;">X</button>
+          </div>
+          <div class="modulo-row-dates">
+            <label style="margin:0; font-weight:normal;">Inicio:</label>
+            <input type="date" class="mod-inicio" style="padding:4px 8px; font-size:12px;">
+            <label style="margin:0; font-weight:normal;">Fin:</label>
+            <input type="date" class="mod-fin" style="padding:4px 8px; font-size:12px;">
+          </div>
         </div>`;
 
       await cargarDatosDashboard();
@@ -633,6 +660,16 @@
         const tContenidos = contenidos ? contenidos.filter(c => c.trayecto_id === t.id) : [];
         const clases = tContenidos.filter(c => c.tipo === 'clase');
         const actividades = tContenidos.filter(c => c.tipo === 'actividad');
+
+        let htmlModulosInfo = '';
+        try {
+          const modArr = JSON.parse(t.modulos || '[]');
+          if (modArr.length > 0) {
+            htmlModulosInfo = '<div style="margin-top:10px; font-size:12px; color:#374151;"><strong>Módulos Configurados:</strong><ul style="margin:5px 0; padding-left:20px;">' +
+              modArr.map(m => `<li>${m.nombre} ${m.codigo ? '('+m.codigo+')' : ''} ${m.inicio && m.fin ? '— Dictado: ' + m.inicio + ' al ' + m.fin : ''}</li>`).join('') +
+              '</ul></div>';
+          }
+        } catch(e){}
 
         let htmlClases = '<h4>📖 Clases y Materiales</h4>';
         if (clases.length === 0) htmlClases += '<p class="empty-msg">Sin clases publicadas aún.</p>';
@@ -683,7 +720,8 @@
           <p style="font-size:13px; color:#4b5563;">
             ${t.descripcion || ''}
           </p>
-          <button class="btn btn-secondary" onclick="document.getElementById('det-${t.id}').style.display = document.getElementById('det-${t.id}').style.display === 'none'?'block':'none'">Ver Contenidos y TPs</button>
+          ${htmlModulosInfo}
+          <button class="btn btn-secondary" style="margin-top:10px;" onclick="document.getElementById('det-${t.id}').style.display = document.getElementById('det-${t.id}').style.display === 'none'?'block':'none'">Ver Contenidos y TPs</button>
           <div id="det-${t.id}" style="display:none; margin-top:15px;">
             ${htmlClases}
             ${htmlActividades}
@@ -713,6 +751,9 @@
       }
 
       contenedor.innerHTML = '';
+
+      let modulosList = [];
+      try { modulosList = JSON.parse(trayectoInfo.modulos || '[]'); } catch(e){}
 
       inscripciones.forEach(i => {
         const uInfo = usuarios ? usuarios.find(u => u.usuario === i.estudiante_user) : null;
@@ -754,6 +795,16 @@
 
         htmlTrabajos += '</tbody></table>';
 
+        let htmlModulosResumen = '';
+        if (modulosList.length > 0) {
+          htmlModulosResumen = `<div style="background:#f1f5f9; padding:10px; border-radius:6px; margin-top:10px; font-size:13px;">
+            <strong>Módulos del Trayecto (Períodos):</strong>
+            <ul style="margin:5px 0; padding-left:20px;">
+              ${modulosList.map(m => `<li><strong>${m.nombre}</strong>${m.inicio && m.fin ? ' (Dictado: ' + m.inicio + ' al ' + m.fin + ')' : ''}</li>`).join('')}
+            </ul>
+          </div>`;
+        }
+
         const btnEmitirCertificado = `<button class="btn btn-success" style="font-size:12px; padding:6px 12px; margin-left:15px;" onclick="generarCertificadoPDF('${encodeURIComponent(JSON.stringify(trayectoInfo))}', '${encodeURIComponent(nombreAlumno)}', '${i.estudiante_user}')">📜 Emitir Certificado ISO A5 (Circ. 4-2020)</button>`;
 
         const card = document.createElement('div');
@@ -763,6 +814,7 @@
             <h3>🎓 ${nombreAlumno} <span style="font-size:14px; color:#6b7280; font-weight:normal;">(D.U. N° ${i.estudiante_user})</span></h3>
             ${btnEmitirCertificado}
           </div>
+          ${htmlModulosResumen}
           ${htmlTrabajos}`;
         contenedor.appendChild(card);
       });
