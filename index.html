@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Plataforma Educativa - FP</title>
+  <title>Plataforma Educativa - FP (DGCyE PBA)</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- Librería para lectura de Excel y CSV -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -63,17 +63,97 @@
 
     .modulo-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
 
-    /* ESTILOS DE IMPRESIÓN / CERTIFICADO OFICIAL */
+    /* ESTILOS SEGÚN NORMATIVA CIRCULAR 4/2020 - ISO A5 (210mm x 148mm) */
     #certificado-container { display: none; }
-    .cert-page { width: 297mm; height: 210mm; padding: 20mm; background: white; color: #111; box-sizing: border-box; position: relative; font-family: 'Georgia', 'Times New Roman', serif; }
-    .cert-border { border: 5px double #111; height: 100%; padding: 15mm; box-sizing: border-box; text-align: center; display: flex; flex-direction: column; justify-content: space-between; }
-    .cert-title { font-size: 28px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; }
-    .cert-subtitle { font-size: 18px; font-style: italic; margin-bottom: 25px; }
-    .cert-body { font-size: 16px; line-height: 1.8; text-align: justify; margin: 20px 0; }
-    .cert-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; font-family: 'Segoe UI', sans-serif; }
-    .cert-table th, .cert-table td { border: 1px solid #000; padding: 6px 8px; text-align: left; }
-    .cert-table th { background-color: #f2f2f2; font-weight: bold; text-align: center; }
-    .cert-dotted { font-family: monospace; letter-spacing: 1px; color: #555; text-align: center; }
+    .cert-page {
+      width: 210mm;
+      height: 148mm;
+      padding: 10mm 12mm;
+      background: white;
+      color: #000;
+      box-sizing: border-box;
+      position: relative;
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+    }
+
+    .cert-header-pba {
+      text-align: center;
+      font-size: 9px;
+      font-weight: bold;
+      line-height: 1.2;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+    }
+
+    .cert-line-group {
+      margin-bottom: 6px;
+      font-size: 11px;
+      line-height: 1.4;
+    }
+
+    .cert-val-nombre {
+      font-family: Arial, sans-serif;
+      font-size: 14pt;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    .cert-val-du {
+      font-family: Arial, sans-serif;
+      font-size: 12pt;
+    }
+
+    .cert-val-trayecto {
+      font-family: Arial, sans-serif;
+      font-size: 12pt;
+    }
+
+    .cert-val-horas {
+      font-family: Arial, sans-serif;
+      font-size: 12pt;
+    }
+
+    .cert-val-certificacion {
+      font-family: Arial, sans-serif;
+      font-size: 12pt;
+    }
+
+    .cert-val-fecha {
+      font-family: Arial, sans-serif;
+      font-size: 12pt;
+    }
+
+    .cert-val-modulo {
+      font-family: Arial, sans-serif;
+      font-size: 10pt;
+    }
+
+    .cert-firmas-box {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 15px;
+      font-size: 9pt;
+      text-align: center;
+    }
+
+    .cert-firma-item {
+      width: 45%;
+      border-top: 1px solid #000;
+      padding-top: 3px;
+    }
+
+    .cert-reverso-list {
+      font-size: 10pt;
+      line-height: 1.4;
+      margin: 8px 0;
+    }
+
+    .cert-reverso-footer {
+      margin-top: 10px;
+      font-size: 11pt;
+      line-height: 1.5;
+    }
   </style>
 </head>
 <body>
@@ -121,20 +201,20 @@
           <h2>Trayectos Formativos</h2>
           
           <div class="card admin-only" style="border-top: 4px solid #2563eb;">
-            <h3>Alta de Trayecto Formativo (Formación Profesional)</h3>
+            <h3>Alta de Trayecto Formativo / Curso</h3>
             <div class="grid-2">
-              <div class="form-group"><label>Nombre del Trayecto / Especialidad:</label><input type="text" id="nombre-trayecto" placeholder="Ej: PROGRAMADOR"></div>
-              <div class="form-group"><label>Resolución / Disposición:</label><input type="text" id="resolucion-trayecto" placeholder="Ej: RES-2023-1452-GDEBA"></div>
+              <div class="form-group"><label>Nombre del Trayecto / Curso:</label><input type="text" id="nombre-trayecto" placeholder="Ej: Cocinero"></div>
+              <div class="form-group"><label>Denominación Certificación:</label><input type="text" id="certificacion-trayecto" placeholder="Ej: Cocinero"></div>
             </div>
 
             <div class="grid-3">
-              <div class="form-group"><label>Carga Horaria Total (Hs Reloj):</label><input type="number" id="horas-trayecto" placeholder="Ej: 350"></div>
-              <div class="form-group"><label>Fecha de Inicio (DD-MM-YYYY):</label><input type="text" id="fecha-inicio-trayecto" placeholder="15-03-2026"></div>
-              <div class="form-group"><label>Fecha de Fin (DD-MM-YYYY):</label><input type="text" id="fecha-fin-trayecto" placeholder="15-11-2026"></div>
+              <div class="form-group"><label>Carga Horaria Total (Hs Reloj):</label><input type="number" id="horas-trayecto" placeholder="Ej: 360"></div>
+              <div class="form-group"><label>C.F.P. N°:</label><input type="text" id="cfp-trayecto" placeholder="Ej: 415"></div>
+              <div class="form-group"><label>Distrito:</label><input type="text" id="distrito-trayecto" placeholder="Ej: Lomas de Zamora"></div>
             </div>
 
             <div class="grid-2">
-              <div class="form-group"><label>Fecha Entrega Certificados (DD-MM-YYYY):</label><input type="text" id="fecha-entrega-trayecto" placeholder="30-11-2026"></div>
+              <div class="form-group"><label>Fecha de Confección / Emisión:</label><input type="text" id="fecha-entrega-trayecto" placeholder="Ej: 01 de Julio de 2026"></div>
               <div class="form-group">
                 <label>Docentes a Cargo (Podés seleccionar varios):</label>
                 <div id="checkboxes-docentes-trayecto" class="checkbox-group"></div>
@@ -144,12 +224,11 @@
             <div class="form-group"><label>Descripción / Alcance Perfil Profesional:</label><textarea id="desc-trayecto" rows="2"></textarea></div>
 
             <hr style="margin:20px 0; border:0; border-top:1px solid #e5e7eb;">
-            <h4>📐 Estructura Curricular y Módulos (Reverso del Certificado)</h4>
+            <h4>📐 Estructura Curricular y Módulos (Reverso Anverso Normado)</h4>
             <div id="contenedor-modulos">
               <div class="modulo-row">
-                <input type="text" class="mod-codigo" placeholder="Código (Ej: MOD-01)" style="width: 20%;">
-                <input type="text" class="mod-nombre" placeholder="Nombre del Módulo" style="width: 55%;">
-                <input type="number" class="mod-horas" placeholder="Hs Reloj" style="width: 20%;">
+                <input type="text" class="mod-nombre" placeholder="Nombre del Módulo" style="width: 70%;">
+                <input type="text" class="mod-codigo" placeholder="Código (Ej: GH0057.1)" style="width: 25%;">
                 <button class="btn btn-danger" onclick="eliminarFilaModulo(this)" style="padding:6px 10px;">X</button>
               </div>
             </div>
@@ -211,15 +290,15 @@
           </div>
         </div>
 
-        <!-- USUARIOS: SOLO VISIBLE PARA ADMIN -->
+        <!-- USUARIOS -->
         <div id="usuarios" class="section admin-only">
           <h2>Alta y Administración de Usuarios</h2>
           
           <div class="card" style="border-left: 4px solid #10b981;">
             <h3>📊 Carga Masiva de Estudiantes (Excel / CSV)</h3>
             <p style="font-size:13px; color:#4b5563;">
-              Subí un archivo <strong>.xlsx</strong> o <strong>.csv</strong>. Podés usar las columnas: 
-              <code>Apellido</code>, <code>Nombre</code> (o <code>Nombre Completo</code>), <code>Usuario</code> (o DNI), <code>Contraseña</code>, <code>Trayecto</code>.
+              Subí un archivo <strong>.xlsx</strong> o <strong>.csv</strong> con las columnas: 
+              <code>Apellido</code>, <code>Nombre</code>, <code>DNI</code> (o Usuario), <code>Contraseña</code>, <code>Trayecto</code>.
             </p>
             <div class="form-group">
               <input type="file" id="excel-file-input" accept=".xlsx, .xls, .csv">
@@ -229,8 +308,8 @@
 
           <div class="card">
             <h3>Registrar Nuevo Usuario Individual</h3>
-            <div class="form-group"><label>Nombre Completo:</label><input type="text" id="user-nombre"></div>
-            <div class="form-group"><label>Nombre de Usuario:</label><input type="text" id="user-usuario"></div>
+            <div class="form-group"><label>Nombre Completo (Tal cual figura en D.U.):</label><input type="text" id="user-nombre"></div>
+            <div class="form-group"><label>D.U. / Nombre de Usuario:</label><input type="text" id="user-usuario"></div>
             <div class="form-group"><label>Contraseña:</label><input type="password" id="user-pass"></div>
             <div class="form-group">
               <label>Rol:</label>
@@ -251,7 +330,7 @@
             <h3>Usuarios Registrados</h3>
             <table>
               <thead>
-                <tr><th>Nombre</th><th>Usuario</th><th>Rol</th><th>Trayectos Asignados</th><th>Acciones</th></tr>
+                <tr><th>Nombre</th><th>Usuario / DNI</th><th>Rol</th><th>Trayectos Asignados</th><th>Acciones</th></tr>
               </thead>
               <tbody id="tabla-usuarios"></tbody>
             </table>
@@ -261,58 +340,74 @@
     </div>
   </div>
 
-  <!-- PLANTILLA OCULTA PARA IMPRESIÓN DE CERTIFICADO (FRENTE Y REVERSO) -->
+  <!-- PLANTILLA DE CERTIFICADO FORMATO CIRCULAR 4/2020 (NORMA ISO A5: 148mm x 210mm) -->
   <div id="certificado-container">
-    <!-- FRENTE (ANVERSO) -->
+    <!-- FRENTE (PÁGINA 1) -->
     <div class="cert-page" id="cert-frente">
-      <div class="cert-border">
-        <div>
-          <div style="font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">DIRECCIÓN GENERAL DE CULTURA Y EDUCACIÓN</div>
-          <div style="font-size: 12px; margin-bottom: 20px;">EDUCACIÓN DE ADULTOS Y FORMACIÓN PROFESIONAL</div>
-          <div class="cert-title">CERTIFICADO DE FORMACIÓN PROFESIONAL</div>
-          <div class="cert-subtitle" id="cert-txt-trayecto">TRAYECTO FORMATIVO</div>
-        </div>
-        <div class="cert-body">
-          Por cuanto el/la alumno/a <strong id="cert-txt-alumno">NOMBRE ALUMNO</strong>, DNI N° <strong id="cert-txt-dni">00000000</strong>,
-          ha aprobado el plan de estudios correspondiente al Trayecto Formativo de <strong id="cert-txt-trayecto-body">TRAYECTO</strong>,
-          con una carga horaria total de <strong id="cert-txt-horas">0</strong> horas reloj, según Resolución/Disposición N° <strong id="cert-txt-resolucion">-</strong>,
-          cursado desde el <strong id="cert-txt-inicio">DD-MM-YYYY</strong> hasta el <strong id="cert-txt-fin">DD-MM-YYYY</strong>.
-          <br><br>
-          Se le otorga el presente Certificado Oficial expedido el día <strong id="cert-txt-entrega">DD-MM-YYYY</strong>.
-        </div>
-        <div style="display: flex; justify-content: space-between; margin-top: 40px; font-size: 12px;">
-          <div style="text-align: center; width: 30%; border-top: 1px solid #000; padding-top: 5px;">Secretaría Académica</div>
-          <div style="text-align: center; width: 30%; border-top: 1px solid #000; padding-top: 5px;">Sello de la Institución</div>
-          <div style="text-align: center; width: 30%; border-top: 1px solid #000; padding-top: 5px;">Dirección del Centro</div>
-        </div>
+      <div class="cert-header-pba">
+        PROVINCIA DE BUENOS AIRES<br>
+        DIRECCIÓN GENERAL DE CULTURA Y EDUCACIÓN<br>
+        CONSEJO PROVINCIAL DE EDUCACIÓN Y TRABAJO<br>
+        DIRECCIÓN PROVINCIAL DE EDUCACIÓN TÉCNICO PROFESIONAL<br>
+        DIRECCIÓN DE FORMACIÓN PROFESIONAL
+      </div>
+
+      <div class="cert-line-group">
+        Por cuanto <span class="cert-val-nombre" id="cert-txt-alumno">APELLIDO Y NOMBRE</span>
+      </div>
+
+      <div class="cert-line-group">
+        D.U. N° <span class="cert-val-du" id="cert-txt-dni">00.000.000</span>
+      </div>
+
+      <div class="cert-line-group">
+        ha completado y aprobado el Trayecto/Curso de FORMACIÓN PROFESIONAL de<br>
+        <span class="cert-val-trayecto" id="cert-txt-trayecto">NOMBRE DEL TRAYECTO................................................................</span>
+      </div>
+
+      <div class="cert-line-group">
+        de <span class="cert-val-horas" id="cert-txt-horas">360</span> horas de duración.
+      </div>
+
+      <div class="cert-line-group">
+        POR TANTO, se le otorga el presente CERTIFICADO DE <span class="cert-val-certificacion" id="cert-txt-certificacion">DENOMINACIÓN CERTIFICACIÓN...................................................</span>
+      </div>
+
+      <div class="cert-line-group" style="margin-top: 15px;">
+        <span class="cert-val-fecha" id="cert-txt-fecha-frente">01 de Julio de 2026</span>
+      </div>
+
+      <div class="cert-firmas-box">
+        <div class="cert-firma-item">Sello Inspector</div>
+        <div class="cert-firma-item">Director / Inspector</div>
       </div>
     </div>
 
-    <!-- REVERSO (DORSO CON FILAS Y RENGLONES PUNTEADOS AUTOMÁTICOS) -->
+    <!-- ANVERSO / REVERSO (PÁGINA 2) -->
     <div class="cert-page" id="cert-reverso">
-      <div class="cert-border">
-        <div>
-          <div style="font-size: 16px; font-weight: bold; text-transform: uppercase;">ESTRUCTURA CURRICULAR Y CALIFICACIONES MODULARES</div>
-          <div style="font-size: 12px; margin-bottom: 10px;">ANVERSO NORMADO DE REGISTRO</div>
-          <table class="cert-table">
-            <thead>
-              <tr>
-                <th style="width: 20%;">CÓDIGO</th>
-                <th style="width: 50%;">DENOMINACIÓN DEL MÓDULO</th>
-                <th style="width: 15%;">HORAS RELOJ</th>
-                <th style="width: 15%;">CALIFICACIÓN</th>
-              </tr>
-            </thead>
-            <tbody id="cert-tbody-modulos">
-              <!-- Se completa con JS dinámicamente y se rellena con líneas punteadas -->
-            </tbody>
-          </table>
-        </div>
-        <div style="font-size: 11px; text-align: left; line-height: 1.5; margin-top: 15px;">
-          <strong>OBSERVACIONES:</strong> El presente documento no presenta raspaduras ni enmiendas. Todos los renglones vacíos han sido anulados con líneas punteadas normativas.
-          <br>
-          Fecha de Cierre de Libro de Actas: <span id="cert-txt-entrega-reverso">DD-MM-YYYY</span>..................................................................................................................................
-        </div>
+      <div style="font-size: 9.5pt; font-weight: bold; margin-bottom: 5px;">
+        En caso que la formación realizada contenga Módulos, se indican a continuación:
+      </div>
+
+      <div id="cert-contenedor-modulos-list" class="cert-reverso-list">
+        <!-- Renglos 1 a 10 con formato normativo y punteado -->
+      </div>
+
+      <div class="cert-reverso-footer">
+        Fecha de egreso <span class="cert-val-fecha" id="cert-txt-fecha-egreso">29 de Noviembre de 2026</span>.......... N° de egresado <span class="cert-val-fecha" id="cert-txt-num-egresado">000000</span>
+      </div>
+
+      <div class="cert-firmas-box" style="margin-top: 10px;">
+        <div class="cert-firma-item">Sello</div>
+        <div class="cert-firma-item">DIRECTOR/SECRETARIO</div>
+      </div>
+
+      <div style="font-size: 8.5pt; margin-top: 8px; line-height: 1.3;">
+        CERTIFICO que las firmas que anteceden, son auténticas y corresponden al Director / Secretario del C.F.P N° <strong id="cert-txt-cfp">415</strong> del Distrito de <strong id="cert-txt-distrito">Lomas de Zamora</strong>.
+      </div>
+
+      <div class="cert-firmas-box" style="margin-top: 15px;">
+        <div class="cert-firma-item" style="margin: 0 auto; width: 60%;">Autoridad Certificante</div>
       </div>
     </div>
   </div>
@@ -402,9 +497,8 @@
       const div = document.createElement('div');
       div.className = 'modulo-row';
       div.innerHTML = `
-        <input type="text" class="mod-codigo" placeholder="Código (Ej: MOD-01)" style="width: 20%;">
-        <input type="text" class="mod-nombre" placeholder="Nombre del Módulo" style="width: 55%;">
-        <input type="number" class="mod-horas" placeholder="Hs Reloj" style="width: 20%;">
+        <input type="text" class="mod-nombre" placeholder="Nombre del Módulo" style="width: 70%;">
+        <input type="text" class="mod-codigo" placeholder="Código (Ej: GH0057.1)" style="width: 25%;">
         <button class="btn btn-danger" onclick="eliminarFilaModulo(this)" style="padding:6px 10px;">X</button>`;
       contenedor.appendChild(div);
     }
@@ -474,10 +568,10 @@
 
     async function crearTrayecto() {
       const nombre = document.getElementById('nombre-trayecto').value.trim();
-      const resolucion = document.getElementById('resolucion-trayecto').value.trim();
+      const certificacion = document.getElementById('certificacion-trayecto').value.trim();
       const horas = document.getElementById('horas-trayecto').value;
-      const fecha_inicio = document.getElementById('fecha-inicio-trayecto').value.trim();
-      const fecha_fin = document.getElementById('fecha-fin-trayecto').value.trim();
+      const cfp = document.getElementById('cfp-trayecto').value.trim();
+      const distrito = document.getElementById('distrito-trayecto').value.trim();
       const fecha_entrega = document.getElementById('fecha-entrega-trayecto').value.trim();
       const desc = document.getElementById('desc-trayecto').value.trim();
 
@@ -490,53 +584,25 @@
       const modulosRows = document.querySelectorAll('#contenedor-modulos .modulo-row');
       const modulosArray = [];
       modulosRows.forEach(row => {
-        const cod = row.querySelector('.mod-codigo').value.trim();
         const nom = row.querySelector('.mod-nombre').value.trim();
-        const hs = row.querySelector('.mod-horas').value;
+        const cod = row.querySelector('.mod-codigo').value.trim();
         if (nom) {
-          modulosArray.push({ codigo: cod, nombre: nom, horas: hs });
+          modulosArray.push({ nombre: nom, codigo: cod });
         }
       });
 
       await db.from('trayectos').insert([{ 
         nombre, 
-        resolucion, 
+        resolucion: certificacion, 
         horas, 
-        fecha_inicio, 
-        fecha_fin, 
         fecha_entrega, 
         docente_user: docentesUsers, 
         docente_nombre: docentesNombres, 
-        descripcion: desc,
+        descripcion: `CFP N° ${cfp} - Distrito: ${distrito} | ${desc}`,
         modulos: JSON.stringify(modulosArray)
       }]);
       
       alert('Trayecto Formativo guardado con éxito.');
-      document.getElementById('nombre-trayecto').value = '';
-      document.getElementById('resolucion-trayecto').value = '';
-      document.getElementById('horas-trayecto').value = '';
-      document.getElementById('fecha-inicio-trayecto').value = '';
-      document.getElementById('fecha-fin-trayecto').value = '';
-      document.getElementById('fecha-entrega-trayecto').value = '';
-      document.getElementById('desc-trayecto').value = '';
-      cargarDatosDashboard();
-    }
-
-    async function editarFechasTrayecto(trayectoId, finicioActual, ffinActual, fentregaActual) {
-      const nInicio = prompt('Fecha de Inicio (DD-MM-YYYY):', finicioActual || '15-03-2026');
-      if (nInicio === null) return;
-      const nFin = prompt('Fecha de Finalización (DD-MM-YYYY):', ffinActual || '15-11-2026');
-      if (nFin === null) return;
-      const nEntrega = prompt('Fecha de Entrega de Certificado (DD-MM-YYYY):', fentregaActual || '30-11-2026');
-      if (nEntrega === null) return;
-
-      await db.from('trayectos').update({
-        fecha_inicio: nInicio,
-        fecha_fin: nFin,
-        fecha_entrega: nEntrega
-      }).eq('id', trayectoId);
-
-      alert('Fechas de planificación actualizadas correctamente.');
       cargarDatosDashboard();
     }
 
@@ -608,18 +674,13 @@
             </div>`;
         });
 
-        const btnEditarFechas = (currentUser.role === 'admin' || currentUser.role === 'docente')
-          ? `<button class="btn btn-secondary" style="font-size:12px; padding:4px 8px; margin-left:8px;" onclick="editarFechasTrayecto('${t.id}', '${t.fecha_inicio||''}', '${t.fecha_fin||''}', '${t.fecha_entrega||''}')">📅 Modificar Fechas</button>`
-          : '';
-
         const card = document.createElement('div');
         card.className = 'card';
         card.innerHTML = `
-          <span class="docente-badge">Docente(s): ${t.docente_nombre || 'Sin asignar'}</span> ${btnEditarFechas}
+          <span class="docente-badge">Docente(s): ${t.docente_nombre || 'Sin asignar'}</span>
           <h3>${t.nombre}</h3>
           <p style="font-size:13px; color:#4b5563;">
-            <strong>Resolución:</strong> ${t.resolucion || '-'} | <strong>Carga Horaria:</strong> ${t.horas || '-'} hs reloj<br>
-            <strong>Inicio:</strong> ${t.fecha_inicio || '-'} | <strong>Fin:</strong> ${t.fecha_fin || '-'} | <strong>Entrega Certificado:</strong> ${t.fecha_entrega || '-'}
+            <strong>Carga Horaria:</strong> ${t.horas || '-'} hs reloj | <strong>Emisión:</strong> ${t.fecha_entrega || '-'}
           </p>
           <p>${t.descripcion || ''}</p>
           <button class="btn btn-secondary" onclick="document.getElementById('det-${t.id}').style.display = document.getElementById('det-${t.id}').style.display === 'none'?'block':'none'">Ver Contenidos y TPs</button>
@@ -658,7 +719,6 @@
         const nombreAlumno = uInfo ? uInfo.nombre : i.estudiante_user;
 
         let htmlTrabajos = '<table><thead><tr><th>Trabajo Práctico</th><th>Estado</th><th>Fecha Entrega</th><th>Archivo</th><th>Nota / Feedback</th></tr></thead><tbody>';
-        let completadosCount = 0;
 
         if (!contenidos || contenidos.length === 0) {
           htmlTrabajos += '<tr><td colspan="5" class="empty-msg">No hay TPs asignados en este trayecto.</td></tr>';
@@ -670,7 +730,6 @@
               const tieneNota = entrega.nota && entrega.nota !== 'Pendiente';
               const badgeClass = tieneNota ? 'badge-ok' : 'badge-pending';
               const estadoTexto = tieneNota ? 'Corregido' : 'Pendiente revisión';
-              if (tieneNota) completadosCount++;
 
               htmlTrabajos += `
                 <tr>
@@ -695,13 +754,13 @@
 
         htmlTrabajos += '</tbody></table>';
 
-        const btnEmitirCertificado = `<button class="btn btn-success" style="font-size:12px; padding:6px 12px; margin-left:15px;" onclick="generarCertificadoPDF('${encodeURIComponent(JSON.stringify(trayectoInfo))}', '${encodeURIComponent(nombreAlumno)}', '${i.estudiante_user}')">📜 Emitir Certificado Oficial PDF</button>`;
+        const btnEmitirCertificado = `<button class="btn btn-success" style="font-size:12px; padding:6px 12px; margin-left:15px;" onclick="generarCertificadoPDF('${encodeURIComponent(JSON.stringify(trayectoInfo))}', '${encodeURIComponent(nombreAlumno)}', '${i.estudiante_user}')">📜 Emitir Certificado ISO A5 (Circ. 4-2020)</button>`;
 
         const card = document.createElement('div');
         card.className = 'card';
         card.innerHTML = `
           <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h3>🎓 ${nombreAlumno} <span style="font-size:14px; color:#6b7280; font-weight:normal;">(@${i.estudiante_user})</span></h3>
+            <h3>🎓 ${nombreAlumno} <span style="font-size:14px; color:#6b7280; font-weight:normal;">(D.U. N° ${i.estudiante_user})</span></h3>
             ${btnEmitirCertificado}
           </div>
           ${htmlTrabajos}`;
@@ -709,71 +768,94 @@
       });
     }
 
+    // GENERADOR FORMATO RIGUROSO CIRCULAR 4-2020 (PROVINCIA DE BUENOS AIRES)
     async function generarCertificadoPDF(trayectoJson, alumnoNombre, usuarioDni) {
       const trayecto = JSON.parse(decodeURIComponent(trayectoJson));
       const alumno = decodeURIComponent(alumnoNombre);
 
-      document.getElementById('cert-txt-trayecto').textContent = trayecto.nombre.toUpperCase();
-      document.getElementById('cert-txt-trayecto-body').textContent = trayecto.nombre.toUpperCase();
+      const fEgreso = prompt('Ingrese Fecha de Egreso (Ej: 29 de Noviembre de 2026):', '29 de Noviembre de 2026');
+      if (!fEgreso) return;
+
+      const numEgresado = prompt('Ingrese N° de Egresado asignado:', '547854');
+      if (!numEgresado) return;
+
+      // Formatear D.U. con puntos (Ej: 70025241 -> 70.025.241)
+      let dniFormateado = usuarioDni.replace(/\D/g, '');
+      dniFormateado = dniFormateado.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+      // Formatear texto con punteado normativo si no llena el espacio
+      function completarConPuntos(texto, maxChars = 60) {
+        let t = texto.trim();
+        if (t.length < maxChars) {
+          t += '.'.repeat(maxChars - t.length);
+        }
+        return t;
+      }
+
+      // FRENTE
       document.getElementById('cert-txt-alumno').textContent = alumno.toUpperCase();
-      document.getElementById('cert-txt-dni').textContent = usuarioDni;
-      document.getElementById('cert-txt-horas').textContent = trayecto.horas || '0';
-      document.getElementById('cert-txt-resolucion').textContent = trayecto.resolucion || '-';
-      document.getElementById('cert-txt-inicio').textContent = trayecto.fecha_inicio || 'DD-MM-YYYY';
-      document.getElementById('cert-txt-fin').textContent = trayecto.fecha_fin || 'DD-MM-YYYY';
-      document.getElementById('cert-txt-entrega').textContent = trayecto.fecha_entrega || 'DD-MM-YYYY';
-      document.getElementById('cert-txt-entrega-reverso').textContent = trayecto.fecha_entrega || 'DD-MM-YYYY';
+      document.getElementById('cert-txt-dni').textContent = dniFormateado;
+      document.getElementById('cert-txt-trayecto').textContent = completarConPuntos(trayecto.nombre, 50);
+      document.getElementById('cert-txt-horas').textContent = trayecto.horas || '360';
+      document.getElementById('cert-txt-certificacion').textContent = completarConPuntos(trayecto.resolucion || trayecto.nombre, 45);
+      document.getElementById('cert-txt-fecha-frente').textContent = trayecto.fecha_entrega || '01 de Julio de 2026';
 
-      const tbody = document.getElementById('cert-tbody-modulos');
-      tbody.innerHTML = '';
-
+      // REVERSO
       let modulosList = [];
       try {
         modulosList = JSON.parse(trayecto.modulos || '[]');
       } catch (e) { modulosList = []; }
 
-      const FILAS_TOTALES = 8;
-      let filasAgregadas = 0;
+      const contenedorModulos = document.getElementById('cert-contenedor-modulos-list');
+      contenedorModulos.innerHTML = '';
 
-      modulosList.forEach(m => {
-        filasAgregadas++;
-        tbody.innerHTML += `
-          <tr>
-            <td style="text-align:center;">${m.codigo || '-'}</td>
-            <td>${m.nombre.toUpperCase()}</td>
-            <td style="text-align:center;">${m.horas || '-'} hs</td>
-            <td style="text-align:center;">APROBADO</td>
-          </tr>`;
-      });
+      for (let i = 1; i <= 10; i++) {
+        let moduloItem = modulosList[i - 1];
+        let renglonTexto = '';
 
-      // Relleno obligatorio de filas con líneas punteadas
-      while (filasAgregadas < FILAS_TOTALES) {
-        filasAgregadas++;
-        tbody.innerHTML += `
-          <tr>
-            <td class="cert-dotted">....................</td>
-            <td class="cert-dotted">....................................................................................................</td>
-            <td class="cert-dotted">....................</td>
-            <td class="cert-dotted">....................</td>
-          </tr>`;
+        if (moduloItem) {
+          let codStr = moduloItem.codigo ? ` (${moduloItem.codigo})` : '';
+          renglonTexto = `${i}. ${moduloItem.nombre}${codStr}`;
+          renglonTexto = completarConPuntos(renglonTexto, 75);
+        } else {
+          renglonTexto = `${i}. ...................................................................................................................................`;
+        }
+
+        contenedorModulos.innerHTML += `<div>${renglonTexto}</div>`;
       }
+
+      document.getElementById('cert-txt-fecha-egreso').textContent = fEgreso;
+      document.getElementById('cert-txt-num-egresado').textContent = numEgresado;
+
+      // Extraer CFP y Distrito si fueron guardados en la descripción
+      let cfpVal = '415';
+      let distritoVal = 'Lomas de Zamora';
+      if (trayecto.descripcion) {
+        const matchCfp = trayecto.descripcion.match(/CFP N° (.*?) -/);
+        const matchDist = trayecto.descripcion.match(/Distrito: (.*?) \|/);
+        if (matchCfp) cfpVal = matchCfp[1];
+        if (matchDist) distritoVal = matchDist[1];
+      }
+
+      document.getElementById('cert-txt-cfp').textContent = cfpVal;
+      document.getElementById('cert-txt-distrito').textContent = distritoVal;
 
       const element = document.getElementById('certificado-container');
       element.style.display = 'block';
 
+      // Opciones para generar exactamente norma ISO A5 Apaisada (210mm x 148mm)
       const opt = {
         margin:       0,
-        filename:     `Certificado_${usuarioDni}_${trayecto.nombre}.pdf`,
+        filename:     `Certificado_FP_${usuarioDni}_${trayecto.nombre}.pdf`,
         image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2 },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
+        html2canvas:  { scale: 3, useCORS: true },
+        jsPDF:        { unit: 'mm', format: [210, 148], orientation: 'landscape' }
       };
 
       await html2pdf().set(opt).from(element).save();
       element.style.display = 'none';
     }
 
-    /* CARGA MASIVA ULTRA ROBUSTA */
     async function procesarCargaMasiva() {
       const fileInput = document.getElementById('excel-file-input');
       const file = fileInput.files[0];
@@ -806,14 +888,14 @@
 
             const apellido = normalizedRow['apellido'] || '';
             const nombreSolo = normalizedRow['nombre'] || '';
-            const nombreCompletoRaw = normalizedRow['nombre completo'] || normalizedRow['nombrecompleto'] || normalizedRow['alumnos'] || '';
+            const nombreCompletoRaw = normalizedRow['nombre completo'] || normalizedRow['alumnos'] || '';
 
             let nombreFinal = (apellido || nombreSolo) ? `${apellido} ${nombreSolo}`.trim() : nombreCompletoRaw;
             nombreFinal = nombreFinal.toUpperCase();
 
-            const usuario = normalizedRow['usuario'] || normalizedRow['dni'] || '';
-            const pass = normalizedRow['contraseña'] || normalizedRow['contrasena'] || normalizedRow['pass'] || normalizedRow['clave'] || '';
-            const nombreTrayecto = normalizedRow['trayecto'] || normalizedRow['curso'] || normalizedRow['materia'] || '';
+            const usuario = normalizedRow['usuario'] || normalizedRow['dni'] || normalizedRow['d.u.'] || '';
+            const pass = normalizedRow['contraseña'] || normalizedRow['pass'] || normalizedRow['clave'] || usuario;
+            const nombreTrayecto = normalizedRow['trayecto'] || normalizedRow['curso'] || '';
 
             if (!nombreFinal || !usuario || !pass) continue;
 
@@ -850,13 +932,13 @@
             }
           }
 
-          alert(`Carga masiva completada con éxito:\n\n- Nuevos alumnos creados: ${creados}\n- Nuevas inscripciones a trayectos: ${inscriptosNuevos}\n- Alumnos que ya existían (omitidos): ${omitidos}`);
+          alert(`Carga masiva completada con éxito:\n\n- Nuevos alumnos creados: ${creados}\n- Nuevas inscripciones a trayectos: ${inscriptosNuevos}\n- Omitidos: ${omitidos}`);
           fileInput.value = '';
           cargarDatosDashboard();
 
         } catch (err) {
           console.error(err);
-          alert('Hubo un error al procesar el archivo. Verificá que el formato sea correcto.');
+          alert('Error al procesar el archivo.');
         }
       };
 
@@ -864,7 +946,7 @@
     }
 
     async function entregarTP(trayecto_id, actividad_id) {
-      const link = prompt('Pegá el enlace a tu trabajo (Google Drive, PDF, etc.):');
+      const link = prompt('Pegá el enlace a tu trabajo:');
       if (!link) return;
       const hoy = new Date().toISOString().split('T')[0];
 
@@ -980,10 +1062,7 @@
         }
       }
 
-      alert(`Usuario @${usuario} creado exitosamente como ${rol.toUpperCase()}.`);
-      document.getElementById('user-nombre').value = '';
-      document.getElementById('user-usuario').value = '';
-      document.getElementById('user-pass').value = '';
+      alert(`Usuario @${usuario} creado exitosamente.`);
       cargarDatosDashboard();
     }
 
@@ -996,8 +1075,6 @@
       if (usuarios) {
         tabla.innerHTML = usuarios.map(u => {
           let listaInscripciones = '-';
-          let btnAsignarTrayectos = '';
-
           if (u.rol === 'estudiante' && inscripciones && trayectos) {
             const misInsc = inscripciones.filter(i => i.estudiante_user === u.usuario);
             const misNombres = misInsc.map(i => {
@@ -1005,12 +1082,9 @@
               return t ? t.nombre : null;
             }).filter(Boolean);
             listaInscripciones = misNombres.length > 0 ? misNombres.join(', ') : 'Ninguno';
-            btnAsignarTrayectos = `<button class="btn btn-warning" style="padding:4px 8px; font-size:12px; margin-right:5px;" onclick="gestionarTrayectosDeEstudiante('${u.usuario}', '${u.nombre}')">📚 Asignar Trayectos</button>`;
           } else if (u.rol === 'docente' && trayectos) {
             const misTrayectos = trayectos.filter(t => t.docente_user && t.docente_user.split(',').map(s => s.trim()).includes(u.usuario));
-            const misNombres = misTrayectos.map(t => t.nombre);
-            listaInscripciones = misNombres.length > 0 ? misNombres.join(', ') : 'Ninguno';
-            btnAsignarTrayectos = `<button class="btn btn-warning" style="padding:4px 8px; font-size:12px; margin-right:5px;" onclick="gestionarTrayectosDeDocente('${u.usuario}', '${u.nombre}')">📚 Asignar Trayectos</button>`;
+            listaInscripciones = misTrayectos.map(t => t.nombre).join(', ') || 'Ninguno';
           }
 
           return `
@@ -1020,9 +1094,8 @@
               <td><strong>${u.rol.toUpperCase()}</strong></td>
               <td><span style="font-size:12px; color:#4b5563;">${listaInscripciones}</span></td>
               <td>
-                ${btnAsignarTrayectos}
-                <button class="btn btn-secondary" style="padding:4px 8px; font-size:12px; margin-right:5px;" onclick="cambiarClaveUsuario('${u.id}', '${u.usuario}')">🔑 Cambiar Clave</button>
-                <button class="btn btn-danger" style="padding:4px 8px; font-size:12px; margin-top:0;" onclick="eliminarUsuario('${u.id}', '${u.usuario}', '${u.nombre}', '${u.rol}')">🗑️ Eliminar</button>
+                <button class="btn btn-secondary" style="padding:4px 8px; font-size:12px;" onclick="cambiarClaveUsuario('${u.id}', '${u.usuario}')">🔑 Clave</button>
+                <button class="btn btn-danger" style="padding:4px 8px; font-size:12px;" onclick="eliminarUsuario('${u.id}', '${u.usuario}', '${u.nombre}', '${u.rol}')">🗑️ Eliminar</button>
               </td>
             </tr>`;
         }).join('');
@@ -1030,25 +1103,21 @@
     }
 
     async function cambiarClaveUsuario(id, usuario) {
-      const nuevaPass = prompt(`Ingresá la nueva contraseña para el usuario @${usuario}:`);
+      const nuevaPass = prompt(`Nueva contraseña para @${usuario}:`);
       if (!nuevaPass) return;
 
-      const { error } = await db.from('usuarios').update({ pass: nuevaPass }).eq('id', id);
-      if (error) {
-        alert('Error al actualizar la contraseña.');
-      } else {
-        alert(`Contraseña de @${usuario} actualizada con éxito.`);
-      }
+      await db.from('usuarios').update({ pass: nuevaPass }).eq('id', id);
+      alert('Contraseña actualizada.');
     }
 
     async function eliminarUsuario(id, usuario, nombre, rol) {
-      if (!confirm(`¿Estás seguro de que querés eliminar al usuario @${usuario} (${nombre})? Esta acción borrará su acceso.`)) return;
+      if (!confirm(`¿Eliminar al usuario @${usuario}?`)) return;
 
       if (rol === 'estudiante') {
         await db.from('inscripciones').delete().eq('estudiante_user', usuario);
       }
       await db.from('usuarios').delete().eq('id', id);
-      alert(`Usuario @${usuario} eliminado exitosamente.`);
+      alert('Usuario eliminado.');
       cargarDatosDashboard();
     }
   </script>
