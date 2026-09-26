@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Plataforma Educativa - FP (DGCyE PBA) v9.1 - Control Total Admin</title>
+  <title>Plataforma Educativa - FP (DGCyE PBA) v9.2 - Gestión de Egresados</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- Librería para lectura de Excel y CSV -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -66,6 +66,8 @@
     .modulo-row-dates { display: flex; gap: 10px; align-items: center; font-size: 12px; }
 
     .tabla-modulos-eval { border-left: 4px solid #10b981; margin-bottom: 20px; }
+
+    .egresado-box { background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px 15px; border-radius: 6px; display: flex; align-items: center; gap: 10px; margin-top: 15px; margin-bottom: 15px; }
 
     /* ESTILOS CIRCULAR 4/2020 - ISO A5 */
     #certificado-container { display: none; }
@@ -546,7 +548,6 @@
       cargarDatosDashboard();
     }
 
-    // ELIMINAR TRAYECTO COMPLETO (ADMIN)
     async function eliminarTrayecto(id, nombreEnc) {
       const nombre = decodeURIComponent(nombreEnc);
       if (!confirm(`¿Estás seguro de que querés eliminar el trayecto "${nombre}"? Esta acción borrará el curso permanentemente.`)) return;
@@ -560,7 +561,6 @@
       }
     }
 
-    // ELIMINAR UN MÓDULO INDIVIDUAL (ADMIN)
     async function eliminarModuloDeTrayecto(trayectoId, moduloIndex) {
       if (!confirm('¿Eliminar este módulo del trayecto?')) return;
 
@@ -683,6 +683,15 @@
       });
     }
 
+    async function guardarEgresado(inscripcionId, numEgresado) {
+      const { error } = await db.from('inscripciones').update({ num_egresado: numEgresado.trim() }).eq('id', inscripcionId);
+      if (error) {
+        alert('Error al guardar N° de Egresado: ' + error.message);
+      } else {
+        alert('N° de Egresado asignado correctamente.');
+      }
+    }
+
     async function renderizarSeguimientoEstudiantes() {
       const trayectoId = document.getElementById('select-trayecto-seguimiento').value;
       const contenedor = document.getElementById('contenedor-seguimiento');
@@ -712,8 +721,10 @@
         const nombreAlumno = uInfo ? uInfo.nombre : i.estudiante_user;
 
         let htmlTablaModulos = '<h4>📐 Evaluación Modular Automática (Formación Profesional)</h4>';
+        let totalModulos = modulosList.length;
+        let modulosAprobados = 0;
 
-        if (modulosList.length === 0) {
+        if (totalModulos === 0) {
           htmlTablaModulos += '<p class="empty-msg" style="padding:10px;">Este trayecto no posee módulos registrados.</p>';
         } else {
           htmlTablaModulos += '<table class="tabla-modulos-eval"><thead><tr><th>Módulo / Unidad Curricular</th><th>Código</th><th>Período</th><th>Promedio TPs</th><th>Condición Modular (Mín. 70)</th></tr></thead><tbody>';
@@ -737,6 +748,7 @@
 
               if (promedio >= 70) {
                 badgeHtml = `<span class="badge-estado badge-ok">APROBADO (${promedio}/100)</span>`;
+                modulosAprobados++;
               } else {
                 badgeHtml = `<span class="badge-estado badge-missing">NO APROBADO (${promedio}/100)</span>`;
               }
@@ -757,6 +769,24 @@
           });
 
           htmlTablaModulos += '</tbody></table>';
+        }
+
+        const estaEgresado = totalModulos > 0 && modulosAprobados === totalModulos;
+        const numEgVal = i.num_egresado || '';
+
+        let egresadoSection = '';
+        if (estaEgresado) {
+          egresadoSection = `
+            <div class="egresado-box">
+              <span style="font-size:13px; font-weight:bold; color:#166534;">🎓 Alumno en Condiciones de Egresar | N° Egresado:</span>
+              <input type="text" id="num-eg-${i.id}" value="${numEgVal}" placeholder="Ej: 005481" style="width:140px; padding:4px 8px; font-size:13px;">
+              <button class="btn btn-success" style="padding:4px 10px; font-size:12px;" onclick="guardarEgresado('${i.id}', document.getElementById('num-eg-${i.id}').value)">💾 Guardar N°</button>
+            </div>`;
+        } else {
+          egresadoSection = `
+            <div style="background:#fef2f2; border:1px solid #fecaca; padding:8px 12px; border-radius:6px; font-size:12px; color:#991b1b; margin-top:10px;">
+              ⚠️ Pendiente: El alumno debe aprobar todos los módulos con nota mayor o igual a 70 para habilitar el N° de Egresado y la Certificación.
+            </div>`;
         }
 
         let htmlTrabajos = '<h4 style="margin-top:20px;">📝 Detalle de Trabajos Prácticos Entregados</h4><table><thead><tr><th>Trabajo Práctico</th><th>Módulo</th><th>Fecha</th><th>Archivo</th><th>Nota / Calificación (0-100)</th></tr></thead><tbody>';
@@ -795,7 +825,7 @@
 
         htmlTrabajos += '</tbody></table>';
 
-        const btnEmitirCertificado = `<button class="btn btn-success" style="font-size:12px; padding:6px 12px; margin-left:15px;" onclick="generarCertificadoPDF('${encodeURIComponent(JSON.stringify(trayectoInfo))}', '${encodeURIComponent(nombreAlumno)}', '${i.estudiante_user}')">📜 Emitir Certificado ISO A5 (Circ. 4-2020)</button>`;
+        const btnEmitirCertificado = `<button class="btn btn-success" style="font-size:12px; padding:6px 12px; margin-left:15px;" onclick="generarCertificadoPDF('${encodeURIComponent(JSON.stringify(trayectoInfo))}', '${encodeURIComponent(nombreAlumno)}', '${i.estudiante_user}', '${i.id}')">📜 Emitir Certificado ISO A5 (Circ. 4-2020)</button>`;
 
         const card = document.createElement('div');
         card.className = 'card';
@@ -805,20 +835,26 @@
             ${btnEmitirCertificado}
           </div>
           ${htmlTablaModulos}
+          ${egresadoSection}
           ${htmlTrabajos}`;
         contenedor.appendChild(card);
       });
     }
 
-    async function generarCertificadoPDF(trayectoJson, alumnoNombre, usuarioDni) {
+    async function generarCertificadoPDF(trayectoJson, alumnoNombre, usuarioDni, inscripcionId) {
       const trayecto = JSON.parse(decodeURIComponent(trayectoJson));
       const alumno = decodeURIComponent(alumnoNombre);
 
+      const inputNumEg = document.getElementById(`num-eg-${inscripcionId}`);
+      let numEgresadoDef = inputNumEg ? inputNumEg.value.trim() : '';
+
+      if (!numEgresadoDef) {
+        numEgresadoDef = prompt('Ingrese N° de Egresado asignado:', '000000');
+        if (!numEgresadoDef) return;
+      }
+
       const fEgreso = prompt('Ingrese Fecha de Egreso:', '15 de Diciembre de 2026');
       if (!fEgreso) return;
-
-      const numEgresado = prompt('Ingrese N° de Egresado asignado:', '547854');
-      if (!numEgresado) return;
 
       let dniFormateado = usuarioDni.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 
@@ -859,7 +895,7 @@
       }
 
       document.getElementById('cert-txt-fecha-egreso').textContent = fEgreso;
-      document.getElementById('cert-txt-num-egresado').textContent = numEgresado;
+      document.getElementById('cert-txt-num-egresado').textContent = numEgresadoDef;
 
       let cfpVal = '415';
       let distritoVal = 'Lomas de Zamora';
