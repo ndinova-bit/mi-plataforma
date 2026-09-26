@@ -34,6 +34,7 @@
     .btn-secondary { background: #4b5563; }
     .btn-success { background: #10b981; }
     .btn-warning { background: #f59e0b; color: white; }
+    .btn-info { background: #0284c7; color: white; }
     .btn-danger { background: #dc2626; margin-top: 10px; }
     
     table { width: 100%; border-collapse: collapse; margin-top: 15px; }
@@ -43,6 +44,7 @@
     
     .clase-box, .actividad-box { background: #f9fafb; border: 1px solid #e5e7eb; padding: 15px; border-radius: 8px; margin-top: 15px; }
     .actividad-box { border-left: 4px solid #2563eb; }
+    .alumnos-box { background: #f0f9ff; border: 1px solid #bae6fd; padding: 15px; border-radius: 8px; margin-top: 15px; }
     .material-item { background: white; border: 1px solid #e5e7eb; padding: 10px 15px; border-radius: 6px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; }
     .docente-badge { display: inline-block; background: #e0e7ff; color: #3730a3; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; margin-bottom: 10px; }
     
@@ -449,10 +451,11 @@
       let { data: trayectos } = await db.from('trayectos').select('*');
       const { data: contenidos } = await db.from('contenidos').select('*');
       const { data: entregas } = await db.from('entregas').select('*');
+      const { data: inscripciones } = await db.from('inscripciones').select('*');
+      const { data: usuarios } = await db.from('usuarios').select('*');
 
       if (currentUser.role === 'estudiante') {
-        const { data: inscripciones } = await db.from('inscripciones').select('trayecto_id').eq('estudiante_user', currentUser.user);
-        const idsInscriptos = inscripciones ? inscripciones.map(i => i.trayecto_id) : [];
+        const idsInscriptos = inscripciones ? inscripciones.filter(i => i.estudiante_user === currentUser.user).map(i => i.trayecto_id) : [];
         trayectos = trayectos ? trayectos.filter(t => idsInscriptos.includes(t.id)) : [];
       } else if (currentUser.role === 'docente') {
         trayectos = trayectos ? trayectos.filter(t => t.docente_user && t.docente_user.split(',').map(s=>s.trim()).includes(currentUser.user)) : [];
@@ -470,6 +473,21 @@
         const tContenidos = contenidos ? contenidos.filter(c => c.trayecto_id === t.id) : [];
         const clases = tContenidos.filter(c => c.tipo === 'clase');
         const actividades = tContenidos.filter(c => c.tipo === 'actividad');
+
+        // Alumnos inscriptos en este trayecto
+        const inscriptosEnTray = inscripciones ? inscripciones.filter(i => i.trayecto_id === t.id) : [];
+        let htmlAlumnos = '<h4>🎓 Alumnos Inscriptos</h4>';
+        if (inscriptosEnTray.length === 0) {
+          htmlAlumnos += '<p class="empty-msg">No hay alumnos inscriptos en este trayecto.</p>';
+        } else {
+          htmlAlumnos += `<p style="font-size:13px; color:#0284c7; font-weight:bold; margin-bottom:10px;">Total inscriptos: ${inscriptosEnTray.length}</p><ul style="padding-left:20px; font-size:14px; margin:0;">`;
+          inscriptosEnTray.forEach(i => {
+            const uInfo = usuarios ? usuarios.find(u => u.usuario === i.estudiante_user) : null;
+            const nomComp = uInfo ? uInfo.nombre : i.estudiante_user;
+            htmlAlumnos += `<li style="margin-bottom:5px;"><strong>${nomComp}</strong> (@${i.estudiante_user})</li>`;
+          });
+          htmlAlumnos += '</ul>';
+        }
 
         let htmlClases = '<h4>📖 Clases y Materiales</h4>';
         if (clases.length === 0) htmlClases += '<p class="empty-msg">Sin clases publicadas aún.</p>';
@@ -516,13 +534,25 @@
           ? `<button class="btn btn-warning" style="font-size:12px; padding:4px 8px; margin-left:10px;" onclick="gestionarDocentesTrayecto('${t.id}', '${t.docente_user}')">👥 Modificar Docentes</button>` 
           : '';
 
+        const btnVerAlumnos = (currentUser.role === 'docente' || currentUser.role === 'admin')
+          ? `<button class="btn btn-info" style="font-size:12px; padding:4px 8px; margin-left:10px;" onclick="document.getElementById('alm-${t.id}').style.display = document.getElementById('alm-${t.id}').style.display === 'none'?'block':'none'">👥 Ver Alumnos (${inscriptosEnTray.length})</button>`
+          : '';
+
         const card = document.createElement('div');
         card.className = 'card';
         card.innerHTML = `
-          <span class="docente-badge">Docente(s): ${t.docente_nombre || 'Sin asignar'}</span> ${btnGestionarDocentes}
+          <span class="docente-badge">Docente(s): ${t.docente_nombre || 'Sin asignar'}</span> 
+          ${btnGestionarDocentes}
+          ${btnVerAlumnos}
           <h3>${t.nombre}</h3>
           <p>${t.descripcion || ''}</p>
-          <button class="btn btn-secondary" onclick="document.getElementById('det-${t.id}').style.display = document.getElementById('det-${t.id}').style.display === 'none'?'block':'none'">Ver Contenidos</button>
+
+          <div id="alm-${t.id}" class="alumnos-box" style="display:none;">
+            ${htmlAlumnos}
+          </div>
+
+          <button class="btn btn-secondary" style="margin-top:10px;" onclick="document.getElementById('det-${t.id}').style.display = document.getElementById('det-${t.id}').style.display === 'none'?'block':'none'">Ver Contenidos y TPs</button>
+          
           <div id="det-${t.id}" style="display:none; margin-top:15px;">
             ${htmlClases}
             ${htmlActividades}
