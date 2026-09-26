@@ -355,7 +355,7 @@
       }
     }
 
-    /* CARGA MASIVA CON APELLIDO/NOMBRE Y CONVERSIÓN A MAYÚSCULAS */
+    /* CARGA MASIVA ULTRA ROBUSTA (Acepta Mayúsculas/Minúsculas en Encabezados) */
     async function procesarCargaMasiva() {
       const fileInput = document.getElementById('excel-file-input');
       const file = fileInput.files[0];
@@ -368,9 +368,9 @@
           const data = new Uint8Array(e.target.result);
           const workbook = XLSX.read(data, { type: 'array' });
           const firstSheet = workbook.SheetNames[0];
-          const rows = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet]);
+          const rawRows = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet]);
 
-          if (rows.length === 0) return alert('El archivo está vacío.');
+          if (rawRows.length === 0) return alert('El archivo está vacío.');
 
           const { data: trayectosDB } = await db.from('trayectos').select('*');
           const { data: usuariosDB } = await db.from('usuarios').select('*');
@@ -380,11 +380,16 @@
           let inscriptosNuevos = 0;
           let omitidos = 0;
 
-          for (const row of rows) {
-            // Lectura adaptable: soporta Apellido + Nombre O Nombre Completo
-            const apellido = String(row['Apellido'] || row['apellido'] || '').trim();
-            const nombreSolo = String(row['Nombre'] || row['nombre'] || '').trim();
-            const nombreCompletoRaw = String(row['Nombre Completo'] || row['nombre_completo'] || '').trim();
+          for (const row of rawRows) {
+            // Normalizar las claves de la fila a minúsculas sin espacios
+            const normalizedRow = {};
+            Object.keys(row).forEach(key => {
+              normalizedRow[key.trim().toLowerCase()] = String(row[key]).trim();
+            });
+
+            const apellido = normalizedRow['apellido'] || '';
+            const nombreSolo = normalizedRow['nombre'] || '';
+            const nombreCompletoRaw = normalizedRow['nombre completo'] || normalizedRow['nombrecompleto'] || normalizedRow['alumnos'] || '';
 
             let nombreFinal = '';
             if (apellido || nombreSolo) {
@@ -393,16 +398,14 @@
               nombreFinal = nombreCompletoRaw;
             }
 
-            // CONVERSIÓN OBLIGATORIA A MAYÚSCULAS
             nombreFinal = nombreFinal.toUpperCase();
 
-            const usuario = String(row['Usuario'] || row['DNI'] || row['dni'] || row['usuario'] || '').trim();
-            const pass = String(row['Contraseña'] || row['pass'] || row['Contrasena'] || '').trim();
-            const nombreTrayecto = String(row['Trayecto'] || row['trayecto'] || '').trim();
+            const usuario = normalizedRow['usuario'] || normalizedRow['dni'] || '';
+            const pass = normalizedRow['contraseña'] || normalizedRow['contrasena'] || normalizedRow['pass'] || normalizedRow['clave'] || '';
+            const nombreTrayecto = normalizedRow['trayecto'] || normalizedRow['curso'] || normalizedRow['materia'] || '';
 
             if (!nombreFinal || !usuario || !pass) continue;
 
-            // 1. Verificar si el usuario ya existe
             let userExiste = usuariosDB ? usuariosDB.find(u => u.usuario.toLowerCase() === usuario.toLowerCase()) : null;
 
             if (!userExiste) {
@@ -421,11 +424,10 @@
               omitidos++;
             }
 
-            // 2. Asociar al Trayecto especificado en el Excel
             if (nombreTrayecto && trayectosDB) {
-              const trayectoEncontrado = trayectosDB.find(t => t.nombre.toLowerCase().trim() === nombreTrayecto.toLowerCase());
+              const trayectoEncontrado = trayectosDB.find(t => t.nombre.toLowerCase().trim() === nombreTrayecto.toLowerCase().trim());
               if (trayectoEncontrado) {
-                const yaInscripto = inscripcionesDB ? inscripcionesDB.some(i => i.estudiante_user === usuario && i.trayecto_id === trayectoEncontrado.id) : false;
+                const yaInscripto = inscripcionesDB ? inscripcionesDB.some(i => i.estudiante_user.toLowerCase() === usuario.toLowerCase() && i.trayecto_id === trayectoEncontrado.id) : false;
                 if (!yaInscripto) {
                   await db.from('inscripciones').insert([{
                     estudiante_user: usuario,
