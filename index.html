@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Plataforma Educativa - FP (DGCyE PBA) v9.2 - Gestión de Egresados</title>
+  <title>Plataforma Educativa - FP (DGCyE PBA) v9.3</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- Librería para lectura de Excel y CSV -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -692,6 +692,27 @@
       }
     }
 
+    async function guardarNotaConceptual(inscripcionId, moduloNombre, nota) {
+      const val = parseInt(nota);
+      if (isNaN(val) || val < 0 || val > 100) {
+        return alert('Ingresá una nota válida del 0 al 100.');
+      }
+      
+      const { data: insc } = await db.from('inscripciones').select('notas_conceptuales').eq('id', inscripcionId).single();
+      let mapConcept = {};
+      try { mapConcept = JSON.parse(insc.notas_conceptuales || '{}'); } catch(e){}
+
+      mapConcept[moduloNombre] = val;
+
+      const { error } = await db.from('inscripciones').update({ notas_conceptuales: JSON.stringify(mapConcept) }).eq('id', inscripcionId);
+      if (error) {
+        alert('Error al guardar la nota conceptual: ' + error.message);
+      } else {
+        alert('Nota conceptual guardada.');
+        renderizarSeguimientoEstudiantes();
+      }
+    }
+
     async function renderizarSeguimientoEstudiantes() {
       const trayectoId = document.getElementById('select-trayecto-seguimiento').value;
       const contenedor = document.getElementById('contenedor-seguimiento');
@@ -720,6 +741,9 @@
         const uInfo = usuarios ? usuarios.find(u => u.usuario === i.estudiante_user) : null;
         const nombreAlumno = uInfo ? uInfo.nombre : i.estudiante_user;
 
+        let mapConcept = {};
+        try { mapConcept = JSON.parse(i.notas_conceptuales || '{}'); } catch(e){}
+
         let htmlTablaModulos = '<h4>📐 Evaluación Modular Automática (Formación Profesional)</h4>';
         let totalModulos = modulosList.length;
         let modulosAprobados = 0;
@@ -727,7 +751,7 @@
         if (totalModulos === 0) {
           htmlTablaModulos += '<p class="empty-msg" style="padding:10px;">Este trayecto no posee módulos registrados.</p>';
         } else {
-          htmlTablaModulos += '<table class="tabla-modulos-eval"><thead><tr><th>Módulo / Unidad Curricular</th><th>Código</th><th>Período</th><th>Promedio TPs</th><th>Condición Modular (Mín. 70)</th></tr></thead><tbody>';
+          htmlTablaModulos += '<table class="tabla-modulos-eval"><thead><tr><th>Módulo / Unidad Curricular</th><th>Código</th><th>Promedio TPs</th><th>Nota Conceptual / Taller (0-100)</th><th>Condición Modular (Mín. 70)</th></tr></thead><tbody>';
 
           modulosList.forEach((m, idx) => {
             const tpsModulo = contenidos ? contenidos.filter(c => c.modulo_asociado === m.nombre) : [];
@@ -739,31 +763,51 @@
               e.nota !== null && e.nota !== undefined && e.nota !== ""
             ) : [];
 
-            let promedio = 0;
-            let badgeHtml = '';
-
+            let promTPs = null;
             if (entregasCalificadas.length > 0) {
               const suma = entregasCalificadas.reduce((acc, curr) => acc + (parseFloat(curr.nota) || 0), 0);
-              promedio = Math.round(suma / entregasCalificadas.length);
+              promTPs = suma / entregasCalificadas.length;
+            }
 
-              if (promedio >= 70) {
-                badgeHtml = `<span class="badge-estado badge-ok">APROBADO (${promedio}/100)</span>`;
+            const valConcept = mapConcept[m.nombre] !== undefined ? parseFloat(mapConcept[m.nombre]) : null;
+
+            let promedioFinal = 0;
+            let badgeHtml = '';
+
+            if (promTPs !== null && valConcept !== null) {
+              promedioFinal = Math.round((promTPs + valConcept) / 2);
+            } else if (promTPs !== null) {
+              promedioFinal = Math.round(promTPs);
+            } else if (valConcept !== null) {
+              promedioFinal = Math.round(valConcept);
+            } else {
+              promedioFinal = null;
+            }
+
+            if (promedioFinal !== null) {
+              if (promedioFinal >= 70) {
+                badgeHtml = `<span class="badge-estado badge-ok">APROBADO (${promedioFinal}/100)</span>`;
                 modulosAprobados++;
               } else {
-                badgeHtml = `<span class="badge-estado badge-missing">NO APROBADO (${promedio}/100)</span>`;
+                badgeHtml = `<span class="badge-estado badge-missing">NO APROBADO (${promedioFinal}/100)</span>`;
               }
             } else {
               badgeHtml = `<span class="badge-estado badge-pending">PENDIENTE DE EVALUACIÓN</span>`;
             }
 
-            const periodoTexto = (m.inicio && m.fin) ? `${m.inicio} al ${m.fin}` : '-';
+            const inputConceptHtml = currentUser.role !== 'estudiante' 
+              ? `<div style="display:flex; gap:5px; align-items:center;">
+                   <input type="number" min="0" max="100" value="${valConcept !== null ? valConcept : ''}" placeholder="0-100" id="cnc-${i.id}-${idx}" style="width:70px; padding:3px 6px; font-size:12px;">
+                   <button class="btn btn-secondary" style="padding:3px 6px; font-size:11px;" onclick="guardarNotaConceptual('${i.id}', '${m.nombre}', document.getElementById('cnc-${i.id}-${idx}').value)">💾</button>
+                 </div>`
+              : `<span>${valConcept !== null ? valConcept + ' pts' : '-'}</span>`;
 
             htmlTablaModulos += `
               <tr>
                 <td><strong>${idx + 1}. ${m.nombre}</strong></td>
                 <td><code>${m.codigo || '-'}</code></td>
-                <td><small>${periodoTexto}</small></td>
-                <td><strong>${entregasCalificadas.length > 0 ? promedio + ' / 100' : 'Sin notas'}</strong></td>
+                <td><strong>${promTPs !== null ? Math.round(promTPs) + ' / 100' : 'Sin TPs'}</strong></td>
+                <td>${inputConceptHtml}</td>
                 <td>${badgeHtml}</td>
               </tr>`;
           });
@@ -774,20 +818,25 @@
         const estaEgresado = totalModulos > 0 && modulosAprobados === totalModulos;
         const numEgVal = i.num_egresado || '';
 
-        let egresadoSection = '';
-        if (estaEgresado) {
-          egresadoSection = `
-            <div class="egresado-box">
-              <span style="font-size:13px; font-weight:bold; color:#166534;">🎓 Alumno en Condiciones de Egresar | N° Egresado:</span>
-              <input type="text" id="num-eg-${i.id}" value="${numEgVal}" placeholder="Ej: 005481" style="width:140px; padding:4px 8px; font-size:13px;">
-              <button class="btn btn-success" style="padding:4px 10px; font-size:12px;" onclick="guardarEgresado('${i.id}', document.getElementById('num-eg-${i.id}').value)">💾 Guardar N°</button>
+        let avisoCondicion = '';
+        if (!estaEgresado) {
+          avisoCondicion = `
+            <div style="background:#fef2f2; border:1px solid #fecaca; padding:8px 12px; border-radius:6px; font-size:12px; color:#991b1b; margin-top:10px; margin-bottom:10px;">
+              ⚠️ <strong>Atención:</strong> El estudiante aún no cumple las condiciones para certificar (requiere mínimo 70 en todos los módulos).
             </div>`;
         } else {
-          egresadoSection = `
-            <div style="background:#fef2f2; border:1px solid #fecaca; padding:8px 12px; border-radius:6px; font-size:12px; color:#991b1b; margin-top:10px;">
-              ⚠️ Pendiente: El alumno debe aprobar todos los módulos con nota mayor o igual a 70 para habilitar el N° de Egresado y la Certificación.
+          avisoCondicion = `
+            <div style="background:#f0fdf4; border:1px solid #bbf7d0; padding:8px 12px; border-radius:6px; font-size:12px; color:#166534; margin-top:10px; margin-bottom:10px;">
+              🎓 <strong>Alumno Aprobado:</strong> Se encuentra en condiciones de egresar.
             </div>`;
         }
+
+        const egresadoSection = `
+          <div class="egresado-box">
+            <span style="font-size:13px; font-weight:bold; color:#166534;">N° de Egresado (Registro Institucional):</span>
+            <input type="text" id="num-eg-${i.id}" value="${numEgVal}" placeholder="Ej: 005481" style="width:140px; padding:4px 8px; font-size:13px;">
+            <button class="btn btn-success" style="padding:4px 10px; font-size:12px;" onclick="guardarEgresado('${i.id}', document.getElementById('num-eg-${i.id}').value)">💾 Guardar N°</button>
+          </div>`;
 
         let htmlTrabajos = '<h4 style="margin-top:20px;">📝 Detalle de Trabajos Prácticos Entregados</h4><table><thead><tr><th>Trabajo Práctico</th><th>Módulo</th><th>Fecha</th><th>Archivo</th><th>Nota / Calificación (0-100)</th></tr></thead><tbody>';
 
@@ -835,6 +884,7 @@
             ${btnEmitirCertificado}
           </div>
           ${htmlTablaModulos}
+          ${avisoCondicion}
           ${egresadoSection}
           ${htmlTrabajos}`;
         contenedor.appendChild(card);
