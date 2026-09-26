@@ -60,7 +60,8 @@
         <label style="text-align:left;">Perfil de Ingreso:</label>
         <select id="role-select">
           <option value="estudiante">Estudiante</option>
-          <option value="docente">Docente / Administrador</option>
+          <option value="docente">Docente</option>
+          <option value="admin">Administrador</option>
         </select>
       </div>
       <div class="form-group"><input type="text" id="login-user" placeholder="Usuario"></div>
@@ -76,8 +77,8 @@
         <div>
           <div class="sidebar-header">Plataforma Educativa</div>
           <button id="btn-trayectos" class="active" onclick="showTab('trayectos')">📚 Trayectos Formativos</button>
-          <button id="btn-contenidos" class="admin-only" onclick="showTab('contenidos')">📂 Gestión de Contenidos y TPs</button>
-          <button id="btn-revisiones" class="admin-only" onclick="showTab('revisiones')">📝 Corregir Entregas</button>
+          <button id="btn-contenidos" class="docente-or-admin" onclick="showTab('contenidos')">📂 Cargar Contenidos y TPs</button>
+          <button id="btn-revisiones" class="docente-or-admin" onclick="showTab('revisiones')">📝 Corregir Entregas</button>
           <button id="btn-usuarios" class="admin-only" onclick="showTab('usuarios')">👥 Gestión de Usuarios</button>
         </div>
         <div class="user-info">
@@ -91,19 +92,22 @@
         <!-- TRAYECTOS -->
         <div id="trayectos" class="section active">
           <h2>Trayectos Formativos</h2>
+          
+          <!-- Alta de trayectos: SOLO VISIBLE PARA ADMIN -->
           <div class="card admin-only">
             <h3>Crear Nuevo Trayecto</h3>
-            <div class="form-group"><label>Nombre:</label><input type="text" id="nombre-trayecto"></div>
+            <div class="form-group"><label>Nombre del Trayecto:</label><input type="text" id="nombre-trayecto"></div>
             <div class="form-group"><label>Docente a Cargo:</label><select id="select-docente-trayecto"></select></div>
             <div class="form-group"><label>Descripción:</label><textarea id="desc-trayecto" rows="2"></textarea></div>
             <button class="btn" onclick="crearTrayecto()">Crear Trayecto</button>
           </div>
+
           <h3>Mis Trayectos</h3>
           <div id="lista-trayectos"><div class="card empty-msg">Cargando trayectos...</div></div>
         </div>
 
         <!-- CONTENIDOS -->
-        <div id="contenidos" class="section admin-only">
+        <div id="contenidos" class="section docente-or-admin">
           <h2>Gestión de Contenidos y Trabajos Prácticos</h2>
           <div class="card">
             <h3>📖 Cargar Clase</h3>
@@ -126,7 +130,7 @@
         </div>
 
         <!-- REVISIONES -->
-        <div id="revisiones" class="section admin-only">
+        <div id="revisiones" class="section docente-or-admin">
           <h2>Revisiones de Entregas</h2>
           <div class="card">
             <table>
@@ -138,9 +142,9 @@
           </div>
         </div>
 
-        <!-- USUARIOS -->
+        <!-- USUARIOS: SOLO VISIBLE PARA ADMIN -->
         <div id="usuarios" class="section admin-only">
-          <h2>Alta de Usuarios (Docentes y Alumnos)</h2>
+          <h2>Alta y Administración de Usuarios</h2>
           <div class="card">
             <h3>Registrar Nuevo Usuario</h3>
             <div class="form-group"><label>Nombre Completo:</label><input type="text" id="user-nombre"></div>
@@ -150,7 +154,8 @@
               <label>Rol:</label>
               <select id="user-rol" onchange="toggleInscripcionesBox()">
                 <option value="estudiante">Estudiante</option>
-                <option value="docente">Docente / Admin</option>
+                <option value="docente">Docente</option>
+                <option value="admin">Administrador</option>
               </select>
             </div>
             <div class="form-group" id="box-inscripciones">
@@ -200,10 +205,19 @@
       document.getElementById('app-screen').style.display = 'block';
 
       document.getElementById('display-username').textContent = currentUser.name;
-      document.getElementById('display-role').textContent = currentUser.role === 'docente' ? 'Docente (Admin)' : 'Estudiante';
+      
+      let tagRol = 'Estudiante';
+      if (currentUser.role === 'admin') tagRol = 'Administrador';
+      if (currentUser.role === 'docente') tagRol = 'Docente';
+      document.getElementById('display-role').textContent = tagRol;
 
+      // Control de visibilidad según el rol
       document.querySelectorAll('.admin-only').forEach(el => {
-        el.style.display = currentUser.role === 'docente' ? 'block' : 'none';
+        el.style.display = currentUser.role === 'admin' ? 'block' : 'none';
+      });
+
+      document.querySelectorAll('.docente-or-admin').forEach(el => {
+        el.style.display = (currentUser.role === 'admin' || currentUser.role === 'docente') ? 'block' : 'none';
       });
 
       cargarDatosDashboard();
@@ -232,9 +246,11 @@
     async function cargarDatosDashboard() {
       await actualizarSelects();
       await renderizarTrayectos();
-      if (currentUser.role === 'docente') {
-        await renderizarUsuarios();
+      if (currentUser.role === 'admin' || currentUser.role === 'docente') {
         await renderizarRevisiones();
+      }
+      if (currentUser.role === 'admin') {
+        await renderizarUsuarios();
       }
     }
 
@@ -245,23 +261,32 @@
         selectDoc.innerHTML = docentes.map(d => `<option value="${d.usuario}">${d.nombre} (@${d.usuario})</option>`).join('');
       }
 
-      const { data: trayectos } = await db.from('trayectos').select('*');
+      let { data: trayectos } = await db.from('trayectos').select('*');
+
+      // Si es docente, solo ve sus trayectos
+      if (currentUser.role === 'docente') {
+        trayectos = trayectos ? trayectos.filter(t => t.docente_user === currentUser.user) : [];
+      }
+
       const selectC = document.getElementById('select-trayecto-contenido');
       const selectA = document.getElementById('select-trayecto-actividad');
       const boxCheckboxes = document.getElementById('checkboxes-trayectos');
 
       const options = trayectos && trayectos.length > 0 
         ? trayectos.map(t => `<option value="${t.id}">${t.nombre}</option>`).join('')
-        : '<option>Sin trayectos creados</option>';
+        : '<option value="">Sin trayectos disponibles</option>';
 
       if (selectC) selectC.innerHTML = options;
       if (selectA) selectA.innerHTML = options;
 
-      if (boxCheckboxes && trayectos) {
-        boxCheckboxes.innerHTML = trayectos.map(t => `
-          <label class="checkbox-item">
-            <input type="checkbox" value="${t.id}" class="chk-trayecto"> ${t.nombre}
-          </label>`).join('');
+      if (boxCheckboxes) {
+        const { data: todosTrayectos } = await db.from('trayectos').select('*');
+        if (todosTrayectos) {
+          boxCheckboxes.innerHTML = todosTrayectos.map(t => `
+            <label class="checkbox-item">
+              <input type="checkbox" value="${t.id}" class="chk-trayecto"> ${t.nombre}
+            </label>`).join('');
+        }
       }
     }
 
@@ -270,11 +295,13 @@
       const docUser = document.getElementById('select-docente-trayecto').value;
       const desc = document.getElementById('desc-trayecto').value.trim();
 
+      if (!nombre || !docUser) return alert('Completá el nombre y seleccioná un docente.');
+
       const { data: docData } = await db.from('usuarios').select('nombre').eq('usuario', docUser).single();
 
       await db.from('trayectos').insert([{ nombre, docente_user: docUser, docente_nombre: docData ? docData.nombre : docUser, descripcion: desc }]);
       
-      alert('Trayecto creado.');
+      alert('Trayecto creado con éxito.');
       document.getElementById('nombre-trayecto').value = '';
       document.getElementById('desc-trayecto').value = '';
       cargarDatosDashboard();
@@ -286,6 +313,8 @@
       const fecha = document.getElementById('clase-fecha').value;
       const desc = document.getElementById('material-titulo').value.trim();
       const link = document.getElementById('material-link').value.trim();
+
+      if (!trayecto_id) return alert('Seleccioná un trayecto.');
 
       await db.from('contenidos').insert([{ trayecto_id, tipo: 'clase', titulo, descripcion: desc, link, fecha }]);
       alert('Clase publicada.');
@@ -299,6 +328,8 @@
       const desc = document.getElementById('actividad-desc').value.trim();
       const fecha = document.getElementById('actividad-limite').value;
 
+      if (!trayecto_id) return alert('Seleccioná un trayecto.');
+
       await db.from('contenidos').insert([{ trayecto_id, tipo: 'actividad', titulo, descripcion: desc, fecha }]);
       alert('Trabajo Práctico asignado.');
       cargarDatosDashboard();
@@ -311,14 +342,17 @@
       const { data: contenidos } = await db.from('contenidos').select('*');
       const { data: entregas } = await db.from('entregas').select('*');
 
+      // Filtrado según rol:
       if (currentUser.role === 'estudiante') {
         const { data: inscripciones } = await db.from('inscripciones').select('trayecto_id').eq('estudiante_user', currentUser.user);
         const idsInscriptos = inscripciones ? inscripciones.map(i => i.trayecto_id) : [];
         trayectos = trayectos ? trayectos.filter(t => idsInscriptos.includes(t.id)) : [];
+      } else if (currentUser.role === 'docente') {
+        trayectos = trayectos ? trayectos.filter(t => t.docente_user === currentUser.user) : [];
       }
 
       if (!trayectos || trayectos.length === 0) {
-        container.innerHTML = '<div class="card empty-msg">No tenés trayectos asignados actualmente.</div>';
+        container.innerHTML = '<div class="card empty-msg">No hay trayectos asignados para mostrar.</div>';
         return;
       }
 
@@ -331,6 +365,8 @@
         const actividades = tContenidos.filter(c => c.tipo === 'actividad');
 
         let htmlClases = '<h4>📖 Clases y Materiales</h4>';
+        if (clases.length === 0) htmlClases += '<p class="empty-msg">Sin clases publicadas aún.</p>';
+
         clases.forEach(c => {
           if (currentUser.role === 'estudiante' && c.fecha > hoy) return;
           htmlClases += `
@@ -344,6 +380,8 @@
         });
 
         let htmlActividades = '<h4 style="margin-top:15px;">📝 Trabajos Prácticos</h4>';
+        if (actividades.length === 0) htmlActividades += '<p class="empty-msg">Sin TPs asignados aún.</p>';
+
         actividades.forEach(a => {
           let btnEntrega = '';
           let infoEntrega = '';
@@ -351,7 +389,7 @@
           if (currentUser.role === 'estudiante') {
             const miEntrega = entregas ? entregas.find(e => e.actividad_id === a.id && e.estudiante === currentUser.user) : null;
             if (miEntrega) {
-              infoEntrega = `<div style="font-size:12px; color:#0369a1; margin-top:5px;">✅ Entregado (${miEntrega.fecha}). Nota: ${miEntrega.nota}</div>`;
+              infoEntrega = `<div style="font-size:12px; color:#0369a1; margin-top:5px;">✅ Entregado (${miEntrega.fecha}). Nota: ${miEntrega.nota || 'Pendiente de revisión'}</div>`;
               btnEntrega = `<button class="btn btn-secondary" style="font-size:12px; padding:4px 8px;" onclick="entregarTP('${t.id}', '${a.id}')">Reenviar</button>`;
             } else {
               btnEntrega = `<button class="btn btn-success" style="font-size:12px; padding:4px 8px;" onclick="entregarTP('${t.id}', '${a.id}')">Subir Entrega</button>`;
@@ -393,12 +431,19 @@
     }
 
     async function renderizarRevisiones() {
-      const { data: entregas } = await db.from('entregas').select('*');
+      let { data: entregas } = await db.from('entregas').select('*');
+      let { data: trayectos } = await db.from('trayectos').select('*');
       const { data: contenidos } = await db.from('contenidos').select('*');
       const tabla = document.getElementById('tabla-revisiones');
 
+      // Si es docente, solo ve entregas de SUS trayectos
+      if (currentUser.role === 'docente') {
+        const misTrayectosIds = trayectos ? trayectos.filter(t => t.docente_user === currentUser.user).map(t => t.id) : [];
+        entregas = entregas ? entregas.filter(e => misTrayectosIds.includes(e.trayecto_id)) : [];
+      }
+
       if (!entregas || entregas.length === 0) {
-        tabla.innerHTML = '<tr><td colspan="5" class="empty-msg">Sin entregas.</td></tr>';
+        tabla.innerHTML = '<tr><td colspan="5" class="empty-msg">Sin entregas para revisar.</td></tr>';
         return;
       }
 
@@ -410,14 +455,14 @@
             <td>${tp ? tp.titulo : '-'}</td>
             <td>${e.fecha}</td>
             <td><a href="${e.link}" target="_blank" class="btn" style="padding:4px 8px; font-size:11px;">Abrir</a></td>
-            <td><input type="text" value="${e.nota}" onchange="guardarNota('${e.id}', this.value)" style="padding:4px; font-size:12px; width:100px;"></td>
+            <td><input type="text" value="${e.nota || ''}" placeholder="Nota / Feedback" onchange="guardarNota('${e.id}', this.value)" style="padding:4px; font-size:12px; width:140px;"></td>
           </tr>`;
       }).join('');
     }
 
     async function guardarNota(id, nota) {
       await db.from('entregas').update({ nota }).eq('id', id);
-      alert('Nota guardada.');
+      alert('Nota/Feedback guardado correctamente.');
     }
 
     async function registrarUsuario() {
@@ -438,11 +483,12 @@
         }
       }
 
-      alert(`Usuario ${usuario} creado exitosamente.`);
+      alert(`Usuario @${usuario} creado exitosamente como ${rol.toUpperCase()}.`);
       document.getElementById('user-nombre').value = '';
       document.getElementById('user-usuario').value = '';
       document.getElementById('user-pass').value = '';
       renderizarUsuarios();
+      actualizarSelects();
     }
 
     async function renderizarUsuarios() {
