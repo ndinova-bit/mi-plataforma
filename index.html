@@ -33,6 +33,7 @@
     input, select, textarea { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; }
     .btn { background: #2563eb; color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; }
     .btn-secondary { background: #4b5563; }
+    .btn-success { background: #10b981; }
     .btn-danger { background: #dc2626; margin-top: 10px; }
     
     table { width: 100%; border-collapse: collapse; margin-top: 15px; }
@@ -40,12 +41,14 @@
     th { background: #f9fafb; }
     .empty-msg { color: #6b7280; font-style: italic; text-align: center; padding: 20px; }
     
-    .clase-box { background: #f9fafb; border: 1px solid #e5e7eb; padding: 15px; border-radius: 8px; margin-top: 15px; }
+    .clase-box, .actividad-box { background: #f9fafb; border: 1px solid #e5e7eb; padding: 15px; border-radius: 8px; margin-top: 15px; }
+    .actividad-box { border-left: 4px solid #2563eb; }
     .material-item { background: white; border: 1px solid #e5e7eb; padding: 10px 15px; border-radius: 6px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; }
     .docente-badge { display: inline-block; background: #e0e7ff; color: #3730a3; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; margin-bottom: 10px; }
     .status-badge { display: inline-block; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; }
     .badge-programado { background: #fef3c7; color: #92400e; }
     .badge-publicado { background: #d1fae5; color: #065f46; }
+    .badge-entrega { background: #e0f2fe; color: #0369a1; }
   </style>
 </head>
 <body>
@@ -80,7 +83,8 @@
         <div>
           <div class="sidebar-header">Plataforma Educativa</div>
           <button id="btn-trayectos" class="active" onclick="showTab('trayectos')">📚 Trayectos Formativos</button>
-          <button id="btn-contenidos" class="admin-only" onclick="showTab('contenidos')">📂 Gestión de Contenidos</button>
+          <button id="btn-contenidos" class="admin-only" onclick="showTab('contenidos')">📂 Gestión de Contenidos y TPs</button>
+          <button id="btn-revisiones" class="admin-only" onclick="showTab('revisiones')">📝 Corregir Entregas</button>
           <button id="btn-docentes" class="admin-only" onclick="showTab('docentes')">👨‍🏫 Alta de Docentes</button>
         </div>
         
@@ -123,12 +127,12 @@
           </div>
         </div>
 
-        <!-- SECCIÓN 2: GESTIÓN DE CONTENIDOS -->
+        <!-- SECCIÓN 2: GESTIÓN DE CONTENIDOS Y TPs -->
         <div id="contenidos" class="section admin-only">
-          <h2>Gestión de Contenidos y Clases Programadas</h2>
+          <h2>Gestión de Contenidos y Trabajos Prácticos</h2>
           
           <div class="card">
-            <h3>➕ Cargar Nueva Clase y Material</h3>
+            <h3>📖 Cargar Nueva Clase (Contenido teórico / guía)</h3>
             <div class="form-group">
               <label>Seleccionar Trayecto Formativo:</label>
               <select id="select-trayecto-contenido">
@@ -142,7 +146,6 @@
             <div class="form-group">
               <label>📅 Fecha de Publicación:</label>
               <input type="date" id="clase-fecha">
-              <small style="color:#6b7280; font-size:12px;">El contenido se habilitará automáticamente para los estudiantes al llegar esta fecha.</small>
             </div>
             <div class="form-group">
               <label>Título del Material o Recurso:</label>
@@ -152,11 +155,58 @@
               <label>Enlace al recurso (Google Drive, YouTube, Web):</label>
               <input type="url" id="material-link" placeholder="https://drive.google.com/...">
             </div>
-            <button class="btn" onclick="guardarClase()">Programar / Publicar Clase</button>
+            <button class="btn" onclick="guardarClase()">Publicar / Programar Clase</button>
+          </div>
+
+          <div class="card" style="border-top: 4px solid #2563eb;">
+            <h3>📝 Asignar Trabajo Práctico / Actividad Obligatoria</h3>
+            <div class="form-group">
+              <label>Seleccionar Trayecto Formativo:</label>
+              <select id="select-trayecto-actividad">
+                <!-- Se llena dinámicamente -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Título de la Actividad / TP:</label>
+              <input type="text" id="actividad-titulo" placeholder="Ej: TP N° 1 - Algoritmos en la vida cotidiana">
+            </div>
+            <div class="form-group">
+              <label>Descripción / Consigna del Trabajo:</label>
+              <textarea id="actividad-desc" rows="3" placeholder="Explicá en detalle lo que debe realizar el estudiante..."></textarea>
+            </div>
+            <div class="form-group">
+              <label>📅 Fecha Límite de Entrega:</label>
+              <input type="date" id="actividad-limite">
+            </div>
+            <button class="btn btn-success" onclick="guardarActividad()">Publicar Actividad / TP</button>
           </div>
         </div>
 
-        <!-- SECCIÓN 3: ALTA DE DOCENTES -->
+        <!-- SECCIÓN 3: REVISIÓN DE ENTREGAS (DOCENTE) -->
+        <div id="revisiones" class="section admin-only">
+          <h2>Revisiones y Calificaciones de Trabajos Prácticos</h2>
+          <div class="card">
+            <h3>Entregas Recibidas de Estudiantes</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Estudiante</th>
+                  <th>Trayecto / TP</th>
+                  <th>Fecha de Entrega</th>
+                  <th>Trabajo Adjunto</th>
+                  <th>Nota / Devolución</th>
+                </tr>
+              </thead>
+              <tbody id="tabla-revisiones">
+                <tr>
+                  <td colspan="5" class="empty-msg">No hay entregas registradas aún.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- SECCIÓN 4: ALTA DE DOCENTES -->
         <div id="docentes" class="section admin-only">
           <h2>Alta y Registro de Docentes</h2>
           
@@ -203,16 +253,18 @@
   <script>
     let currentUser = { name: '', user: '', role: '' };
     
-    // Persistencia LocalStorage
+    // Base de datos local
     let docentesDB = JSON.parse(localStorage.getItem('docentesDB')) || [
       { name: 'Administrador Principal', user: 'admin', pass: 'admin' }
     ];
 
     let trayectosDB = JSON.parse(localStorage.getItem('trayectosDB')) || [];
+    let entregasDB = JSON.parse(localStorage.getItem('entregasDB')) || [];
 
     function guardarEstado() {
       localStorage.setItem('docentesDB', JSON.stringify(docentesDB));
       localStorage.setItem('trayectosDB', JSON.stringify(trayectosDB));
+      localStorage.setItem('entregasDB', JSON.stringify(entregasDB));
     }
 
     function toggleLoginInputs() {
@@ -233,23 +285,26 @@
         });
       }
 
-      // Select trayectos
-      const selectTray = document.getElementById('select-trayecto-contenido');
-      if (selectTray) {
-        selectTray.innerHTML = '';
+      // Select trayectos para clases y actividades
+      const selectClase = document.getElementById('select-trayecto-contenido');
+      const selectAct = document.getElementById('select-trayecto-actividad');
+      
+      [selectClase, selectAct].forEach(select => {
+        if (!select) return;
+        select.innerHTML = '';
         if (trayectosDB.length === 0) {
           const option = document.createElement('option');
           option.textContent = 'No hay trayectos creados';
-          selectTray.appendChild(option);
+          select.appendChild(option);
         } else {
           trayectosDB.forEach(t => {
             const option = document.createElement('option');
             option.value = t.id;
             option.textContent = t.nombre + ' (Docente: ' + t.docenteNombre + ')';
-            selectTray.appendChild(option);
+            select.appendChild(option);
           });
         }
-      }
+      });
     }
 
     function iniciarSesion() {
@@ -287,6 +342,7 @@
       actualizarSelects();
       renderizarTablaDocentes();
       renderizarTrayectos();
+      renderizarRevisiones();
       showTab('trayectos');
     }
 
@@ -324,7 +380,7 @@
       if (!nombre) return alert('Ingresá el nombre del trayecto.');
 
       const id = 'trayecto-' + Date.now();
-      const nuevoTrayecto = { id, nombre, docenteUser, docenteNombre, desc, clases: [] };
+      const nuevoTrayecto = { id, nombre, docenteUser, docenteNombre, desc, clases: [], actividades: [] };
       trayectosDB.push(nuevoTrayecto);
 
       guardarEstado();
@@ -342,23 +398,13 @@
       const titulo = document.getElementById('material-titulo').value.trim();
       const link = document.getElementById('material-link').value.trim();
 
-      if (!trayectoId || trayectoId === 'No hay trayectos creados') {
-        return alert('Primero debés crear un trayecto.');
-      }
-      if (!claseNombre || !fechaVal || !titulo || !link) {
-        return alert('Completá todos los campos (Nombre de clase, Fecha, Título y Enlace).');
-      }
+      if (!trayectoId || trayectoId === 'No hay trayectos creados') return alert('Primero debés crear un trayecto.');
+      if (!claseNombre || !fechaVal || !titulo || !link) return alert('Completá todos los campos de la clase.');
 
       const trayecto = trayectosDB.find(t => t.id === trayectoId);
       if (trayecto) {
-        trayecto.clases.push({
-          id: 'clase-' + Date.now(),
-          nombre: claseNombre,
-          fecha: fechaVal, // Formato YYYY-MM-DD
-          titulo: titulo,
-          link: link
-        });
-
+        trayecto.clases = trayecto.clases || [];
+        trayecto.clases.push({ id: 'clase-' + Date.now(), nombre: claseNombre, fecha: fechaVal, titulo: titulo, link: link });
         guardarEstado();
         renderizarTrayectos();
         alert('Clase guardada correctamente.');
@@ -371,6 +417,59 @@
       }
     }
 
+    function guardarActividad() {
+      const trayectoId = document.getElementById('select-trayecto-actividad').value;
+      const titulo = document.getElementById('actividad-titulo').value.trim();
+      const desc = document.getElementById('actividad-desc').value.trim();
+      const limite = document.getElementById('actividad-limite').value;
+
+      if (!trayectoId || trayectoId === 'No hay trayectos creados') return alert('Primero debés crear un trayecto.');
+      if (!titulo || !desc || !limite) return alert('Completá todos los campos del TP.');
+
+      const trayecto = trayectosDB.find(t => t.id === trayectoId);
+      if (trayecto) {
+        trayecto.actividades = trayecto.actividades || [];
+        trayecto.actividades.push({ id: 'act-' + Date.now(), titulo: titulo, desc: desc, limite: limite });
+        guardarEstado();
+        renderizarTrayectos();
+        alert('Actividad / TP asignada con éxito.');
+
+        document.getElementById('actividad-titulo').value = '';
+        document.getElementById('actividad-desc').value = '';
+        document.getElementById('actividad-limite').value = '';
+        showTab('trayectos');
+      }
+    }
+
+    function entregarTP(trayectoId, actividadId) {
+      const link = prompt('Pegá el enlace a tu trabajo (Google Drive, PDF, etc.):');
+      if (!link) return;
+
+      const hoy = new Date().toISOString().split('T')[0];
+      const entregaExistente = entregasDB.find(e => e.actividadId === actividadId && e.estudiante === currentUser.name);
+
+      if (entregaExistente) {
+        entregaExistente.link = link;
+        entregaExistente.fecha = hoy;
+      } else {
+        entregasDB.push({
+          id: 'ent-' + Date.now(),
+          trayectoId: trayectoId,
+          actividadId: actividadId,
+          estudiante: currentUser.name,
+          link: link,
+          fecha: hoy,
+          nota: 'Pendiente',
+          devolucion: ''
+        });
+      }
+
+      guardarEstado();
+      renderizarTrayectos();
+      renderizarRevisiones();
+      alert('¡Trabajo práctico entregado con éxito!');
+    }
+
     function renderizarTrayectos() {
       const lista = document.getElementById('lista-trayectos');
       if (trayectosDB.length === 0) {
@@ -379,58 +478,93 @@
       }
 
       lista.innerHTML = '';
-      
-      // Obtener la fecha actual en formato YYYY-MM-DD
       const hoy = new Date().toISOString().split('T')[0];
 
       trayectosDB.forEach(t => {
         const card = document.createElement('div');
         card.className = 'card';
 
-        let htmlClases = '';
-        
-        if (t.clases.length === 0) {
-          htmlClases = '<p style="font-size:13px; color:#6b7280; font-style:italic;">Aún no se han cargado clases para este trayecto.</p>';
+        // 1. Clases
+        let htmlClases = '<h4>📖 Clases y Materiales</h4>';
+        if (!t.clases || t.clases.length === 0) {
+          htmlClases += '<p style="font-size:13px; color:#6b7280; font-style:italic;">No hay clases cargadas.</p>';
         } else {
           t.clases.forEach(c => {
             const esFutura = c.fecha > hoy;
-            
-            // Formatear la fecha para mostrar (DD/MM/AAAA)
+            if (currentUser.role === 'estudiante' && esFutura) return;
+
             const partes = c.fecha.split('-');
-            const fechaFormateada = `${partes[2]}/${partes[1]}/${partes[0]}`;
-
-            // Si el usuario es estudiante y la clase es futura, la ocultamos
-            if (currentUser.role === 'estudiante' && esFutura) {
-              return; 
-            }
-
+            const fechaFmt = `${partes[2]}/${partes[1]}/${partes[0]}`;
             let badge = esFutura 
-              ? `<span class="status-badge badge-programado">🕒 Programada para el: ${fechaFormateada}</span>`
-              : `<span class="status-badge badge-publicado">✅ Publicada el: ${fechaFormateada}</span>`;
+              ? `<span class="status-badge badge-programado">🕒 Programada: ${fechaFmt}</span>`
+              : `<span class="status-badge badge-publicado">✅ Publicada: ${fechaFmt}</span>`;
 
             htmlClases += `
               <div class="clase-box">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                  <h4 style="margin:0;">📖 ${c.nombre}</h4>
+                  <strong style="font-size:14px;">${c.nombre}</strong>
                   ${badge}
                 </div>
                 <div class="material-item">
-                  <span>📄 <strong>${c.titulo}</strong></span>
-                  <a href="${c.link}" target="_blank" class="btn" style="text-decoration:none; font-size:12px; padding:5px 10px;">Abrir Material</a>
+                  <span>📄 ${c.titulo}</span>
+                  <a href="${c.link}" target="_blank" class="btn" style="text-decoration:none; font-size:12px; padding:4px 8px;">Abrir Material</a>
                 </div>
               </div>
             `;
           });
         }
 
+        // 2. Actividades / TPs
+        let htmlActividades = '<h4 style="margin-top:20px;">📝 Trabajos Prácticos / Actividades</h4>';
+        if (!t.actividades || t.actividades.length === 0) {
+          htmlActividades += '<p style="font-size:13px; color:#6b7280; font-style:italic;">No hay TPs asignados.</p>';
+        } else {
+          t.actividades.forEach(a => {
+            const partes = a.limite.split('-');
+            const limiteFmt = `${partes[2]}/${partes[1]}/${partes[0]}`;
+
+            let botonEntrega = '';
+            let miEntregaInfo = '';
+
+            if (currentUser.role === 'estudiante') {
+              const miEntrega = entregasDB.find(e => e.actividadId === a.id && e.estudiante === currentUser.name);
+              if (miEntrega) {
+                miEntregaInfo = `<div style="margin-top:8px; font-size:12px; color:#0369a1; background:#e0f2fe; padding:6px; border-radius:4px;">
+                  ✅ Entregado el ${miEntrega.fecha}. <strong>Estado/Nota:</strong> ${miEntrega.nota}
+                </div>`;
+                botonEntrega = `<button class="btn btn-secondary" style="font-size:12px; padding:4px 8px;" onclick="entregarTP('${t.id}', '${a.id}')">Reenviar TP</button>`;
+              } else {
+                botonEntrega = `<button class="btn btn-success" style="font-size:12px; padding:4px 8px;" onclick="entregarTP('${t.id}', '${a.id}')">📤 Subir Entrega</button>`;
+              }
+            }
+
+            htmlActividades += `
+              <div class="actividad-box">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <strong style="font-size:15px; color:#1d4ed8;">${a.titulo}</strong>
+                  <span class="status-badge badge-programado">📅 Entrega Límite: ${limiteFmt}</span>
+                </div>
+                <p style="font-size:13px; margin:8px 0; color:#374151;">${a.desc}</p>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+                  ${botonEntrega}
+                </div>
+                ${miEntregaInfo}
+              </div>
+            `;
+          });
+        }
+
+        const totalItems = (t.clases ? t.clases.length : 0) + (t.actividades ? t.actividades.length : 0);
+
         card.innerHTML = `
           <span class="docente-badge">👨‍🏫 Docente a cargo: ${t.docenteNombre}</span>
           <h3 style="margin-top:5px;">${t.nombre}</h3>
           <p>${t.desc}</p>
-          <button class="btn btn-secondary" style="font-size:13px;" onclick="toggleDetalle('${t.id}')">📁 Ver Clases y Materiales (${t.clases.length})</button>
+          <button class="btn btn-secondary" style="font-size:13px;" onclick="toggleDetalle('${t.id}')">📁 Ver Contenidos y TPs (${totalItems})</button>
           
           <div id="${t.id}" style="display:none; margin-top:20px; border-top:1px solid #e5e7eb; padding-top:15px;">
             ${htmlClases}
+            ${htmlActividades}
           </div>
         `;
         lista.appendChild(card);
@@ -440,6 +574,44 @@
     function toggleDetalle(id) {
       const el = document.getElementById(id);
       el.style.display = el.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function renderizarRevisiones() {
+      const tabla = document.getElementById('tabla-revisiones');
+      if (!tabla) return;
+
+      if (entregasDB.length === 0) {
+        tabla.innerHTML = '<tr><td colspan="5" class="empty-msg">No hay entregas registradas aún.</td></tr>';
+        return;
+      }
+
+      tabla.innerHTML = '';
+      entregasDB.forEach(e => {
+        const trayecto = trayectosDB.find(t => t.id === e.trayectoId);
+        const actividad = trayecto ? trayecto.actividades.find(a => a.id === e.actividadId) : null;
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td><strong>${e.estudiante}</strong></td>
+          <td>${trayecto ? trayecto.nombre : '-'} <br><small style="color:#6b7280;">${actividad ? actividad.titulo : ''}</small></td>
+          <td>${e.fecha}</td>
+          <td><a href="${e.link}" target="_blank" class="btn" style="text-decoration:none; font-size:11px; padding:4px 8px;">Ver Trabajo</a></td>
+          <td>
+            <input type="text" placeholder="Nota / Feedback" value="${e.nota !== 'Pendiente' ? e.nota : ''}" style="padding:4px; font-size:12px; width:120px;" onchange="calificarEntrega('${e.id}', this.value)">
+          </td>
+        `;
+        tabla.appendChild(row);
+      });
+    }
+
+    function calificarEntrega(entregaId, nota) {
+      const entrega = entregasDB.find(e => e.id === entregaId);
+      if (entrega) {
+        entrega.nota = nota || 'Pendiente';
+        guardarEstado();
+        renderizarTrayectos();
+        alert('Calificación guardada.');
+      }
     }
 
     function registrarDocente() {
