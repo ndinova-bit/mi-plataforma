@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Plataforma Educativa - FP (DGCyE PBA) v5</title>
+  <title>Plataforma Educativa - FP (DGCyE PBA) v6</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- Librería para lectura de Excel y CSV -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -64,6 +64,8 @@
     .modulo-card { background: #f8fafc; border: 1px solid #cbd5e1; padding: 12px; border-radius: 6px; margin-bottom: 10px; }
     .modulo-row-header { display: flex; gap: 10px; margin-bottom: 8px; }
     .modulo-row-dates { display: flex; gap: 10px; align-items: center; font-size: 12px; }
+
+    .tabla-modulos-eval { border-left: 4px solid #10b981; margin-bottom: 20px; }
 
     /* ESTILOS CIRCULAR 4/2020 - ISO A5 (210mm x 148mm) */
     #certificado-container { display: none; }
@@ -744,6 +746,7 @@
       const { data: usuarios } = await db.from('usuarios').select('*');
       const { data: contenidos } = await db.from('contenidos').select('*').eq('trayecto_id', trayectoId).eq('tipo', 'actividad');
       const { data: entregas } = await db.from('entregas').select('*').eq('trayecto_id', trayectoId);
+      const { data: notasModulares } = await db.from('notas_modulares').select('*').eq('trayecto_id', trayectoId);
 
       if (!inscripciones || inscripciones.length === 0) {
         contenedor.innerHTML = '<div class="card empty-msg">No hay alumnos inscriptos en este trayecto.</div>';
@@ -759,7 +762,41 @@
         const uInfo = usuarios ? usuarios.find(u => u.usuario === i.estudiante_user) : null;
         const nombreAlumno = uInfo ? uInfo.nombre : i.estudiante_user;
 
-        let htmlTrabajos = '<table><thead><tr><th>Trabajo Práctico</th><th>Estado</th><th>Fecha Entrega</th><th>Archivo</th><th>Nota / Feedback (Docente)</th></tr></thead><tbody>';
+        // --- TABLA DE CALIFICACIONES MODULARES (Estructura de FP) ---
+        let htmlTablaModulos = '<h4>📐 Evaluación y Acreditación de Módulos</h4>';
+        if (modulosList.length === 0) {
+          htmlTablaModulos += '<p class="empty-msg" style="padding:10px;">Este trayecto no tiene módulos asignados en su estructura curricular.</p>';
+        } else {
+          htmlTablaModulos += '<table class="tabla-modulos-eval"><thead><tr><th>Módulo / Unidad Curricular</th><th>Código</th><th>Período Dictado</th><th>Nota / Acreditación Modular</th></tr></thead><tbody>';
+
+          modulosList.forEach((m, idx) => {
+            const registroNota = notasModulares ? notasModulares.find(nm => nm.estudiante_user === i.estudiante_user && nm.modulo_nombre === m.nombre) : null;
+            const notaActual = registroNota ? registroNota.nota : 'Pendiente';
+
+            let campoInputNota = '';
+            if (currentUser.role === 'docente') {
+              campoInputNota = `<input type="text" value="${notaActual !== 'Pendiente' ? notaActual : ''}" placeholder="Ej: 8 (Aprobado)" onchange="guardarNotaModular('${trayectoId}', '${i.estudiante_user}', '${encodeURIComponent(m.nombre)}', this.value)" style="padding:4px 8px; font-size:12px; width:130px;">`;
+            } else {
+              const badgeClass = (notaActual.toLowerCase().includes('aprob') || parseInt(notaActual) >= 6) ? 'badge-ok' : (notaActual === 'Pendiente' ? 'badge-pending' : 'badge-missing');
+              campoInputNota = `<span class="badge-estado ${badgeClass}">${notaActual}</span>`;
+            }
+
+            const periodoTexto = (m.inicio && m.fin) ? `${m.inicio} al ${m.fin}` : '-';
+
+            htmlTablaModulos += `
+              <tr>
+                <td><strong>${idx + 1}. ${m.nombre}</strong></td>
+                <td><code>${m.codigo || '-'}</code></td>
+                <td><small>${periodoTexto}</small></td>
+                <td>${campoInputNota}</td>
+              </tr>`;
+          });
+
+          htmlTablaModulos += '</tbody></table>';
+        }
+
+        // --- TABLA DE TRABAJOS PRÁCTICOS ---
+        let htmlTrabajos = '<h4 style="margin-top:20px;">📝 Actividades y Trabajos Prácticos</h4><table><thead><tr><th>Trabajo Práctico</th><th>Estado</th><th>Fecha Entrega</th><th>Archivo</th><th>Nota TP</th></tr></thead><tbody>';
 
         if (!contenidos || contenidos.length === 0) {
           htmlTrabajos += '<tr><td colspan="5" class="empty-msg">No hay TPs asignados en este trayecto.</td></tr>';
@@ -795,29 +832,39 @@
 
         htmlTrabajos += '</tbody></table>';
 
-        let htmlModulosResumen = '';
-        if (modulosList.length > 0) {
-          htmlModulosResumen = `<div style="background:#f1f5f9; padding:10px; border-radius:6px; margin-top:10px; font-size:13px;">
-            <strong>Módulos del Trayecto (Períodos):</strong>
-            <ul style="margin:5px 0; padding-left:20px;">
-              ${modulosList.map(m => `<li><strong>${m.nombre}</strong>${m.inicio && m.fin ? ' (Dictado: ' + m.inicio + ' al ' + m.fin + ')' : ''}</li>`).join('')}
-            </ul>
-          </div>`;
-        }
-
         const btnEmitirCertificado = `<button class="btn btn-success" style="font-size:12px; padding:6px 12px; margin-left:15px;" onclick="generarCertificadoPDF('${encodeURIComponent(JSON.stringify(trayectoInfo))}', '${encodeURIComponent(nombreAlumno)}', '${i.estudiante_user}')">📜 Emitir Certificado ISO A5 (Circ. 4-2020)</button>`;
 
         const card = document.createElement('div');
         card.className = 'card';
         card.innerHTML = `
-          <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
             <h3>🎓 ${nombreAlumno} <span style="font-size:14px; color:#6b7280; font-weight:normal;">(D.U. N° ${i.estudiante_user})</span></h3>
             ${btnEmitirCertificado}
           </div>
-          ${htmlModulosResumen}
+          ${htmlTablaModulos}
           ${htmlTrabajos}`;
         contenedor.appendChild(card);
       });
+    }
+
+    async function guardarNotaModular(trayectoId, estudianteUser, moduloNombreEnc, notaVal) {
+      const moduloNombre = decodeURIComponent(moduloNombreEnc);
+      const nota = notaVal.trim() || 'Pendiente';
+
+      const { data: existente } = await db.from('notas_modulares').select('*').eq('trayecto_id', trayectoId).eq('estudiante_user', estudianteUser).eq('modulo_nombre', moduloNombre);
+
+      if (existente && existente.length > 0) {
+        await db.from('notas_modulares').update({ nota: nota, fecha: new Date() }).eq('id', existente[0].id);
+      } else {
+        await db.from('notas_modulares').insert([{
+          trayecto_id: trayectoId,
+          estudiante_user: estudianteUser,
+          modulo_nombre: moduloNombre,
+          nota: nota
+        }]);
+      }
+
+      alert(`Acreditación modular para "${moduloNombre}" guardada con éxito.`);
     }
 
     async function generarCertificadoPDF(trayectoJson, alumnoNombre, usuarioDni) {
