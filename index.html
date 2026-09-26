@@ -34,7 +34,7 @@
     .btn-secondary { background: #4b5563; }
     .btn-success { background: #10b981; }
     .btn-warning { background: #f59e0b; color: white; }
-    .btn-danger { background: #dc2626; margin-top: 10px; }
+    .btn-danger { background: #dc2626; color: white; }
     
     table { width: 100%; border-collapse: collapse; margin-top: 15px; }
     th, td { border: 1px solid #e5e7eb; padding: 12px; text-align: left; font-size: 14px; }
@@ -91,7 +91,7 @@
         <div class="user-info">
           Usuario: <strong id="display-username">-</strong><br>
           Rol: <span id="display-role">-</span><br>
-          <button class="btn btn-danger" style="padding:5px 10px; font-size:12px;" onclick="cerrarSesion()">Cerrar Sesión</button>
+          <button class="btn btn-danger" style="padding:5px 10px; font-size:12px; margin-top:10px;" onclick="cerrarSesion()">Cerrar Sesión</button>
         </div>
       </div>
 
@@ -234,7 +234,6 @@
       if (currentUser.role === 'docente') tagRol = 'Docente';
       document.getElementById('display-role').textContent = tagRol;
 
-      // Aplicar filtros de visibilidad según el rol
       document.querySelectorAll('.admin-only').forEach(el => {
         el.style.display = currentUser.role === 'admin' ? 'block' : 'none';
       });
@@ -435,6 +434,74 @@
 
       alert('Trayectos actualizados para el docente.');
       cargarDatosDashboard();
+    }
+
+    async function gestionarTrayectosDeEstudiante(usuarioEstudiante, nombreEstudiante) {
+      const { data: todosTrayectos } = await db.from('trayectos').select('*');
+      if (!todosTrayectos || todosTrayectos.length === 0) return alert('No hay trayectos creados.');
+
+      const { data: misInscripciones } = await db.from('inscripciones').select('trayecto_id').eq('estudiante_user', usuarioEstudiante);
+      const misIdsActuales = misInscripciones ? misInscripciones.map(i => i.trayecto_id) : [];
+
+      let opcionesText = `Modificar trayectos para ${nombreEstudiante} (@${usuarioEstudiante}):\nIngresá los números de los trayectos separados por coma (ej: 1,2):\n\n`;
+
+      todosTrayectos.forEach((t, idx) => {
+        const estaAsignado = misIdsActuales.includes(t.id) ? '[ASIGNADO]' : '';
+        opcionesText += `${idx + 1}. ${t.nombre} ${estaAsignado}\n`;
+      });
+
+      const seleccion = prompt(opcionesText);
+      if (seleccion === null) return;
+
+      const indicesSeleccionados = seleccion.split(',')
+        .map(s => parseInt(s.trim()) - 1)
+        .filter(i => !isNaN(i) && i >= 0 && i < todosTrayectos.length);
+
+      // Eliminar inscripciones actuales y volver a crear las seleccionadas
+      await db.from('inscripciones').delete().eq('estudiante_user', usuarioEstudiante);
+
+      for (const idx of indicesSeleccionados) {
+        const t = todosTrayectos[idx];
+        await db.from('inscripciones').insert([{ estudiante_user: usuarioEstudiante, trayecto_id: t.id }]);
+      }
+
+      alert('Trayectos actualizados para el estudiante.');
+      cargarDatosDashboard();
+    }
+
+    async function eliminarUsuario(id, usuario, nombre, rol) {
+      if (!confirm(`¿Estás seguro de que querés eliminar al usuario @${usuario} (${nombre})? Esta acción borrará su acceso.`)) return;
+
+      if (rol === 'estudiante') {
+        await db.from('inscripciones').delete().eq('estudiante_user', usuario);
+      } else if (rol === 'docente') {
+        // Remover al docente de todos los trayectos asignados
+        const { data: todosTrayectos } = await db.from('trayectos').select('*');
+        if (todosTrayectos) {
+          for (const t of todosTrayectos) {
+            let docentesUsers = t.docente_user ? t.docente_user.split(',').map(s => s.trim()).filter(Boolean) : [];
+            let docentesNombres = t.docente_nombre ? t.docente_nombre.split(',').map(s => s.trim()).filter(Boolean) : [];
+
+            if (docentesUsers.includes(usuario)) {
+              docentesUsers = docentesUsers.filter(u => u !== usuario);
+              docentesNombres = docentesNombres.filter(n => n !== nombre);
+              await db.from('trayectos').update({
+                docente_user: docentesUsers.join(', '),
+                docente_nombre: docentesNombres.join(', ')
+              }).eq('id', t.id);
+            }
+          }
+        }
+      }
+
+      const { error } = await db.from('usuarios').delete().eq('id', id);
+
+      if (error) {
+        alert('Hubo un error al eliminar el usuario.');
+      } else {
+        alert(`Usuario @${usuario} eliminado exitosamente.`);
+        cargarDatosDashboard();
+      }
     }
 
     async function renderizarSeguimientoEstudiantes() {
@@ -727,7 +794,7 @@
       if (usuarios) {
         tabla.innerHTML = usuarios.map(u => {
           let listaInscripciones = '-';
-          let btnAsignarDocente = '';
+          let btnAsignarTrayectos = '';
 
           if (u.rol === 'estudiante' && inscripciones && trayectos) {
             const misInsc = inscripciones.filter(i => i.estudiante_user === u.usuario);
@@ -736,11 +803,12 @@
               return t ? t.nombre : null;
             }).filter(Boolean);
             listaInscripciones = misNombres.length > 0 ? misNombres.join(', ') : 'Ninguno';
+            btnAsignarTrayectos = `<button class="btn btn-warning" style="padding:4px 8px; font-size:12px; margin-right:5px;" onclick="gestionarTrayectosDeEstudiante('${u.usuario}', '${u.nombre}')">📚 Asignar Trayectos</button>`;
           } else if (u.rol === 'docente' && trayectos) {
             const misTrayectos = trayectos.filter(t => t.docente_user && t.docente_user.split(',').map(s => s.trim()).includes(u.usuario));
             const misNombres = misTrayectos.map(t => t.nombre);
             listaInscripciones = misNombres.length > 0 ? misNombres.join(', ') : 'Ninguno';
-            btnAsignarDocente = `<button class="btn btn-warning" style="padding:4px 8px; font-size:12px; margin-right:5px;" onclick="gestionarTrayectosDeDocente('${u.usuario}', '${u.nombre}')">📚 Asignar Trayectos</button>`;
+            btnAsignarTrayectos = `<button class="btn btn-warning" style="padding:4px 8px; font-size:12px; margin-right:5px;" onclick="gestionarTrayectosDeDocente('${u.usuario}', '${u.nombre}')">📚 Asignar Trayectos</button>`;
           }
 
           return `
@@ -750,8 +818,9 @@
               <td><strong>${u.rol.toUpperCase()}</strong></td>
               <td><span style="font-size:12px; color:#4b5563;">${listaInscripciones}</span></td>
               <td>
-                ${btnAsignarDocente}
-                <button class="btn btn-secondary" style="padding:4px 8px; font-size:12px;" onclick="cambiarClaveUsuario('${u.id}', '${u.usuario}')">🔑 Cambiar Clave</button>
+                ${btnAsignarTrayectos}
+                <button class="btn btn-secondary" style="padding:4px 8px; font-size:12px; margin-right:5px;" onclick="cambiarClaveUsuario('${u.id}', '${u.usuario}')">🔑 Cambiar Clave</button>
+                <button class="btn btn-danger" style="padding:4px 8px; font-size:12px; margin-top:0;" onclick="eliminarUsuario('${u.id}', '${u.usuario}', '${u.nombre}', '${u.rol}')">🗑️ Eliminar</button>
               </td>
             </tr>`;
         }).join('');
