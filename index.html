@@ -34,7 +34,6 @@
     .btn-secondary { background: #4b5563; }
     .btn-success { background: #10b981; }
     .btn-warning { background: #f59e0b; color: white; }
-    .btn-info { background: #0284c7; color: white; }
     .btn-danger { background: #dc2626; margin-top: 10px; }
     
     table { width: 100%; border-collapse: collapse; margin-top: 15px; }
@@ -44,13 +43,17 @@
     
     .clase-box, .actividad-box { background: #f9fafb; border: 1px solid #e5e7eb; padding: 15px; border-radius: 8px; margin-top: 15px; }
     .actividad-box { border-left: 4px solid #2563eb; }
-    .alumnos-box { background: #f0f9ff; border: 1px solid #bae6fd; padding: 15px; border-radius: 8px; margin-top: 15px; }
     .material-item { background: white; border: 1px solid #e5e7eb; padding: 10px 15px; border-radius: 6px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; }
     .docente-badge { display: inline-block; background: #e0e7ff; color: #3730a3; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; margin-bottom: 10px; }
     
     .checkbox-group { display: flex; flex-direction: column; gap: 8px; margin-top: 5px; max-height: 120px; overflow-y: auto; border: 1px solid #d1d5db; padding: 10px; border-radius: 6px; }
     .checkbox-item { display: flex; align-items: center; gap: 8px; font-weight: normal; font-size: 14px; cursor: pointer; }
     .checkbox-item input { width: auto; margin: 0; }
+
+    .badge-estado { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+    .badge-ok { background: #d1fae5; color: #065f46; }
+    .badge-pending { background: #fef3c7; color: #92400e; }
+    .badge-missing { background: #fee2e2; color: #991b1b; }
   </style>
 </head>
 <body>
@@ -80,6 +83,7 @@
         <div>
           <div class="sidebar-header">Plataforma Educativa</div>
           <button id="btn-trayectos" class="active" onclick="showTab('trayectos')">📚 Trayectos Formativos</button>
+          <button id="btn-estudiantes" class="docente-or-admin" onclick="showTab('estudiantes')">🎓 Seguimiento Alumnos</button>
           <button id="btn-contenidos" class="docente-or-admin" onclick="showTab('contenidos')">📂 Cargar Contenidos y TPs</button>
           <button id="btn-revisiones" class="docente-or-admin" onclick="showTab('revisiones')">📝 Corregir Entregas</button>
           <button id="btn-usuarios" class="admin-only" onclick="showTab('usuarios')">👥 Gestión de Usuarios</button>
@@ -110,6 +114,18 @@
 
           <h3>Mis Trayectos</h3>
           <div id="lista-trayectos"><div class="card empty-msg">Cargando trayectos...</div></div>
+        </div>
+
+        <!-- SEGUIMIENTO DE ESTUDIANTES -->
+        <div id="estudiantes" class="section docente-or-admin">
+          <h2>Seguimiento Académico de Alumnos</h2>
+          <div class="card">
+            <div class="form-group">
+              <label>Seleccionar Trayecto Formativo:</label>
+              <select id="select-trayecto-seguimiento" onchange="renderizarSeguimientoEstudiantes()"></select>
+            </div>
+          </div>
+          <div id="contenedor-seguimiento"></div>
         </div>
 
         <!-- CONTENIDOS -->
@@ -242,6 +258,10 @@
       if (target) { target.classList.add('active'); target.style.display = 'block'; }
       const btn = document.getElementById('btn-' + id);
       if (btn) btn.classList.add('active');
+
+      if (id === 'estudiantes') {
+        renderizarSeguimientoEstudiantes();
+      }
     }
 
     function toggleInscripcionesBox() {
@@ -294,6 +314,7 @@
 
       const selectC = document.getElementById('select-trayecto-contenido');
       const selectA = document.getElementById('select-trayecto-actividad');
+      const selectS = document.getElementById('select-trayecto-seguimiento');
       const boxCheckboxes = document.getElementById('checkboxes-trayectos');
 
       const options = trayectos && trayectos.length > 0 
@@ -302,6 +323,7 @@
 
       if (selectC) selectC.innerHTML = options;
       if (selectA) selectA.innerHTML = options;
+      if (selectS) selectS.innerHTML = options;
 
       if (boxCheckboxes) {
         const { data: todosTrayectos } = await db.from('trayectos').select('*');
@@ -413,6 +435,76 @@
       cargarDatosDashboard();
     }
 
+    async function renderizarSeguimientoEstudiantes() {
+      const trayectoId = document.getElementById('select-trayecto-seguimiento').value;
+      const contenedor = document.getElementById('contenedor-seguimiento');
+
+      if (!trayectoId) {
+        contenedor.innerHTML = '<div class="card empty-msg">Seleccioná un trayecto para ver los alumnos.</div>';
+        return;
+      }
+
+      const { data: inscripciones } = await db.from('inscripciones').select('*').eq('trayecto_id', trayectoId);
+      const { data: usuarios } = await db.from('usuarios').select('*');
+      const { data: contenidos } = await db.from('contenidos').select('*').eq('trayecto_id', trayectoId).eq('tipo', 'actividad');
+      const { data: entregas } = await db.from('entregas').select('*').eq('trayecto_id', trayectoId);
+
+      if (!inscripciones || inscripciones.length === 0) {
+        contenedor.innerHTML = '<div class="card empty-msg">No hay alumnos inscriptos en este trayecto.</div>';
+        return;
+      }
+
+      contenedor.innerHTML = '';
+
+      inscripciones.forEach(i => {
+        const uInfo = usuarios ? usuarios.find(u => u.usuario === i.estudiante_user) : null;
+        const nombreAlumno = uInfo ? uInfo.nombre : i.estudiante_user;
+
+        let htmlTrabajos = '<table><thead><tr><th>Trabajo Práctico</th><th>Estado</th><th>Fecha Entrega</th><th>Archivo</th><th>Nota / Feedback</th></tr></thead><tbody>';
+
+        if (!contenidos || contenidos.length === 0) {
+          htmlTrabajos += '<tr><td colspan="5" class="empty-msg">No hay TPs asignados en este trayecto.</td></tr>';
+        } else {
+          contenidos.forEach(act => {
+            const entrega = entregas ? entregas.find(e => e.actividad_id === act.id && e.estudiante === i.estudiante_user) : null;
+
+            if (entrega) {
+              const tieneNota = entrega.nota && entrega.nota !== 'Pendiente';
+              const badgeClass = tieneNota ? 'badge-ok' : 'badge-pending';
+              const estadoTexto = tieneNota ? 'Corregido' : 'Pendiente revisión';
+
+              htmlTrabajos += `
+                <tr>
+                  <td><strong>${act.titulo}</strong></td>
+                  <td><span class="badge-estado ${badgeClass}">${estadoTexto}</span></td>
+                  <td>${entrega.fecha}</td>
+                  <td><a href="${entrega.link}" target="_blank" class="btn" style="padding:3px 6px; font-size:11px;">Ver Trabajo</a></td>
+                  <td>${entrega.nota || '-'}</td>
+                </tr>`;
+            } else {
+              htmlTrabajos += `
+                <tr>
+                  <td><strong>${act.titulo}</strong></td>
+                  <td><span class="badge-estado badge-missing">Sin entregar</span></td>
+                  <td>-</td>
+                  <td>-</td>
+                  <td>-</td>
+                </tr>`;
+            }
+          });
+        }
+
+        htmlTrabajos += 'tbody></table>';
+
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <h3>🎓 ${nombreAlumno} <span style="font-size:14px; color:#6b7280; font-weight:normal;">(@${i.estudiante_user})</span></h3>
+          ${htmlTrabajos}`;
+        contenedor.appendChild(card);
+      });
+    }
+
     async function guardarClase() {
       const trayecto_id = document.getElementById('select-trayecto-contenido').value;
       const titulo = document.getElementById('clase-nombre').value.trim();
@@ -451,11 +543,10 @@
       let { data: trayectos } = await db.from('trayectos').select('*');
       const { data: contenidos } = await db.from('contenidos').select('*');
       const { data: entregas } = await db.from('entregas').select('*');
-      const { data: inscripciones } = await db.from('inscripciones').select('*');
-      const { data: usuarios } = await db.from('usuarios').select('*');
 
       if (currentUser.role === 'estudiante') {
-        const idsInscriptos = inscripciones ? inscripciones.filter(i => i.estudiante_user === currentUser.user).map(i => i.trayecto_id) : [];
+        const { data: inscripciones } = await db.from('inscripciones').select('trayecto_id').eq('estudiante_user', currentUser.user);
+        const idsInscriptos = inscripciones ? inscripciones.map(i => i.trayecto_id) : [];
         trayectos = trayectos ? trayectos.filter(t => idsInscriptos.includes(t.id)) : [];
       } else if (currentUser.role === 'docente') {
         trayectos = trayectos ? trayectos.filter(t => t.docente_user && t.docente_user.split(',').map(s=>s.trim()).includes(currentUser.user)) : [];
@@ -473,21 +564,6 @@
         const tContenidos = contenidos ? contenidos.filter(c => c.trayecto_id === t.id) : [];
         const clases = tContenidos.filter(c => c.tipo === 'clase');
         const actividades = tContenidos.filter(c => c.tipo === 'actividad');
-
-        // Alumnos inscriptos en este trayecto
-        const inscriptosEnTray = inscripciones ? inscripciones.filter(i => i.trayecto_id === t.id) : [];
-        let htmlAlumnos = '<h4>🎓 Alumnos Inscriptos</h4>';
-        if (inscriptosEnTray.length === 0) {
-          htmlAlumnos += '<p class="empty-msg">No hay alumnos inscriptos en este trayecto.</p>';
-        } else {
-          htmlAlumnos += `<p style="font-size:13px; color:#0284c7; font-weight:bold; margin-bottom:10px;">Total inscriptos: ${inscriptosEnTray.length}</p><ul style="padding-left:20px; font-size:14px; margin:0;">`;
-          inscriptosEnTray.forEach(i => {
-            const uInfo = usuarios ? usuarios.find(u => u.usuario === i.estudiante_user) : null;
-            const nomComp = uInfo ? uInfo.nombre : i.estudiante_user;
-            htmlAlumnos += `<li style="margin-bottom:5px;"><strong>${nomComp}</strong> (@${i.estudiante_user})</li>`;
-          });
-          htmlAlumnos += '</ul>';
-        }
 
         let htmlClases = '<h4>📖 Clases y Materiales</h4>';
         if (clases.length === 0) htmlClases += '<p class="empty-msg">Sin clases publicadas aún.</p>';
@@ -534,25 +610,13 @@
           ? `<button class="btn btn-warning" style="font-size:12px; padding:4px 8px; margin-left:10px;" onclick="gestionarDocentesTrayecto('${t.id}', '${t.docente_user}')">👥 Modificar Docentes</button>` 
           : '';
 
-        const btnVerAlumnos = (currentUser.role === 'docente' || currentUser.role === 'admin')
-          ? `<button class="btn btn-info" style="font-size:12px; padding:4px 8px; margin-left:10px;" onclick="document.getElementById('alm-${t.id}').style.display = document.getElementById('alm-${t.id}').style.display === 'none'?'block':'none'">👥 Ver Alumnos (${inscriptosEnTray.length})</button>`
-          : '';
-
         const card = document.createElement('div');
         card.className = 'card';
         card.innerHTML = `
-          <span class="docente-badge">Docente(s): ${t.docente_nombre || 'Sin asignar'}</span> 
-          ${btnGestionarDocentes}
-          ${btnVerAlumnos}
+          <span class="docente-badge">Docente(s): ${t.docente_nombre || 'Sin asignar'}</span> ${btnGestionarDocentes}
           <h3>${t.nombre}</h3>
           <p>${t.descripcion || ''}</p>
-
-          <div id="alm-${t.id}" class="alumnos-box" style="display:none;">
-            ${htmlAlumnos}
-          </div>
-
-          <button class="btn btn-secondary" style="margin-top:10px;" onclick="document.getElementById('det-${t.id}').style.display = document.getElementById('det-${t.id}').style.display === 'none'?'block':'none'">Ver Contenidos y TPs</button>
-          
+          <button class="btn btn-secondary" onclick="document.getElementById('det-${t.id}').style.display = document.getElementById('det-${t.id}').style.display === 'none'?'block':'none'">Ver Contenidos y TPs</button>
           <div id="det-${t.id}" style="display:none; margin-top:15px;">
             ${htmlClases}
             ${htmlActividades}
