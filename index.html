@@ -33,6 +33,7 @@
     .btn { background: #2563eb; color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; }
     .btn-secondary { background: #4b5563; }
     .btn-success { background: #10b981; }
+    .btn-warning { background: #f59e0b; color: white; }
     .btn-danger { background: #dc2626; margin-top: 10px; }
     
     table { width: 100%; border-collapse: collapse; margin-top: 15px; }
@@ -159,7 +160,7 @@
               </select>
             </div>
             <div class="form-group" id="box-inscripciones">
-              <label>Asignar a Trayectos:</label>
+              <label>Asignar Estudiante a Trayectos:</label>
               <div id="checkboxes-trayectos" class="checkbox-group"></div>
             </div>
             <button class="btn" onclick="registrarUsuario()">Crear Usuario</button>
@@ -168,7 +169,7 @@
             <h3>Usuarios Registrados</h3>
             <table>
               <thead>
-                <tr><th>Nombre</th><th>Usuario</th><th>Rol</th><th>Trayectos</th><th>Acciones</th></tr>
+                <tr><th>Nombre</th><th>Usuario</th><th>Rol</th><th>Inscripciones (Estudiantes)</th><th>Acciones</th></tr>
               </thead>
               <tbody id="tabla-usuarios"></tbody>
             </table>
@@ -184,6 +185,7 @@
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let currentUser = { id: '', name: '', user: '', role: '' };
+    let listaDocentesGlobal = [];
 
     async function iniciarSesion() {
       const u = document.getElementById('login-user').value.trim();
@@ -211,7 +213,6 @@
       if (currentUser.role === 'docente') tagRol = 'Docente';
       document.getElementById('display-role').textContent = tagRol;
 
-      // Control de visibilidad según el rol
       document.querySelectorAll('.admin-only').forEach(el => {
         el.style.display = currentUser.role === 'admin' ? 'block' : 'none';
       });
@@ -240,7 +241,12 @@
 
     function toggleInscripcionesBox() {
       const rol = document.getElementById('user-rol').value;
-      document.getElementById('box-inscripciones').style.display = rol === 'estudiante' ? 'block' : 'none';
+      const box = document.getElementById('box-inscripciones');
+      if (rol === 'estudiante') {
+        box.style.display = 'block';
+      } else {
+        box.style.display = 'none';
+      }
     }
 
     async function cargarDatosDashboard() {
@@ -256,14 +262,19 @@
 
     async function actualizarSelects() {
       const { data: docentes } = await db.from('usuarios').select('*').eq('rol', 'docente');
+      listaDocentesGlobal = docentes || [];
+
       const selectDoc = document.getElementById('select-docente-trayecto');
-      if (selectDoc && docentes) {
-        selectDoc.innerHTML = docentes.map(d => `<option value="${d.usuario}">${d.nombre} (@${d.usuario})</option>`).join('');
+      if (selectDoc) {
+        if (listaDocentesGlobal.length > 0) {
+          selectDoc.innerHTML = listaDocentesGlobal.map(d => `<option value="${d.usuario}">${d.nombre} (@${d.usuario})</option>`).join('');
+        } else {
+          selectDoc.innerHTML = '<option value="">Sin docentes registrados</option>';
+        }
       }
 
       let { data: trayectos } = await db.from('trayectos').select('*');
 
-      // Si es docente, solo ve sus trayectos
       if (currentUser.role === 'docente') {
         trayectos = trayectos ? trayectos.filter(t => t.docente_user === currentUser.user) : [];
       }
@@ -281,11 +292,13 @@
 
       if (boxCheckboxes) {
         const { data: todosTrayectos } = await db.from('trayectos').select('*');
-        if (todosTrayectos) {
+        if (todosTrayectos && todosTrayectos.length > 0) {
           boxCheckboxes.innerHTML = todosTrayectos.map(t => `
             <label class="checkbox-item">
               <input type="checkbox" value="${t.id}" class="chk-trayecto"> ${t.nombre}
             </label>`).join('');
+        } else {
+          boxCheckboxes.innerHTML = '<span style="font-size:12px; color:#6b7280;">No hay trayectos creados aún.</span>';
         }
       }
     }
@@ -305,6 +318,31 @@
       document.getElementById('nombre-trayecto').value = '';
       document.getElementById('desc-trayecto').value = '';
       cargarDatosDashboard();
+    }
+
+    async function reasignarDocente(trayectoId) {
+      if (listaDocentesGlobal.length === 0) return alert('No hay docentes registrados.');
+
+      let opcionesText = 'Seleccioná el número del nuevo docente:\n\n';
+      listaDocentesGlobal.forEach((d, idx) => {
+        opcionesText += `${idx + 1}. ${d.nombre} (@${d.usuario})\n`;
+      });
+
+      const seleccion = prompt(opcionesText);
+      const index = parseInt(seleccion) - 1;
+
+      if (!isNaN(index) && index >= 0 && index < listaDocentesGlobal.length) {
+        const nuevoDocente = listaDocentesGlobal[index];
+        await db.from('trayectos').update({ 
+          docente_user: nuevoDocente.usuario, 
+          docente_nombre: nuevoDocente.nombre 
+        }).eq('id', trayectoId);
+
+        alert(`El trayecto ahora está a cargo de: ${nuevoDocente.nombre}`);
+        cargarDatosDashboard();
+      } else if (seleccion !== null) {
+        alert('Opción inválida.');
+      }
     }
 
     async function guardarClase() {
@@ -342,7 +380,6 @@
       const { data: contenidos } = await db.from('contenidos').select('*');
       const { data: entregas } = await db.from('entregas').select('*');
 
-      // Filtrado según rol:
       if (currentUser.role === 'estudiante') {
         const { data: inscripciones } = await db.from('inscripciones').select('trayecto_id').eq('estudiante_user', currentUser.user);
         const idsInscriptos = inscripciones ? inscripciones.map(i => i.trayecto_id) : [];
@@ -405,10 +442,14 @@
             </div>`;
         });
 
+        const btnCambiarDocente = currentUser.role === 'admin' 
+          ? `<button class="btn btn-warning" style="font-size:12px; padding:4px 8px; margin-left:10px;" onclick="reasignarDocente('${t.id}')">👤 Cambiar Docente</button>` 
+          : '';
+
         const card = document.createElement('div');
         card.className = 'card';
         card.innerHTML = `
-          <span class="docente-badge">Docente: ${t.docente_nombre}</span>
+          <span class="docente-badge">Docente: ${t.docente_nombre}</span> ${btnCambiarDocente}
           <h3>${t.nombre}</h3>
           <p>${t.descripcion || ''}</p>
           <button class="btn btn-secondary" onclick="document.getElementById('det-${t.id}').style.display = document.getElementById('det-${t.id}').style.display === 'none'?'block':'none'">Ver Contenidos</button>
@@ -436,7 +477,6 @@
       const { data: contenidos } = await db.from('contenidos').select('*');
       const tabla = document.getElementById('tabla-revisiones');
 
-      // Si es docente, solo ve entregas de SUS trayectos
       if (currentUser.role === 'docente') {
         const misTrayectosIds = trayectos ? trayectos.filter(t => t.docente_user === currentUser.user).map(t => t.id) : [];
         entregas = entregas ? entregas.filter(e => misTrayectosIds.includes(e.trayecto_id)) : [];
@@ -499,14 +539,15 @@
 
       if (usuarios) {
         tabla.innerHTML = usuarios.map(u => {
-          let listaTrayectos = '-';
+          let listaInscripciones = '-';
+
           if (u.rol === 'estudiante' && inscripciones && trayectos) {
             const misInsc = inscripciones.filter(i => i.estudiante_user === u.usuario);
             const misNombres = misInsc.map(i => {
               const t = trayectos.find(tr => tr.id === i.trayecto_id);
               return t ? t.nombre : null;
             }).filter(Boolean);
-            listaTrayectos = misNombres.length > 0 ? misNombres.join(', ') : 'Ninguno';
+            listaInscripciones = misNombres.length > 0 ? misNombres.join(', ') : 'Ninguno';
           }
 
           return `
@@ -514,7 +555,7 @@
               <td>${u.nombre}</td>
               <td>@${u.usuario}</td>
               <td><strong>${u.rol.toUpperCase()}</strong></td>
-              <td><span style="font-size:12px; color:#4b5563;">${listaTrayectos}</span></td>
+              <td><span style="font-size:12px; color:#4b5563;">${listaInscripciones}</span></td>
               <td>
                 <button class="btn btn-secondary" style="padding:4px 8px; font-size:12px;" onclick="cambiarClaveUsuario('${u.id}', '${u.usuario}')">🔑 Cambiar Clave</button>
               </td>
