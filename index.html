@@ -936,12 +936,19 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
 
     // Función para rellenar línea con puntos dinámicos
     function dibujaRenglonPunteado(pagina, texto, xStart, yPos, xMax, font, size) {
+  // 1. Dibuja el texto
   pagina.drawText(texto, { x: xStart, y: yPos, size: size, font: font, color: colorNegro });
+  
+  // 2. Ancho del texto impreso
   const textWidth = font.widthOfTextAtSize(texto, size);
-  let puntoX = xStart + textWidth + 3;
+  
+  // 3. Inicio de los puntos dejando un espacio adecuado
+  let puntoX = xStart + textWidth + 5;
+  
+  // Usamos el mismo tamaño y fuente para que los puntos mantengan la misma línea base (Y)
   while (puntoX < xMax) {
-    pagina.drawText('.', { x: puntoX, y: yPos, size: size, font: fuenteNorm, color: colorNegro });
-    puntoX += 3;
+    pagina.drawText('.', { x: puntoX, y: yPos, size: size, font: font, color: colorNegro });
+    puntoX += 4; // Espaciado entre puntos
   }
 }
 
