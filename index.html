@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Plataforma Educativa - FP (DGCyE PBA) v9.7</title>
+  <title>Plataforma Educativa - FP (DGCyE PBA) v9.8</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -72,7 +72,7 @@
     .cert-page {
       width: 210mm;
       height: 140mm;
-      padding: 8mm 12mm;
+      padding: 10mm 15mm;
       background: white;
       color: #000;
       box-sizing: border-box;
@@ -131,12 +131,12 @@
           <div class="card admin-only" style="border-top: 4px solid #2563eb;">
             <h3>Alta de Trayecto Formativo / Curso</h3>
             <div class="grid-2">
-              <div class="form-group"><label>Nombre del Trayecto / Curso:</label><input type="text" id="nombre-trayecto" placeholder="Ej: Cocinero"></div>
-              <div class="form-group"><label>Denominación Certificación:</label><input type="text" id="certificacion-trayecto" placeholder="Ej: Cocinero"></div>
+              <div class="form-group"><label>Nombre del Trayecto / Curso:</label><input type="text" id="nombre-trayecto" placeholder="Ej: Pensamiento Computacional – Programación"></div>
+              <div class="form-group"><label>Denominación Certificación:</label><input type="text" id="certificacion-trayecto" placeholder="Ej: Pensamiento Computacional – Programación"></div>
             </div>
 
             <div class="grid-3">
-              <div class="form-group"><label>Carga Horaria Total (Hs Reloj):</label><input type="number" id="horas-trayecto" placeholder="Ej: 360"></div>
+              <div class="form-group"><label>Carga Horaria Total (Hs Reloj):</label><input type="number" id="horas-trayecto" placeholder="Ej: 60"></div>
               <div class="form-group"><label>C.F.P. N°:</label><input type="text" id="cfp-trayecto" placeholder="Ej: 403"></div>
               <div class="form-group"><label>Distrito:</label><input type="text" id="distrito-trayecto" placeholder="Ej: Luján"></div>
             </div>
@@ -285,84 +285,70 @@
     </div>
   </div>
 
-  <!-- PLANTILLA CERTIFICADO DGCyE PBA - CIRCULAR 4/2020 (RIGIDO A5 EXACTO) -->
+  <!-- PLANTILLA CERTIFICADO CIRCULAR 4/2020 EXACTA (MODELO OFICIAL) -->
   <div id="certificado-container">
-    <!-- FRENTE -->
+    <!-- PÁGINA 1: FRENTE -->
     <div class="cert-page" id="cert-frente">
-      <div style="font-size: 10pt; font-weight: bold; margin-bottom: 2mm;">Por cuanto</div>
+      <div style="font-size: 11pt; margin-bottom: 2mm;">Por cuanto</div>
 
-      <table class="cert-table" style="margin-bottom: 4mm;">
-        <tr>
-          <td style="width: 25mm; vertical-align: middle;">
-            <!-- ESCUDO OFICIAL PBA -->
-            <svg width="20mm" height="24mm" viewBox="0 0 100 120">
-              <path d="M 50,5 A 40,40 0 0,1 90,45 C 90,80 50,115 50,115 C 50,115 10,80 10,45 A 40,40 0 0,1 50,5 Z" fill="#00a8e8" stroke="#000" stroke-width="2"/>
-              <circle cx="50" cy="35" r="12" fill="#ffb703"/>
-              <path d="M 10,45 L 90,45" stroke="#000" stroke-width="2"/>
-            </svg>
-          </td>
-          <td style="text-align: center; vertical-align: middle;">
-            <div style="font-size: 8pt; font-weight: bold; line-height: 1.25; text-transform: uppercase;">
-              PROVINCIA DE BUENOS AIRES<br>
-              DIRECCIÓN GENERAL DE CULTURA Y EDUCACIÓN<br>
-              CONSEJO PROVINCIAL DE EDUCACIÓN Y TRABAJO<br>
-              DIRECCIÓN PROVINCIAL DE EDUCACIÓN TÉCNICO PROFESIONAL<br>
-              DIRECCIÓN DE FORMACIÓN PROFESIONAL
-            </div>
-          </td>
-          <td style="width: 25mm;"></td>
-        </tr>
-      </table>
-      
-      <div style="text-align: center; font-size: 13pt; font-weight: bold; text-transform: uppercase; margin: 4mm 0;" id="cert-txt-alumno">
+      <div style="text-align: center; font-size: 8.5pt; font-weight: bold; line-height: 1.25; text-transform: uppercase; margin-bottom: 6mm;">
+        PROVINCIA DE BUENOS AIRES<br>
+        DIRECCIÓN GENERAL DE CULTURA Y EDUCACIÓN<br>
+        CONSEJO PROVINCIAL DE EDUCACIÓN Y TRABAJO<br>
+        DIRECCIÓN PROVINCIAL DE EDUCACIÓN TÉCNICO PROFESIONAL<br>
+        DIRECCIÓN DE FORMACIÓN PROFESIONAL
+      </div>
+
+      <div style="text-align: center; font-size: 14pt; font-weight: bold; text-transform: uppercase; margin: 4mm 0;" id="cert-txt-alumno">
         JUAN CARLOS CARITA QUISPE
       </div>
 
-      <div style="font-size: 10.5pt; line-height: 1.6; text-align: justify;">
-        D.U. N° <strong id="cert-txt-dni">95.118.680</strong> ha completado y aprobado el Trayecto/Curso de FORMACIÓN PROFESIONAL de <span id="cert-txt-trayecto">Pensamiento Computacional – Programación</span> de <strong id="cert-txt-horas">60</strong> horas de duración.
+      <div style="font-size: 11pt; line-height: 1.7; text-align: justify; margin-top: 3mm;">
+        D.U. N° <strong id="cert-txt-dni">95.118.680</strong> ha completado y aprobado el Trayecto/Curso de FORMACIÓN PROFESIONAL<br>
+        de <span id="cert-txt-trayecto" style="font-weight: bold;">Pensamiento Computacional – Programación</span><br>
+        de <strong id="cert-txt-horas">60</strong> horas de duración.
       </div>
 
-      <div style="font-size: 10.5pt; line-height: 1.6; margin-top: 3mm;">
-        POR TANTO, se le otorga el presente CERTIFICADO DE <span id="cert-txt-certificacion">Pensamiento Computacional - Programación</span>
+      <div style="font-size: 11pt; line-height: 1.7; margin-top: 3mm;">
+        POR TANTO, se le otorga el presente CERTIFICADO DE <span id="cert-txt-certificacion" style="font-weight: bold;">Pensamiento Computacional - Programación</span><br>
+        según Resolución Nro. <span id="cert-txt-resolucion">RESOC-2021-3362- GDEBA-DGCYE</span>
       </div>
 
-      <div style="font-size: 9.5pt; margin-top: 2mm;">
-        según Resolución Nro. <span id="cert-txt-resolucion">RESOC-2021-3362-GDEBA-DGCYE</span>
+      <div style="font-size: 11pt; margin-top: 6mm;">
+        <span id="cert-txt-fecha-frente">23 de Septiembre de 2026</span>
       </div>
 
-      <div style="font-size: 10pt; margin-top: 5mm;" id="cert-txt-fecha-frente">
-        23 de Septiembre de 2026
-      </div>
-
-      <table class="cert-table" style="margin-top: 8mm; text-align: center; font-size: 8.5pt;">
+      <table class="cert-table" style="margin-top: 10mm; text-align: center; font-size: 8.5pt;">
         <tr>
-          <td style="width: 45%; border-top: 1px solid #000; padding-top: 2px;">Sello<br>Inspector</td>
-          <td style="width: 10%;"></td>
-          <td style="width: 45%; border-top: 1px solid #000; padding-top: 2px;">Director / Inspector</td>
+          <td style="width: 40%; border-top: 1px solid #000; padding-top: 2px;">Sello<br>Inspector</td>
+          <td style="width: 20%;"></td>
+          <td style="width: 40%; border-top: 1px solid #000; padding-top: 2px;">Director / Inspector</td>
         </tr>
       </table>
     </div>
 
-    <!-- REVERSO -->
+    <!-- PÁGINA 2: REVERSO -->
     <div class="cert-page" id="cert-reverso">
-      <div style="font-size: 9.5pt; font-weight: bold; margin-bottom: 4mm;">
-        En caso que la formación realizada contenga Módulos, se indican a continuación:
+      <div style="border: 1px solid #000; padding: 4mm; margin-bottom: 5mm;">
+        <div style="font-size: 10pt; font-weight: bold; margin-bottom: 3mm;">
+          En caso que la formación realizada contenga Módulos, se indican a continuación:
+        </div>
+
+        <table class="cert-table" style="font-size: 9.5pt;">
+          <tr>
+            <td style="width: 50%; padding-right: 4mm; line-height: 1.8;" id="cert-col-1"></td>
+            <td style="width: 50%; padding-left: 4mm; line-height: 1.8;" id="cert-col-2"></td>
+          </tr>
+        </table>
       </div>
 
-      <table class="cert-table" style="font-size: 9pt; margin-bottom: 6mm;">
-        <tr>
-          <td style="width: 50%; padding-right: 5mm; line-height: 1.6;" id="cert-col-1"></td>
-          <td style="width: 50%; padding-left: 5mm; line-height: 1.6;" id="cert-col-2"></td>
-        </tr>
-      </table>
-
-      <div style="font-size: 10pt; line-height: 1.6; margin-bottom: 6mm;">
+      <div style="font-size: 11pt; line-height: 1.6; margin-bottom: 6mm;">
         Fecha de egreso: <strong id="cert-txt-fecha-egreso">27 de Mayo de 2026</strong> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
         N° de egresado: <strong id="cert-txt-num-egresado">01</strong> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
         Curso N° <strong id="cert-txt-curso-num">395/26</strong>
       </div>
 
-      <table class="cert-table" style="text-align: center; font-size: 8.5pt; margin-bottom: 4mm;">
+      <table class="cert-table" style="text-align: center; font-size: 8.5pt; margin-bottom: 5mm;">
         <tr>
           <td style="width: 40%; border-top: 1px solid #000; padding-top: 2px;">Sello</td>
           <td style="width: 20%;"></td>
@@ -370,7 +356,7 @@
         </tr>
       </table>
 
-      <div style="font-size: 8pt; line-height: 1.3; margin-bottom: 6mm;">
+      <div style="font-size: 8.5pt; line-height: 1.3; margin-bottom: 6mm;">
         CERTIFICO que las firmas que anteceden, son auténticas y corresponden al Director / Secretario del C.F.P N° <strong id="cert-txt-cfp">403</strong> del Distrito de <strong id="cert-txt-distrito">Luján</strong>.
       </div>
 
@@ -970,14 +956,6 @@
       });
     }
 
-    function completarPuntos(texto, maxChars = 55) {
-      let str = (texto || '').trim();
-      if (str.length < maxChars) {
-        str += ' ' + '.'.repeat(maxChars - str.length);
-      }
-      return str;
-    }
-
     async function generarCertificadoPDF(trayectoJson, alumnoNombre, usuarioDni, inscripcionId) {
       const trayecto = JSON.parse(decodeURIComponent(trayectoJson));
       const alumno = decodeURIComponent(alumnoNombre);
@@ -997,16 +975,16 @@
 
       document.getElementById('cert-txt-alumno').textContent = alumno.toUpperCase();
       document.getElementById('cert-txt-dni').textContent = dniFormateado;
-      document.getElementById('cert-txt-trayecto').textContent = completarPuntos(trayecto.nombre, 45);
+      document.getElementById('cert-txt-trayecto').textContent = trayecto.nombre;
 
-      let hsReloj = trayecto.horas || '360';
+      let hsReloj = trayecto.horas || '60';
       document.getElementById('cert-txt-horas').textContent = hsReloj;
-      document.getElementById('cert-txt-certificacion').textContent = completarPuntos(trayecto.nombre, 40);
+      document.getElementById('cert-txt-certificacion').textContent = trayecto.nombre;
 
       let fechaEmision = trayecto.fecha_entrega || '23 de Septiembre de 2026';
       document.getElementById('cert-txt-fecha-frente').textContent = fechaEmision;
 
-      let resVal = trayecto.resolucion || 'RESOC-2021-3362-GDEBA-DGCYE';
+      let resVal = trayecto.resolucion || 'RESOC-2021-3362- GDEBA-DGCYE';
       let cfpVal = '403';
       let distritoVal = 'Luján';
       let cursoNumVal = '395/26';
@@ -1038,9 +1016,9 @@
         let lineStr = '';
         if (moduloItem) {
           let codStr = moduloItem.codigo ? ` (${moduloItem.codigo})` : '';
-          lineStr = `<div><strong>${i}.</strong> ${completarPuntos(moduloItem.nombre + codStr, 32)}</div>`;
+          lineStr = `<div><strong>${i}.</strong> ${moduloItem.nombre}${codStr}...........................................</div>`;
         } else {
-          lineStr = `<div><strong>${i}.</strong> ....................................................</div>`;
+          lineStr = `<div><strong>${i}.</strong>.........................................................................</div>`;
         }
 
         if (i <= 5) {
