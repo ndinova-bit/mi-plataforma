@@ -922,32 +922,32 @@ async function generarCertificadoPDF(trayectoJson, alumnoNombre, usuarioDni, ins
       if (partesF.length === 3) {
         diaE = partesF[0].trim();
         mesE = partesF[1].trim();
-        anioE = partesF[2].trim().slice(-2); // Últimos 2 dígitos para el 20...
+        anioE = partesF[2].trim().slice(-2);
       }
     }
 
     // ==========================================
     // 3. ESTAMPADO ANVERSO (PÁGINA 1)
     // ==========================================
-    // Renglon 1: Nombre del Alumno (Por cuanto...)
-    dibujaRenglonPunteado(frente, alumno.toUpperCase(), 110, 372, 530, fuenteBold, 11);
+    // Nombre del Alumno (Por cuanto...) - Ajustado a Y=320 para que baje al renglón
+    dibujaRenglonPunteado(frente, alumno.toUpperCase(), 110, 320, 530, fuenteBold, 11);
 
-    // Renglon 2: D.U. N°
-    dibujaRenglonPunteado(frente, dniFormateado, 85, 230, 530, fuenteBold, 11);
+    // D.U. N° - Ajustado a Y=300
+    dibujaRenglonPunteado(frente, dniFormateado, 85, 300, 530, fuenteBold, 11);
 
-    // Renglon 3: Trayecto / Curso de Formación Profesional de...
-    dibujaRenglonPunteado(frente, trayecto.nombre.toUpperCase(), 60, 185, 530, fuenteBold, 10);
+    // Trayecto / Curso de Formación Profesional de...
+    dibujaRenglonPunteado(frente, trayecto.nombre.toUpperCase(), 60, 208, 530, fuenteBold, 10);
 
-    // Renglon 4: CERTIFICADO DE...
-    dibujaRenglonPunteado(frente, (trayecto.certificacion || trayecto.nombre).toUpperCase(), 330, 163, 530, fuenteBold, 10);
+    // CERTIFICADO DE...
+    dibujaRenglonPunteado(frente, (trayecto.certificacion || trayecto.nombre).toUpperCase(), 330, 186, 530, fuenteBold, 10);
 
-    // Renglon 5: de ... horas de duración
-    frente.drawText(String(hsReloj), { x: 60, y: 142, size: 10, font: fuenteBold, color: colorNegro });
+    // Horas de duración
+    frente.drawText(String(hsReloj), { x: 60, y: 164, size: 10, font: fuenteBold, color: colorNegro });
 
-    // Renglon 6: Fecha de emisión (...de ... de 20...)
-    frente.drawText(diaE, { x: 260, y: 142, size: 10, font: fuenteBold, color: colorNegro });
-    frente.drawText(mesE, { x: 300, y: 142, size: 10, font: fuenteBold, color: colorNegro });
-    frente.drawText(anioE, { x: 410, y: 142, size: 10, font: fuenteBold, color: colorNegro });
+    // Fecha de emisión (...de ... de 20...)
+    frente.drawText(diaE, { x: 260, y: 164, size: 10, font: fuenteBold, color: colorNegro });
+    frente.drawText(mesE, { x: 300, y: 164, size: 10, font: fuenteBold, color: colorNegro });
+    frente.drawText(anioE, { x: 410, y: 164, size: 10, font: fuenteBold, color: colorNegro });
 
     // ==========================================
     // 4. ESTAMPADO REVERSO (PÁGINA 2)
@@ -957,7 +957,6 @@ async function generarCertificadoPDF(trayectoJson, alumnoNombre, usuarioDni, ins
       modulosList = typeof trayecto.modulos === 'string' ? JSON.parse(trayecto.modulos) : (trayecto.modulos || []);
     } catch (e) {}
 
-    // Coordenadas Y exactas para los renglones 1 al 10 de módulos en el reverso
     const yModulosArr = [320, 301, 282, 263, 244, 225, 206, 187, 168, 149];
 
     modulosList.slice(0, 10).forEach((m, idx) => {
@@ -966,13 +965,8 @@ async function generarCertificadoPDF(trayectoJson, alumnoNombre, usuarioDni, ins
     });
 
     // Pie del Reverso
-    // Fecha de egreso
     reverso.drawText(fEgreso, { x: 130, y: 120, size: 10, font: fuenteBold, color: colorNegro });
-
-    // N° de egresado
     reverso.drawText(numEgresadoDef, { x: 130, y: 100, size: 10, font: fuenteBold, color: colorNegro });
-
-    // CFP N° y Distrito al pie
     reverso.drawText(cfpVal, { x: 100, y: 25, size: 10, font: fuenteBold, color: colorNegro });
     reverso.drawText(distritoVal, { x: 200, y: 25, size: 10, font: fuenteBold, color: colorNegro });
 
@@ -986,7 +980,6 @@ async function generarCertificadoPDF(trayectoJson, alumnoNombre, usuarioDni, ins
     alert('Error al generar el certificado sobre la plantilla: ' + err.message);
   }
 }
-
     async function procesarCargaMasiva() {
       const fileInput = document.getElementById('excel-file-input');
       const file = fileInput.files[0];
