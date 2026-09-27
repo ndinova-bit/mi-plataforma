@@ -981,10 +981,10 @@ dibujaRenglonPunteado(frente, alumno.toUpperCase(), 130, 232, 520, fuenteBold, 1
 dibujaRenglonPunteado(frente, dniFormateado, 115, 207, 100, fuenteBold, 11);
 
   // 3. Nombre del Trayecto / Curso: al lado del "de" (Subimos Y a 195)
-    dibujaRenglonPunteado(frente, trayecto.nombre.toUpperCase(), 105, 182, 390, fuenteBold, 9.5);
+    dibujaRenglonPunteado(frente, trayecto.nombre.toUpperCase(), 95, 182, 400, fuenteBold, 9.5);
 
     // 4. Horas de duración: calza en el espacio "de [XX] horas de duración"
-    frente.drawText(String(hsReloj), { x: 395, y: 195, size: 10, font: fuenteBold, color: colorNegro });
+    frente.drawText(String(hsReloj), { x: 415, y: 182, size: 10, font: fuenteBold, color: colorNegro });
 
     // 5. Denominación CERTIFICADO DE... (Subimos Y a 160)
     dibujaRenglonPunteado(frente, (trayecto.certificacion || trayecto.nombre).toUpperCase(), 210, 160, 520, fuenteBold, 9.5);
