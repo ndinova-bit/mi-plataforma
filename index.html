@@ -929,25 +929,25 @@ async function generarCertificadoPDF(trayectoJson, alumnoNombre, usuarioDni, ins
     // ==========================================
     // 3. ESTAMPADO ANVERSO (PÁGINA 1)
     // ==========================================
-    // Nombre del Alumno (Por cuanto...) - Ajustado a Y=320 para que baje al renglón
-    dibujaRenglonPunteado(frente, alumno.toUpperCase(), 110, 320, 530, fuenteBold, 11);
+    // 1. Nombre del Alumno: al lado de "Por cuanto" (Y=175)
+    dibujaRenglonPunteado(frente, alumno.toUpperCase(), 115, 175, 380, fuenteBold, 10);
 
-    // D.U. N° - Ajustado a Y=300
-    dibujaRenglonPunteado(frente, dniFormateado, 85, 300, 530, fuenteBold, 11);
+    // 2. D.U. N°: al lado de "D.U. N°" (Y=155)
+    dibujaRenglonPunteado(frente, dniFormateado, 85, 155, 380, fuenteBold, 10);
 
-    // Trayecto / Curso de Formación Profesional de...
-    dibujaRenglonPunteado(frente, trayecto.nombre.toUpperCase(), 60, 208, 530, fuenteBold, 10);
+    // 3. Nombre del Trayecto / Curso: debajo de "de" (Y=115)
+    dibujaRenglonPunteado(frente, trayecto.nombre.toUpperCase(), 50, 115, 380, fuenteBold, 9.5);
 
-    // CERTIFICADO DE...
-    dibujaRenglonPunteado(frente, (trayecto.certificacion || trayecto.nombre).toUpperCase(), 330, 186, 530, fuenteBold, 10);
+    // 4. Denominación CERTIFICADO DE... (Y=95)
+    dibujaRenglonPunteado(frente, (trayecto.certificacion || trayecto.nombre).toUpperCase(), 230, 95, 380, fuenteBold, 9.5);
 
-    // Horas de duración
-    frente.drawText(String(hsReloj), { x: 60, y: 164, size: 10, font: fuenteBold, color: colorNegro });
+    // 5. Horas de duración (Y=78)
+    frente.drawText(String(hsReloj), { x: 50, y: 78, size: 10, font: fuenteBold, color: colorNegro });
 
-    // Fecha de emisión (...de ... de 20...)
-    frente.drawText(diaE, { x: 260, y: 164, size: 10, font: fuenteBold, color: colorNegro });
-    frente.drawText(mesE, { x: 300, y: 164, size: 10, font: fuenteBold, color: colorNegro });
-    frente.drawText(anioE, { x: 410, y: 164, size: 10, font: fuenteBold, color: colorNegro });
+    // 6. Fecha de emisión (Y=78)
+    frente.drawText(diaE, { x: 190, y: 78, size: 10, font: fuenteBold, color: colorNegro });
+    frente.drawText(mesE, { x: 225, y: 78, size: 10, font: fuenteBold, color: colorNegro });
+    frente.drawText(anioE, { x: 305, y: 78, size: 10, font: fuenteBold, color: colorNegro });
 
     // ==========================================
     // 4. ESTAMPADO REVERSO (PÁGINA 2)
@@ -957,18 +957,18 @@ async function generarCertificadoPDF(trayectoJson, alumnoNombre, usuarioDni, ins
       modulosList = typeof trayecto.modulos === 'string' ? JSON.parse(trayecto.modulos) : (trayecto.modulos || []);
     } catch (e) {}
 
-    const yModulosArr = [320, 301, 282, 263, 244, 225, 206, 187, 168, 149];
+    const yModulosArr = [225, 208, 191, 174, 157, 140, 123, 106, 89, 72];
 
     modulosList.slice(0, 10).forEach((m, idx) => {
       const modTxt = `${m.nombre} ${m.codigo ? '(' + m.codigo + ')' : ''}`;
-      dibujaRenglonPunteado(reverso, modTxt, 55, yModulosArr[idx], 530, fuenteNorm, 9.5);
+      dibujaRenglonPunteado(reverso, modTxt, 55, yModulosArr[idx], 380, fuenteNorm, 9);
     });
 
     // Pie del Reverso
-    reverso.drawText(fEgreso, { x: 130, y: 120, size: 10, font: fuenteBold, color: colorNegro });
-    reverso.drawText(numEgresadoDef, { x: 130, y: 100, size: 10, font: fuenteBold, color: colorNegro });
-    reverso.drawText(cfpVal, { x: 100, y: 25, size: 10, font: fuenteBold, color: colorNegro });
-    reverso.drawText(distritoVal, { x: 200, y: 25, size: 10, font: fuenteBold, color: colorNegro });
+    reverso.drawText(fEgreso, { x: 110, y: 52, size: 9.5, font: fuenteBold, color: colorNegro });
+    reverso.drawText(numEgresadoDef, { x: 110, y: 38, size: 9.5, font: fuenteBold, color: colorNegro });
+    reverso.drawText(cfpVal, { x: 90, y: 15, size: 9.5, font: fuenteBold, color: colorNegro });
+    reverso.drawText(distritoVal, { x: 160, y: 15, size: 9.5, font: fuenteBold, color: colorNegro });
 
     // 5. Salida y apertura del documento final
     const pdfBytesFinal = await pdfDoc.save();
