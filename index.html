@@ -986,8 +986,8 @@ dibujaRenglonPunteado(frente, dniFormateado, 115, 207, 100, fuenteBold, 11);
     // 4. Horas de duración: calza en el espacio "de [XX] horas de duración"
     frente.drawText(String(hsReloj), { x: 425, y: 182, size: 10, font: fuenteBold, color: colorNegro });
 
-    // ==========================================
-    // 5. DENOMINACIÓN CERTIFICADO DE... (Multirrenglón + Puntos siempre)
+   // ==========================================
+    // 5. DENOMINACIÓN CERTIFICADO DE... (Coordenadas ajustadas)
     // ==========================================
     let textoCert = (trayecto.certificacion || trayecto.nombre).toUpperCase();
     
@@ -995,8 +995,8 @@ dibujaRenglonPunteado(frente, dniFormateado, 115, 207, 100, fuenteBold, 11);
     let lineas = ['', '', ''];
     let lineaActual = 0;
     
-    // Ancho máximo disponible para cada renglón en píxeles
-    let maxAnchos = [210, 470, 470]; 
+    // Ancho máximo ajustado para el primer renglón y los dos siguientes
+    let maxAnchos = [180, 420, 420]; 
 
     palabras.forEach(palabra => {
       let prueba = lineas[lineaActual] ? lineas[lineaActual] + ' ' + palabra : palabra;
@@ -1010,18 +1010,14 @@ dibujaRenglonPunteado(frente, dniFormateado, 115, 207, 100, fuenteBold, 11);
       }
     });
 
-    // Renglón 1: Si hay texto lo dibuja con puntos al final; si no hay texto, dibuja la línea de puntos sola
-    dibujaRenglonPunteado(frente, lineas[0] || '', 300, 155, 520, fuenteBold, 9.5);
+    // Renglón 1: Se desplaza X de 300 a 330 para despejar la palabra "DE"
+    dibujaRenglonPunteado(frente, lineas[0] || '', 330, 155, 520, fuenteBold, 9.5);
 
-    // Renglón 2
-    dibujaRenglonPunteado(frente, lineas[1] || '', 50, 135, 520, fuenteBold, 9.5);
+    // Renglón 2: Se alinea el margen izquierdo con X: 80
+    dibujaRenglonPunteado(frente, lineas[1] || '', 80, 135, 520, fuenteBold, 9.5);
 
-    // Renglón 3
-    dibujaRenglonPunteado(frente, lineas[2] || '', 50, 115, 520, fuenteBold, 9.5);
-    // 6. Fecha de emisión
-    frente.drawText(diaE, { x: 190, y: 78, size: 10, font: fuenteBold, color: colorNegro });
-    frente.drawText(mesE, { x: 225, y: 78, size: 10, font: fuenteBold, color: colorNegro });
-    frente.drawText(anioE, { x: 305, y: 78, size: 10, font: fuenteBold, color: colorNegro });
+    // Renglón 3: Se alinea el margen izquierdo con X: 80
+    dibujaRenglonPunteado(frente, lineas[2] || '', 80, 115, 520, fuenteBold, 9.5);
 
     // ==========================================
     // 4. ESTAMPADO REVERSO (PÁGINA 2)
