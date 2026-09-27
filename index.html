@@ -7,18 +7,37 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
- <style>
-  body, #app, .login-screen, .container-fluid, div[class*="login"], div[class*="container"] {
-    background-image: url('PRUEBA%20CFP%20SIN%20FONDO.png') !important;
-    background-size: cover !important;
-    background-position: center !important;
-    background-repeat: no-repeat !important;
-    background-attachment: fixed !important;
-    background-color: transparent !important;
-    font-family: Arial, sans-serif;
-  }
-</style>
+<style>
     * { box-sizing: border-box; font-family: Arial, Helvetica, sans-serif; }
+    body { margin: 0; padding: 0; background-color: #f3f4f6; color: #1f2937; height: 100vh; }
+    
+    #login-screen { 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      height: 100vh; 
+      width: 100vw;
+      background-image: url('PRUEBA%20CFP%20SIN%20FONDO.png') !important; 
+      background-size: cover !important; 
+      background-position: center !important; 
+      background-repeat: no-repeat !important; 
+      background-attachment: fixed !important; 
+    }
+
+    .login-box { 
+      background: #ffffff !important; 
+      padding: 40px; 
+      border-radius: 10px; 
+      width: 360px; 
+      text-align: center; 
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4); 
+      position: relative;
+      z-index: 10;
+    }
+    .login-box h2 { margin-bottom: 20px; color: #111827; }
+    .login-box input, .login-box select { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #d1d5db; border-radius: 6px; }
+
+  
     body { margin: 0; background: #f3f4f6; color: #1f2937; height: 100vh; }
     
    #login-screen { display: flex; justify-content: center; align-items: center; height: 100vh; background: #111827; }
