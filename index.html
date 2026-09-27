@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Plataforma Educativa - FP (DGCyE PBA) v9.5</title>
+  <title>Plataforma Educativa - FP (DGCyE PBA) v9.6</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -67,27 +67,21 @@
 
     .egresado-box { background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px 15px; border-radius: 6px; display: flex; align-items: center; gap: 10px; margin-top: 15px; margin-bottom: 15px; }
 
-    /* ESTILOS DE IMPRESIÓN OFICIAL CIRCULAR 4/2020 - ISO A5 */
+    /* ESTILOS DE IMPRESIÓN OFICIAL CIRCULAR 4/2020 - ISO A5 (RIGIDO TABULAR) */
     #certificado-container { display: none; }
     .cert-page {
       width: 210mm;
-      height: 147mm;
-      padding: 12mm 15mm;
+      height: 140mm;
+      padding: 8mm 12mm;
       background: white;
       color: #000;
       box-sizing: border-box;
       position: relative;
       font-family: Arial, Helvetica, sans-serif;
-      page-break-after: always;
       overflow: hidden;
     }
-    .cert-header-pba { text-align: center; font-size: 8.5pt; font-weight: bold; line-height: 1.25; margin-bottom: 10px; text-transform: uppercase; }
-    .cert-row { margin-bottom: 8px; font-size: 11pt; line-height: 1.4; }
-    .cert-val-nombre { font-size: 13pt; font-weight: bold; text-transform: uppercase; display: block; text-align: center; margin: 4px 0; }
-    .cert-firmas-box { display: flex; justify-content: space-between; margin-top: 20px; font-size: 8.5pt; text-align: center; }
-    .cert-firma-item { width: 38%; border-top: 1px solid #000; padding-top: 3px; }
-    .cert-reverso-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 15px; font-size: 9.5pt; margin: 10px 0; }
-    .cert-reverso-footer { margin-top: 15px; font-size: 10.5pt; line-height: 1.6; }
+    .cert-table { width: 100%; border-collapse: collapse; }
+    .cert-table td { padding: 0; vertical-align: top; }
   </style>
 </head>
 <body>
@@ -291,75 +285,99 @@
     </div>
   </div>
 
-  <!-- PLANTILLA CERTIFICADO DGCyE PBA - CIRCULAR 4/2020 (A5 DUPLICADO PÁGINA FRENTE/REVERSO) -->
+  <!-- PLANTILLA CERTIFICADO DGCyE PBA - CIRCULAR 4/2020 (RIGIDO A5 DUPLICADO) -->
   <div id="certificado-container">
-    <!-- PÁGINA 1: FRENTE -->
+    <!-- FRENTE -->
     <div class="cert-page" id="cert-frente">
-      <div style="font-size: 10pt; font-weight: bold; position: absolute; top: 10mm; left: 15mm;">Por cuanto</div>
+      <table class="cert-table" style="margin-bottom: 5mm;">
+        <tr>
+          <td style="width: 25mm;">
+            <!-- ESCUDO PBA VECTORIAL SVG -->
+            <svg width="22mm" height="26mm" viewBox="0 0 100 120">
+              <path d="M 50,5 A 40,40 0 0,1 90,45 C 90,80 50,115 50,115 C 50,115 10,80 10,45 A 40,40 0 0,1 50,5 Z" fill="#0077b6" stroke="#000" stroke-width="3"/>
+              <path d="M 10,45 L 90,45 L 50,115 Z" fill="#90e0ef"/>
+              <circle cx="50" cy="30" r="12" fill="#ffb703" stroke="#000" stroke-width="2"/>
+              <path d="M 30,80 L 70,80 M 35,90 L 65,90" stroke="#000" stroke-width="3"/>
+            </svg>
+          </td>
+          <td style="text-align: center; vertical-align: middle;">
+            <div style="font-size: 8pt; font-weight: bold; line-height: 1.25; text-transform: uppercase;">
+              PROVINCIA DE BUENOS AIRES<br>
+              DIRECCIÓN GENERAL DE CULTURA Y EDUCACIÓN<br>
+              CONSEJO PROVINCIAL DE EDUCACIÓN Y TRABAJO<br>
+              DIRECCIÓN PROVINCIAL DE EDUCACIÓN TÉCNICO PROFESIONAL<br>
+              DIRECCIÓN DE FORMACIÓN PROFESIONAL
+            </div>
+          </td>
+          <td style="width: 25mm;"></td>
+        </tr>
+      </table>
+
+      <div style="font-size: 10pt; font-weight: bold; margin-bottom: 2mm;">Por cuanto</div>
       
-      <div class="cert-header-pba" style="margin-top: 5mm;">
-        PROVINCIA DE BUENOS AIRES<br>
-        DIRECCIÓN GENERAL DE CULTURA Y EDUCACIÓN<br>
-        CONSEJO PROVINCIAL DE EDUCACIÓN Y TRABAJO<br>
-        DIRECCIÓN PROVINCIAL DE EDUCACIÓN TÉCNICO PROFESIONAL<br>
-        DIRECCIÓN DE FORMACIÓN PROFESIONAL
+      <div style="text-align: center; font-size: 13pt; font-weight: bold; text-transform: uppercase; margin: 3mm 0;" id="cert-txt-alumno">
+        JUAN CARLOS CARITA QUISPE
       </div>
 
-      <div style="margin-top: 15px;">
-        <span class="cert-val-nombre" id="cert-txt-alumno">JUAN CARLOS CARITA QUISPE</span>
-        <div class="cert-row" style="text-align: center;">
-          D.U. N° <strong id="cert-txt-dni">95.118.680</strong> ha completado y aprobado el Trayecto/Curso de FORMACIÓN PROFESIONAL
-        </div>
-        <div class="cert-row">
-          de <span id="cert-txt-trayecto" style="font-weight: bold;">Pensamiento Computacional – Programación</span>
-        </div>
-        <div class="cert-row">
-          de <strong id="cert-txt-horas">60</strong> horas de duración.
-        </div>
-        <div class="cert-row">
-          POR TANTO, se le otorga el presente CERTIFICADO DE <span id="cert-txt-certificacion" style="font-weight: bold;">Pensamiento Computacional - Programación</span>
-        </div>
-        <div class="cert-row" style="font-size: 9.5pt;">
-          según Resolución Nro. <span id="cert-txt-resolucion">RESOC-2021-3362-GDEBA-DGCYE</span>
-        </div>
+      <div style="font-size: 10.5pt; line-height: 1.5; text-align: justify;">
+        D.U. N° <strong id="cert-txt-dni">95.118.680</strong> ha completado y aprobado el Trayecto/Curso de FORMACIÓN PROFESIONAL de <strong id="cert-txt-trayecto">Pensamiento Computacional – Programación</strong> de <strong id="cert-txt-horas">60</strong> horas de duración.
       </div>
 
-      <div style="margin-top: 15px; font-size: 11pt;">
-        <span id="cert-txt-fecha-frente">23 de Septiembre de 2026</span>
+      <div style="font-size: 10.5pt; line-height: 1.5; margin-top: 3mm;">
+        POR TANTO, se le otorga el presente CERTIFICADO DE <strong id="cert-txt-certificacion">Pensamiento Computacional - Programación</strong> según Resolución Nro. <span id="cert-txt-resolucion">RESOC-2021-3362-GDEBA-DGCYE</span>
       </div>
 
-      <div class="cert-firmas-box" style="margin-top: 25px;">
-        <div class="cert-firma-item">Sello<br>Inspector</div>
-        <div class="cert-firma-item">Director / Inspector</div>
+      <div style="font-size: 10pt; margin-top: 5mm;" id="cert-txt-fecha-frente">
+        23 de Septiembre de 2026
       </div>
+
+      <table class="cert-table" style="margin-top: 10mm; text-align: center; font-size: 8.5pt;">
+        <tr>
+          <td style="width: 45%; border-top: 1px solid #000; padding-top: 2px;">Sello<br>Inspector</td>
+          <td style="width: 10%;"></td>
+          <td style="width: 45%; border-top: 1px solid #000; padding-top: 2px;">Director / Inspector</td>
+        </tr>
+      </table>
     </div>
 
-    <!-- PÁGINA 2: REVERSO -->
+    <!-- REVERSO -->
     <div class="cert-page" id="cert-reverso">
-      <div style="font-size: 9.5pt; font-weight: bold; margin-bottom: 8px;">
+      <div style="font-size: 9.5pt; font-weight: bold; margin-bottom: 4mm;">
         En caso que la formación realizada contenga Módulos, se indican a continuación:
       </div>
 
-      <div id="cert-contenedor-modulos-list" class="cert-reverso-grid"></div>
+      <table class="cert-table" style="font-size: 9pt; margin-bottom: 6mm;">
+        <tr>
+          <td style="width: 50%; padding-right: 5mm; line-height: 1.6;" id="cert-col-1"></td>
+          <td style="width: 50%; padding-left: 5mm; line-height: 1.6;" id="cert-col-2"></td>
+        </tr>
+      </table>
 
-      <div class="cert-reverso-footer">
-        Fecha de egreso: <strong id="cert-txt-fecha-egreso">27 de Mayo de 2026</strong> &nbsp;&nbsp;&nbsp;&nbsp;
-        N° de egresado: <strong id="cert-txt-num-egresado">01</strong> &nbsp;&nbsp;&nbsp;&nbsp;
+      <div style="font-size: 10pt; line-height: 1.6; margin-bottom: 6mm;">
+        Fecha de egreso: <strong id="cert-txt-fecha-egreso">27 de Mayo de 2026</strong> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        N° de egresado: <strong id="cert-txt-num-egresado">01</strong> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
         Curso N° <strong id="cert-txt-curso-num">395/26</strong>
       </div>
 
-      <div class="cert-firmas-box" style="margin-top: 15px;">
-        <div class="cert-firma-item">Sello</div>
-        <div class="cert-firma-item">DIRECTOR/SECRETARIO</div>
+      <table class="cert-table" style="text-align: center; font-size: 8.5pt; margin-bottom: 4mm;">
+        <tr>
+          <td style="width: 40%; border-top: 1px solid #000; padding-top: 2px;">Sello</td>
+          <td style="width: 20%;"></td>
+          <td style="width: 40%; border-top: 1px solid #000; padding-top: 2px;">DIRECTOR/SECRETARIO</td>
+        </tr>
+      </table>
+
+      <div style="font-size: 8pt; line-height: 1.3; margin-bottom: 6mm;">
+        CERTIFICO que las firmas que anteceden, son auténticas y corresponden al Director / Secretario del C.F.P N° <strong id="cert-txt-cfp">403</strong> del Distrito de <strong id="cert-txt-distrito">Luján</strong>.
       </div>
 
-      <div style="font-size: 8.5pt; margin-top: 12px; line-height: 1.3;">
-        CERTIFICO que las firmas que anteceden, son auténticas y corresponden al Director / Secretario del C.F.P N° <strong id="cert-txt-cfp">402</strong> del Distrito de <strong id="cert-txt-distrito">Marcos Paz</strong>.
-      </div>
-
-      <div class="cert-firmas-box" style="margin-top: 20px;">
-        <div class="cert-firma-item" style="margin: 0 auto; width: 50%;">Autoridad Certificante</div>
-      </div>
+      <table class="cert-table" style="text-align: center; font-size: 8.5pt;">
+        <tr>
+          <td style="width: 25%;"></td>
+          <td style="width: 50%; border-top: 1px solid #000; padding-top: 2px;">Autoridad Certificante</td>
+          <td style="width: 25%;"></td>
+        </tr>
+      </table>
     </div>
   </div>
 
@@ -999,19 +1017,26 @@
       let modulosList = [];
       try { modulosList = JSON.parse(trayecto.modulos || '[]'); } catch (e) {}
 
-      const contenedorModulos = document.getElementById('cert-contenedor-modulos-list');
-      contenedorModulos.innerHTML = '';
+      const col1 = document.getElementById('cert-col-1');
+      const col2 = document.getElementById('cert-col-2');
+      col1.innerHTML = '';
+      col2.innerHTML = '';
 
       for (let i = 1; i <= 10; i++) {
         let moduloItem = modulosList[i - 1];
         let lineStr = '';
         if (moduloItem) {
           let codStr = moduloItem.codigo ? ` (${moduloItem.codigo})` : '';
-          lineStr = `${i}. ${moduloItem.nombre}${codStr}`;
+          lineStr = `<div><strong>${i}.</strong> ${moduloItem.nombre}${codStr}</div>`;
         } else {
-          lineStr = `${i}. ...................................................................`;
+          lineStr = `<div><strong>${i}.</strong> ....................................................</div>`;
         }
-        contenedorModulos.innerHTML += `<div>${lineStr}</div>`;
+
+        if (i <= 5) {
+          col1.innerHTML += lineStr;
+        } else {
+          col2.innerHTML += lineStr;
+        }
       }
 
       document.getElementById('cert-txt-fecha-egreso').textContent = fEgreso;
@@ -1020,16 +1045,24 @@
       const element = document.getElementById('certificado-container');
       element.style.display = 'block';
 
+      // Impresión Hoja por Hoja para evitar encimados y saltos erróneos
+      const paginaFrente = document.getElementById('cert-frente');
+      const paginaReverso = document.getElementById('cert-reverso');
+
       const opt = {
         margin:       0,
         filename:     `Certificado_FP_${usuarioDni}_${trayecto.nombre}.pdf`,
         image:        { type: 'jpeg', quality: 0.98 },
         html2canvas:  { scale: 3, useCORS: true },
-        jsPDF:        { unit: 'mm', format: [210, 147], orientation: 'landscape' },
-        pagebreak:    { mode: ['css', 'legacy'] }
+        jsPDF:        { unit: 'mm', format: [210, 148], orientation: 'landscape' }
       };
 
-      await html2pdf().set(opt).from(element).save();
+      // Generar PDF limpio de 2 páginas A5 sin páginas vacías
+      const pdf = await html2pdf().set(opt).from(paginaFrente).toPdf().get('pdf');
+      pdf.addPage([210, 148], 'landscape');
+      await html2pdf().set(opt).from(paginaReverso).toContainer().toCanvas().toPdf().get('pdf');
+      
+      pdf.save(`Certificado_FP_${usuarioDni}_${trayecto.nombre}.pdf`);
       element.style.display = 'none';
     }
 
