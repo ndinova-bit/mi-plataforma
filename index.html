@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Plataforma Educativa - FP (DGCyE PBA) v9.8</title>
+  <title>Plataforma Educativa - FP (DGCyE PBA) v10.0</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
   <style>
     * { box-sizing: border-box; font-family: Arial, Helvetica, sans-serif; }
     body { margin: 0; background: #f3f4f6; color: #1f2937; height: 100vh; }
@@ -64,24 +64,7 @@
     .modulo-row-dates { display: flex; gap: 10px; align-items: center; font-size: 12px; }
 
     .tabla-modulos-eval { border-left: 4px solid #10b981; margin-bottom: 20px; }
-
     .egresado-box { background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px 15px; border-radius: 6px; display: flex; align-items: center; gap: 10px; margin-top: 15px; margin-bottom: 15px; }
-
-    /* ESTILOS DE IMPRESIÓN OFICIAL CIRCULAR 4/2020 - ISO A5 */
-    #certificado-container { display: none; }
-    .cert-page {
-      width: 210mm;
-      height: 140mm;
-      padding: 10mm 15mm;
-      background: white;
-      color: #000;
-      box-sizing: border-box;
-      position: relative;
-      font-family: Arial, Helvetica, sans-serif;
-      overflow: hidden;
-    }
-    .cert-table { width: 100%; border-collapse: collapse; }
-    .cert-table td { padding: 0; vertical-align: top; }
   </style>
 </head>
 <body>
@@ -282,91 +265,6 @@
           </div>
         </div>
       </div>
-    </div>
-  </div>
-
-  <!-- PLANTILLA CERTIFICADO CIRCULAR 4/2020 EXACTA (MODELO OFICIAL) -->
-  <div id="certificado-container">
-    <!-- PÁGINA 1: FRENTE -->
-    <div class="cert-page" id="cert-frente">
-      <div style="font-size: 11pt; margin-bottom: 2mm;">Por cuanto</div>
-
-      <div style="text-align: center; font-size: 8.5pt; font-weight: bold; line-height: 1.25; text-transform: uppercase; margin-bottom: 6mm;">
-        PROVINCIA DE BUENOS AIRES<br>
-        DIRECCIÓN GENERAL DE CULTURA Y EDUCACIÓN<br>
-        CONSEJO PROVINCIAL DE EDUCACIÓN Y TRABAJO<br>
-        DIRECCIÓN PROVINCIAL DE EDUCACIÓN TÉCNICO PROFESIONAL<br>
-        DIRECCIÓN DE FORMACIÓN PROFESIONAL
-      </div>
-
-      <div style="text-align: center; font-size: 14pt; font-weight: bold; text-transform: uppercase; margin: 4mm 0;" id="cert-txt-alumno">
-        JUAN CARLOS CARITA QUISPE
-      </div>
-
-      <div style="font-size: 11pt; line-height: 1.7; text-align: justify; margin-top: 3mm;">
-        D.U. N° <strong id="cert-txt-dni">95.118.680</strong> ha completado y aprobado el Trayecto/Curso de FORMACIÓN PROFESIONAL<br>
-        de <span id="cert-txt-trayecto" style="font-weight: bold;">Pensamiento Computacional – Programación</span><br>
-        de <strong id="cert-txt-horas">60</strong> horas de duración.
-      </div>
-
-      <div style="font-size: 11pt; line-height: 1.7; margin-top: 3mm;">
-        POR TANTO, se le otorga el presente CERTIFICADO DE <span id="cert-txt-certificacion" style="font-weight: bold;">Pensamiento Computacional - Programación</span><br>
-        según Resolución Nro. <span id="cert-txt-resolucion">RESOC-2021-3362- GDEBA-DGCYE</span>
-      </div>
-
-      <div style="font-size: 11pt; margin-top: 6mm;">
-        <span id="cert-txt-fecha-frente">23 de Septiembre de 2026</span>
-      </div>
-
-      <table class="cert-table" style="margin-top: 10mm; text-align: center; font-size: 8.5pt;">
-        <tr>
-          <td style="width: 40%; border-top: 1px solid #000; padding-top: 2px;">Sello<br>Inspector</td>
-          <td style="width: 20%;"></td>
-          <td style="width: 40%; border-top: 1px solid #000; padding-top: 2px;">Director / Inspector</td>
-        </tr>
-      </table>
-    </div>
-
-    <!-- PÁGINA 2: REVERSO -->
-    <div class="cert-page" id="cert-reverso">
-      <div style="border: 1px solid #000; padding: 4mm; margin-bottom: 5mm;">
-        <div style="font-size: 10pt; font-weight: bold; margin-bottom: 3mm;">
-          En caso que la formación realizada contenga Módulos, se indican a continuación:
-        </div>
-
-        <table class="cert-table" style="font-size: 9.5pt;">
-          <tr>
-            <td style="width: 50%; padding-right: 4mm; line-height: 1.8;" id="cert-col-1"></td>
-            <td style="width: 50%; padding-left: 4mm; line-height: 1.8;" id="cert-col-2"></td>
-          </tr>
-        </table>
-      </div>
-
-      <div style="font-size: 11pt; line-height: 1.6; margin-bottom: 6mm;">
-        Fecha de egreso: <strong id="cert-txt-fecha-egreso">27 de Mayo de 2026</strong> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        N° de egresado: <strong id="cert-txt-num-egresado">01</strong> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        Curso N° <strong id="cert-txt-curso-num">395/26</strong>
-      </div>
-
-      <table class="cert-table" style="text-align: center; font-size: 8.5pt; margin-bottom: 5mm;">
-        <tr>
-          <td style="width: 40%; border-top: 1px solid #000; padding-top: 2px;">Sello</td>
-          <td style="width: 20%;"></td>
-          <td style="width: 40%; border-top: 1px solid #000; padding-top: 2px;">DIRECTOR/SECRETARIO</td>
-        </tr>
-      </table>
-
-      <div style="font-size: 8.5pt; line-height: 1.3; margin-bottom: 6mm;">
-        CERTIFICO que las firmas que anteceden, son auténticas y corresponden al Director / Secretario del C.F.P N° <strong id="cert-txt-cfp">403</strong> del Distrito de <strong id="cert-txt-distrito">Luján</strong>.
-      </div>
-
-      <table class="cert-table" style="text-align: center; font-size: 8.5pt;">
-        <tr>
-          <td style="width: 25%;"></td>
-          <td style="width: 50%; border-top: 1px solid #000; padding-top: 2px;">Autoridad Certificante</td>
-          <td style="width: 25%;"></td>
-        </tr>
-      </table>
     </div>
   </div>
 
@@ -939,7 +837,7 @@
 
         htmlTrabajos += '</tbody></table>';
 
-        const btnEmitirCertificado = `<button class="btn btn-success" style="font-size:12px; padding:6px 12px; margin-left:15px;" onclick="generarCertificadoPDF('${encodeURIComponent(JSON.stringify(trayectoInfo))}', '${encodeURIComponent(nombreAlumno)}', '${i.estudiante_user}', '${i.id}')">📜 Emitir Certificado ISO A5 (Circ. 4-2020)</button>`;
+        const btnEmitirCertificado = `<button class="btn btn-success" style="font-size:12px; padding:6px 12px; margin-left:15px;" onclick="generarCertificadoPDF('${encodeURIComponent(JSON.stringify(trayectoInfo))}', '${encodeURIComponent(nombreAlumno)}', '${i.estudiante_user}', '${i.id}')">📜 Emitir Certificado ISO A5 (pdf-lib)</button>`;
 
         const card = document.createElement('div');
         card.className = 'card';
@@ -956,101 +854,100 @@
       });
     }
 
+    /* GENERADOR ESTAMPADOR VÍA PDF-LIB SOBRE plantilla.pdf */
     async function generarCertificadoPDF(trayectoJson, alumnoNombre, usuarioDni, inscripcionId) {
-      const trayecto = JSON.parse(decodeURIComponent(trayectoJson));
-      const alumno = decodeURIComponent(alumnoNombre);
+      try {
+        const trayecto = JSON.parse(decodeURIComponent(trayectoJson));
+        const alumno = decodeURIComponent(alumnoNombre);
 
-      const inputNumEg = document.getElementById(`num-eg-${inscripcionId}`);
-      let numEgresadoDef = inputNumEg ? inputNumEg.value.trim() : '';
+        const inputNumEg = document.getElementById(`num-eg-${inscripcionId}`);
+        let numEgresadoDef = inputNumEg ? inputNumEg.value.trim() : '';
 
-      if (!numEgresadoDef) {
-        numEgresadoDef = prompt('Ingrese N° de Egresado asignado:', '01');
-        if (!numEgresadoDef) return;
-      }
-
-      const fEgreso = prompt('Ingrese Fecha de Egreso:', '27 de Mayo de 2026');
-      if (!fEgreso) return;
-
-      let dniFormateado = usuarioDni.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-
-      document.getElementById('cert-txt-alumno').textContent = alumno.toUpperCase();
-      document.getElementById('cert-txt-dni').textContent = dniFormateado;
-      document.getElementById('cert-txt-trayecto').textContent = trayecto.nombre;
-
-      let hsReloj = trayecto.horas || '60';
-      document.getElementById('cert-txt-horas').textContent = hsReloj;
-      document.getElementById('cert-txt-certificacion').textContent = trayecto.nombre;
-
-      let fechaEmision = trayecto.fecha_entrega || '23 de Septiembre de 2026';
-      document.getElementById('cert-txt-fecha-frente').textContent = fechaEmision;
-
-      let resVal = trayecto.resolucion || 'RESOC-2021-3362- GDEBA-DGCYE';
-      let cfpVal = '403';
-      let distritoVal = 'Luján';
-      let cursoNumVal = '395/26';
-
-      if (trayecto.descripcion) {
-        const matchCfp = trayecto.descripcion.match(/CFP N° (.*?) -/);
-        const matchDist = trayecto.descripcion.match(/Distrito: (.*?) \|/);
-        const matchCurso = trayecto.descripcion.match(/Curso N° (.*?) \|/);
-        if (matchCfp) cfpVal = matchCfp[1];
-        if (matchDist) distritoVal = matchDist[1];
-        if (matchCurso) cursoNumVal = matchCurso[1];
-      }
-
-      document.getElementById('cert-txt-resolucion').textContent = resVal;
-      document.getElementById('cert-txt-cfp').textContent = cfpVal;
-      document.getElementById('cert-txt-distrito').textContent = distritoVal;
-      document.getElementById('cert-txt-curso-num').textContent = cursoNumVal;
-
-      let modulosList = [];
-      try { modulosList = JSON.parse(trayecto.modulos || '[]'); } catch (e) {}
-
-      const col1 = document.getElementById('cert-col-1');
-      const col2 = document.getElementById('cert-col-2');
-      col1.innerHTML = '';
-      col2.innerHTML = '';
-
-      for (let i = 1; i <= 10; i++) {
-        let moduloItem = modulosList[i - 1];
-        let lineStr = '';
-        if (moduloItem) {
-          let codStr = moduloItem.codigo ? ` (${moduloItem.codigo})` : '';
-          lineStr = `<div><strong>${i}.</strong> ${moduloItem.nombre}${codStr}...........................................</div>`;
-        } else {
-          lineStr = `<div><strong>${i}.</strong>.........................................................................</div>`;
+        if (!numEgresadoDef) {
+          numEgresadoDef = prompt('Ingrese N° de Egresado asignado:', '01');
+          if (!numEgresadoDef) return;
         }
 
-        if (i <= 5) {
-          col1.innerHTML += lineStr;
-        } else {
-          col2.innerHTML += lineStr;
+        const fEgreso = prompt('Ingrese Fecha de Egreso:', '27 de Mayo de 2026');
+        if (!fEgreso) return;
+
+        let dniFormateado = usuarioDni.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+        let resVal = trayecto.resolucion || 'RESOC-2021-3362- GDEBA-DGCYE';
+        let cfpVal = '403';
+        let distritoVal = 'Luján';
+        let cursoNumVal = '395/26';
+
+        if (trayecto.descripcion) {
+          const matchCfp = trayecto.descripcion.match(/CFP N° (.*?) -/);
+          const matchDist = trayecto.descripcion.match(/Distrito: (.*?) \|/);
+          const matchCurso = trayecto.descripcion.match(/Curso N° (.*?) \|/);
+          if (matchCfp) cfpVal = matchCfp[1];
+          if (matchDist) distritoVal = matchDist[1];
+          if (matchCurso) cursoNumVal = matchCurso[1];
         }
+
+        let hsReloj = trayecto.horas || '60';
+        let fechaEmision = trayecto.fecha_entrega || '23 de Septiembre de 2026';
+
+        // 1. Cargar la plantilla PDF subida
+        const existingPdfBytes = await fetch('./plantilla.pdf').then(res => {
+          if (!res.ok) throw new Error('No se pudo encontrar el archivo plantilla.pdf en la raíz.');
+          return res.arrayBuffer();
+        });
+
+        const pdfDoc = await PDFLib.PDFDocument.load(existingPdfBytes);
+        const fontBold = await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
+        const fontRegular = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+
+        const pages = pdfDoc.getPages();
+        const frente = pages[0];
+        const reverso = pages[1] || pages[0];
+
+        // 2. Estampar datos en el Frente (Página 1)
+        frente.drawText(alumno.toUpperCase(), { x: 140, y: 220, size: 13, font: fontBold });
+        frente.drawText(dniFormateado, { x: 180, y: 195, size: 11, font: fontBold });
+        frente.drawText(trayecto.nombre, { x: 155, y: 180, size: 11, font: fontBold });
+        frente.drawText(hsReloj, { x: 135, y: 165, size: 11, font: fontBold });
+        frente.drawText(trayecto.nombre, { x: 300, y: 135, size: 11, font: fontBold });
+        frente.drawText(resVal, { x: 260, y: 120, size: 10, font: fontRegular });
+        frente.drawText(fechaEmision, { x: 110, y: 88, size: 10, font: fontRegular });
+
+        // 3. Estampar datos en el Reverso (Página 2)
+        let modulosList = [];
+        try { modulosList = JSON.parse(trayecto.modulos || '[]'); } catch (e) {}
+
+        let yStartCol = 295;
+        let yStep = 22;
+
+        for (let idx = 0; idx < 10; idx++) {
+          let moduloItem = modulosList[idx];
+          if (moduloItem) {
+            let colX = (idx < 5) ? 100 : 360;
+            let currentY = yStartCol - ((idx % 5) * yStep);
+            let codStr = moduloItem.codigo ? ` (${moduloItem.codigo})` : '';
+            reverso.drawText(`${moduloItem.nombre}${codStr}`, { x: colX, y: currentY, size: 9, font: fontRegular });
+          }
+        }
+
+        reverso.drawText(fEgreso, { x: 190, y: 158, size: 10, font: fontBold });
+        reverso.drawText(numEgresadoDef, { x: 395, y: 158, size: 10, font: fontBold });
+        reverso.drawText(cursoNumVal, { x: 505, y: 158, size: 10, font: fontBold });
+
+        reverso.drawText(cfpVal, { x: 410, y: 78, size: 10, font: fontBold });
+        reverso.drawText(distritoVal, { x: 505, y: 78, size: 10, font: fontBold });
+
+        // 4. Guardar y descargar PDF
+        const pdfBytes = await pdfDoc.save();
+        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `Certificado_FP_${usuarioDni}_${trayecto.nombre}.pdf`;
+        link.click();
+
+      } catch (err) {
+        alert('Error al generar el certificado: ' + err.message);
       }
-
-      document.getElementById('cert-txt-fecha-egreso').textContent = fEgreso;
-      document.getElementById('cert-txt-num-egresado').textContent = numEgresadoDef;
-
-      const element = document.getElementById('certificado-container');
-      element.style.display = 'block';
-
-      const paginaFrente = document.getElementById('cert-frente');
-      const paginaReverso = document.getElementById('cert-reverso');
-
-      const opt = {
-        margin:       0,
-        filename:     `Certificado_FP_${usuarioDni}_${trayecto.nombre}.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 3, useCORS: true },
-        jsPDF:        { unit: 'mm', format: [210, 148], orientation: 'landscape' }
-      };
-
-      const pdf = await html2pdf().set(opt).from(paginaFrente).toPdf().get('pdf');
-      pdf.addPage([210, 148], 'landscape');
-      await html2pdf().set(opt).from(paginaReverso).toContainer().toCanvas().toPdf().get('pdf');
-      
-      pdf.save(`Certificado_FP_${usuarioDni}_${trayecto.nombre}.pdf`);
-      element.style.display = 'none';
     }
 
     async function procesarCargaMasiva() {
