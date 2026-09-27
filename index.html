@@ -901,7 +901,15 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
     const fEgreso = prompt('Ingrese Fecha de Egreso:', '27 de Noviembre de 2026');
     if (!fEgreso) return;
 
-    let dniFormateado = String(usuarioDni).replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+   let dniFormateado = String(usuarioDni).replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+    // Validación: Si el usuario no era un DNI numérico, lo solicita
+    if (!dniFormateado) {
+      const dniManual = prompt('Ingrese el DNI/D.U. del alumno:', '12345678');
+      if (!dniManual) return;
+      dniFormateado = dniManual.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    }
+
     let resVal = trayecto.resolucion || 'RESOC-2021-3362-GDEBA-DGCYE';
     let cfpVal = '403';
     let distritoVal = 'Luján';
