@@ -855,100 +855,168 @@
     }
 
     /* GENERADOR ESTAMPADOR VÍA PDF-LIB SOBRE plantilla.pdf */
-    async function generarCertificadoPDF(trayectoJson, alumnoNombre, usuarioDni, inscripcionId) {
-      try {
-        const trayecto = JSON.parse(decodeURIComponent(trayectoJson));
-        const alumno = decodeURIComponent(alumnoNombre);
+   function generarCertificadoPDF(trayectoJson, alumnoNombre, usuarioDni, inscripcionId) {
+  try {
+    const trayecto = typeof trayectoJson === 'object' ? trayectoJson : JSON.parse(decodeURIComponent(trayectoJson));
+    const alumno = decodeURIComponent(alumnoNombre);
 
-        const inputNumEg = document.getElementById(`num-eg-${inscripcionId}`);
-        let numEgresadoDef = inputNumEg ? inputNumEg.value.trim() : '';
+    const inputNumEg = document.getElementById(`num-eg-${inscripcionId}`);
+    let numEgresadoDef = inputNumEg ? inputNumEg.value.trim() : '';
 
-        if (!numEgresadoDef) {
-          numEgresadoDef = prompt('Ingrese N° de Egresado asignado:', '01');
-          if (!numEgresadoDef) return;
-        }
-
-        const fEgreso = prompt('Ingrese Fecha de Egreso:', '27 de Mayo de 2026');
-        if (!fEgreso) return;
-
-        let dniFormateado = usuarioDni.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-
-        let resVal = trayecto.resolucion || 'RESOC-2021-3362- GDEBA-DGCYE';
-        let cfpVal = '403';
-        let distritoVal = 'Luján';
-        let cursoNumVal = '395/26';
-
-        if (trayecto.descripcion) {
-          const matchCfp = trayecto.descripcion.match(/CFP N° (.*?) -/);
-          const matchDist = trayecto.descripcion.match(/Distrito: (.*?) \|/);
-          const matchCurso = trayecto.descripcion.match(/Curso N° (.*?) \|/);
-          if (matchCfp) cfpVal = matchCfp[1];
-          if (matchDist) distritoVal = matchDist[1];
-          if (matchCurso) cursoNumVal = matchCurso[1];
-        }
-
-        let hsReloj = trayecto.horas || '60';
-        let fechaEmision = trayecto.fecha_entrega || '23 de Septiembre de 2026';
-
-        // 1. Cargar la plantilla PDF subida
-        const existingPdfBytes = await fetch('./plantilla.pdf').then(res => {
-          if (!res.ok) throw new Error('No se pudo encontrar el archivo plantilla.pdf en la raíz.');
-          return res.arrayBuffer();
-        });
-
-        const pdfDoc = await PDFLib.PDFDocument.load(existingPdfBytes);
-        const fontBold = await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
-        const fontRegular = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
-
-        const pages = pdfDoc.getPages();
-        const frente = pages[0];
-        const reverso = pages[1] || pages[0];
-
-        // 2. Estampar datos en el Frente (Página 1)
-        frente.drawText(alumno.toUpperCase(), { x: 140, y: 220, size: 13, font: fontBold });
-        frente.drawText(dniFormateado, { x: 180, y: 195, size: 11, font: fontBold });
-        frente.drawText(trayecto.nombre, { x: 155, y: 180, size: 11, font: fontBold });
-        frente.drawText(hsReloj, { x: 135, y: 165, size: 11, font: fontBold });
-        frente.drawText(trayecto.nombre, { x: 300, y: 135, size: 11, font: fontBold });
-        frente.drawText(resVal, { x: 260, y: 120, size: 10, font: fontRegular });
-        frente.drawText(fechaEmision, { x: 110, y: 88, size: 10, font: fontRegular });
-
-        // 3. Estampar datos en el Reverso (Página 2)
-        let modulosList = [];
-        try { modulosList = JSON.parse(trayecto.modulos || '[]'); } catch (e) {}
-
-        let yStartCol = 295;
-        let yStep = 22;
-
-        for (let idx = 0; idx < 10; idx++) {
-          let moduloItem = modulosList[idx];
-          if (moduloItem) {
-            let colX = (idx < 5) ? 100 : 360;
-            let currentY = yStartCol - ((idx % 5) * yStep);
-            let codStr = moduloItem.codigo ? ` (${moduloItem.codigo})` : '';
-            reverso.drawText(`${moduloItem.nombre}${codStr}`, { x: colX, y: currentY, size: 9, font: fontRegular });
-          }
-        }
-
-        reverso.drawText(fEgreso, { x: 190, y: 158, size: 10, font: fontBold });
-        reverso.drawText(numEgresadoDef, { x: 395, y: 158, size: 10, font: fontBold });
-        reverso.drawText(cursoNumVal, { x: 505, y: 158, size: 10, font: fontBold });
-
-        reverso.drawText(cfpVal, { x: 410, y: 78, size: 10, font: fontBold });
-        reverso.drawText(distritoVal, { x: 505, y: 78, size: 10, font: fontBold });
-
-        // 4. Guardar y descargar PDF
-        const pdfBytes = await pdfDoc.save();
-        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `Certificado_FP_${usuarioDni}_${trayecto.nombre}.pdf`;
-        link.click();
-
-      } catch (err) {
-        alert('Error al generar el certificado: ' + err.message);
-      }
+    if (!numEgresadoDef) {
+      numEgresadoDef = prompt('Ingrese N° de Egresado asignado:', '01');
+      if (!numEgresadoDef) return;
     }
+
+    const fEgreso = prompt('Ingrese Fecha de Egreso:', '27 de Mayo de 2026');
+    if (!fEgreso) return;
+
+    let dniFormateado = String(usuarioDni).replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+    let resVal = trayecto.resolucion || 'RESOC-2021-3362-GDEBA-DGCYE';
+    let cfpVal = '403';
+    let distritoVal = 'Luján';
+    let cursoNumVal = '395/26';
+
+    if (trayecto.descripcion) {
+      const matchCfp = trayecto.descripcion.match(/CFP N° (.*?) -/);
+      const matchDist = trayecto.descripcion.match(/Distrito: (.*?) \|/);
+      const matchCurso = trayecto.descripcion.match(/Curso N° (.*?) \|/);
+      if (matchCfp) cfpVal = matchCfp[1];
+      if (matchDist) distritoVal = matchDist[1];
+      if (matchCurso) cursoNumVal = matchCurso[1];
+    }
+
+    let hsReloj = trayecto.horas || '60';
+    let fechaEmision = trayecto.fecha_entrega || '23 de Septiembre de 2026';
+
+    let modulosList = [];
+    try { 
+      modulosList = typeof trayecto.modulos === 'string' ? JSON.parse(trayecto.modulos) : (trayecto.modulos || []); 
+    } catch (e) {}
+
+    let modulosHtml = modulosList.map(m => 
+      `<div style="margin-bottom: 8px;">• <strong>${m.nombre}</strong> ${m.codigo ? '('+m.codigo+')' : ''}</div>`
+    ).join('');
+
+    const ventanaImp = window.open('', '_blank');
+    ventanaImp.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Certificado - ${alumno}</title>
+        <style>
+          @page { size: A5 landscape; margin: 0; }
+          body { 
+            font-family: Arial, sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            background: white; 
+            -webkit-print-color-adjust: exact; 
+          }
+          .hoja { 
+            width: 210mm; 
+            height: 148mm; 
+            box-sizing: border-box; 
+            padding: 15mm; 
+            page-break-after: always; 
+            position: relative; 
+          }
+          
+          /* Estilos Frente */
+          .encabezado { text-align: center; font-size: 10pt; font-weight: bold; margin-bottom: 12px; line-height: 1.3; }
+          .titulo-principal { text-align: center; font-size: 16pt; font-weight: bold; margin-bottom: 25px; letter-spacing: 1px; }
+          
+          /* Renglones punteados continuos en todo el ancho */
+          .texto-cuerpo { 
+            font-size: 11pt; 
+            line-height: 32px; 
+            text-align: justify;
+            background-image: radial-gradient(circle, #000 1px, transparent 1px);
+            background-size: 6px 32px;
+            background-position: 0 28px;
+          }
+          .dato-variable { 
+            font-weight: bold; 
+            background: white; 
+            padding: 0 4px; 
+          }
+
+          .fechas { margin-top: 25px; font-size: 10pt; text-align: right; line-height: 1.6; }
+
+          /* Estilos Reverso */
+          .titulo-reverso { font-size: 11pt; font-weight: bold; margin-bottom: 15px; text-align: center; }
+          .contenedor-modulos { min-height: 65mm; font-size: 10pt; line-height: 1.4; }
+          .footer-reverso { 
+            position: absolute; 
+            bottom: 15mm; 
+            left: 15mm; 
+            right: 15mm; 
+            font-size: 10pt; 
+            display: flex; 
+            justify-content: space-between; 
+            border-top: 1px solid #000;
+            padding-top: 10px;
+          }
+        </style>
+      </head>
+      <body>
+
+        <!-- FRENTE -->
+        <div class="hoja">
+          <div class="encabezado">
+            PROVINCIA DE BUENOS AIRES<br>
+            DIRECCIÓN GENERAL DE CULTURA Y EDUCACIÓN<br>
+            DIRECCIÓN DE FORMACIÓN PROFESIONAL
+          </div>
+          
+          <div class="titulo-principal">CERTIFICADO</div>
+          
+          <div class="texto-cuerpo">
+            Por cuanto <span class="dato-variable">${alumno.toUpperCase()}</span>
+            D.N.I. N° <span class="dato-variable">${dniFormateado}</span>
+            ha aprobado el curso de <span class="dato-variable">${trayecto.nombre}</span>
+            con una carga horaria de <span class="dato-variable">${hsReloj}</span> hs reloj,
+            se le otorga el presente Certificado correspondiente a la norma aprobatoria
+            <span class="dato-variable">${resVal}</span>.
+          </div>
+
+          <div class="fechas">
+            Distrito: <strong>${distritoVal}</strong> | C.F.P. N° <strong>${cfpVal}</strong><br>
+            Fecha de Emisión: <strong>${fechaEmision}</strong>
+          </div>
+        </div>
+
+        <!-- REVERSO -->
+        <div class="hoja">
+          <div class="titulo-reverso">MÓDULOS CURRICULARES APROBADOS</div>
+          
+          <div class="contenedor-modulos">
+            ${modulosHtml || '<em>Sin módulos registrados</em>'}
+          </div>
+
+          <div class="footer-reverso">
+            <div>Fecha Egreso: <strong>${fEgreso}</strong></div>
+            <div>N° Egresado: <strong>${numEgresadoDef}</strong></div>
+            <div>Curso N°: <strong>${cursoNumVal}</strong></div>
+          </div>
+        </div>
+
+        <script>
+          window.onload = function() {
+            window.print();
+            setTimeout(function() { window.close(); }, 500);
+          };
+        <\/script>
+      </body>
+      </html>
+    `);
+    ventanaImp.document.close();
+
+  } catch (err) {
+    alert('Error al generar el certificado: ' + err.message);
+  }
+}
 
     async function procesarCargaMasiva() {
       const fileInput = document.getElementById('excel-file-input');
