@@ -975,7 +975,7 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
     // 3. ESTAMPADO ANVERSO (PÁGINA 1)
     // ==========================================
    // 1. Nombre del Alumno: al lado de "Por cuanto"
-dibujaRenglonPunteado(frente, alumno.toUpperCase(), 130, 232, 520, fuenteBold, 11);
+dibujaRenglonPunteado(frente, alumno.toUpperCase(), 130, 232, 532, fuenteBold, 11);
 
 // 2. D.U. N°: al lado de "D.U. N°"
 dibujaRenglonPunteado(frente, dniFormateado, 115, 207, 100, fuenteBold, 11);
@@ -1014,10 +1014,10 @@ dibujaRenglonPunteado(frente, dniFormateado, 115, 207, 100, fuenteBold, 11);
     dibujaRenglonPunteado(frente, lineas[0] || '', 320, 159, 532, fuenteBold, 9.5);
 
     // Renglón 2: xMax en 535
-    dibujaRenglonPunteado(frente, lineas[1] || '', 73, 135, 532, fuenteBold, 9.5);
+    dibujaRenglonPunteado(frente, lineas[1] || '', 68, 135, 532, fuenteBold, 9.5);
 
     // Renglón 3: xMax en 535
-    dibujaRenglonPunteado(frente, lineas[2] || '', 73, 115, 532, fuenteBold, 9.5);
+    dibujaRenglonPunteado(frente, lineas[2] || '', 68, 117, 532, fuenteBold, 9.5);
     // ==========================================
     // 4. ESTAMPADO REVERSO (PÁGINA 2)
     // ==========================================
