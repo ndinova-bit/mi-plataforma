@@ -936,14 +936,14 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
 
     // Función para rellenar línea con puntos dinámicos
     function dibujaRenglonPunteado(pagina, texto, xStart, yPos, xMax, font, size) {
-      pagina.drawText(texto, { x: xStart, y: yPos, size: size, font: font, color: colorNegro });
-      const textWidth = font.widthOfTextAtSize(texto, size);
-      let puntoX = xStart + textWidth + 3;
-      while (puntoX < xMax) {
-        pagina.drawText('.', { x: puntoX, y: yPos, size: size, font: fuenteNorm, color: colorNegro });
-        puntoX += 3;
-      }
-    }
+  pagina.drawText(texto, { x: xStart, y: yPos, size: size, font: font, color: colorNegro });
+  const textWidth = font.widthOfTextAtSize(texto, size);
+  let puntoX = xStart + textWidth + 3;
+  while (puntoX < xMax) {
+    pagina.drawText('.', { x: puntoX, y: yPos, size: size, font: fuenteNorm, color: colorNegro });
+    puntoX += 3;
+  }
+}
 
     // Parsear fecha de emisión
     let diaE = '23', mesE = 'Septiembre', anioE = '26';
