@@ -857,6 +857,7 @@
   /* GENERADOR ESTAMPADOR VÍA PDF-LIB SOBRE plantilla.pdf */
 async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, inscripcionId) {
   try {
+    alert("¡Código actualizado!"); // <-- Agregá solo esta línea para probar
     const trayecto = typeof trayectoJson === 'object' ? trayectoJson : JSON.parse(decodeURIComponent(trayectoJson));
     const alumno = decodeURIComponent(alumnoNombre);
 
