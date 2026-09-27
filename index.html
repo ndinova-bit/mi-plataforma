@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Plataforma Educativa - FP (DGCyE PBA) v9.6</title>
+  <title>Plataforma Educativa - FP (DGCyE PBA) v9.7</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
-    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    * { box-sizing: border-box; font-family: Arial, Helvetica, sans-serif; }
     body { margin: 0; background: #f3f4f6; color: #1f2937; height: 100vh; }
     
     #login-screen { display: flex; justify-content: center; align-items: center; height: 100vh; background: #111827; }
@@ -67,7 +67,7 @@
 
     .egresado-box { background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px 15px; border-radius: 6px; display: flex; align-items: center; gap: 10px; margin-top: 15px; margin-bottom: 15px; }
 
-    /* ESTILOS DE IMPRESIÓN OFICIAL CIRCULAR 4/2020 - ISO A5 (RIGIDO TABULAR) */
+    /* ESTILOS DE IMPRESIÓN OFICIAL CIRCULAR 4/2020 - ISO A5 */
     #certificado-container { display: none; }
     .cert-page {
       width: 210mm;
@@ -285,19 +285,20 @@
     </div>
   </div>
 
-  <!-- PLANTILLA CERTIFICADO DGCyE PBA - CIRCULAR 4/2020 (RIGIDO A5 DUPLICADO) -->
+  <!-- PLANTILLA CERTIFICADO DGCyE PBA - CIRCULAR 4/2020 (RIGIDO A5 EXACTO) -->
   <div id="certificado-container">
     <!-- FRENTE -->
     <div class="cert-page" id="cert-frente">
-      <table class="cert-table" style="margin-bottom: 5mm;">
+      <div style="font-size: 10pt; font-weight: bold; margin-bottom: 2mm;">Por cuanto</div>
+
+      <table class="cert-table" style="margin-bottom: 4mm;">
         <tr>
-          <td style="width: 25mm;">
-            <!-- ESCUDO PBA VECTORIAL SVG -->
-            <svg width="22mm" height="26mm" viewBox="0 0 100 120">
-              <path d="M 50,5 A 40,40 0 0,1 90,45 C 90,80 50,115 50,115 C 50,115 10,80 10,45 A 40,40 0 0,1 50,5 Z" fill="#0077b6" stroke="#000" stroke-width="3"/>
-              <path d="M 10,45 L 90,45 L 50,115 Z" fill="#90e0ef"/>
-              <circle cx="50" cy="30" r="12" fill="#ffb703" stroke="#000" stroke-width="2"/>
-              <path d="M 30,80 L 70,80 M 35,90 L 65,90" stroke="#000" stroke-width="3"/>
+          <td style="width: 25mm; vertical-align: middle;">
+            <!-- ESCUDO OFICIAL PBA -->
+            <svg width="20mm" height="24mm" viewBox="0 0 100 120">
+              <path d="M 50,5 A 40,40 0 0,1 90,45 C 90,80 50,115 50,115 C 50,115 10,80 10,45 A 40,40 0 0,1 50,5 Z" fill="#00a8e8" stroke="#000" stroke-width="2"/>
+              <circle cx="50" cy="35" r="12" fill="#ffb703"/>
+              <path d="M 10,45 L 90,45" stroke="#000" stroke-width="2"/>
             </svg>
           </td>
           <td style="text-align: center; vertical-align: middle;">
@@ -312,26 +313,28 @@
           <td style="width: 25mm;"></td>
         </tr>
       </table>
-
-      <div style="font-size: 10pt; font-weight: bold; margin-bottom: 2mm;">Por cuanto</div>
       
-      <div style="text-align: center; font-size: 13pt; font-weight: bold; text-transform: uppercase; margin: 3mm 0;" id="cert-txt-alumno">
+      <div style="text-align: center; font-size: 13pt; font-weight: bold; text-transform: uppercase; margin: 4mm 0;" id="cert-txt-alumno">
         JUAN CARLOS CARITA QUISPE
       </div>
 
-      <div style="font-size: 10.5pt; line-height: 1.5; text-align: justify;">
-        D.U. N° <strong id="cert-txt-dni">95.118.680</strong> ha completado y aprobado el Trayecto/Curso de FORMACIÓN PROFESIONAL de <strong id="cert-txt-trayecto">Pensamiento Computacional – Programación</strong> de <strong id="cert-txt-horas">60</strong> horas de duración.
+      <div style="font-size: 10.5pt; line-height: 1.6; text-align: justify;">
+        D.U. N° <strong id="cert-txt-dni">95.118.680</strong> ha completado y aprobado el Trayecto/Curso de FORMACIÓN PROFESIONAL de <span id="cert-txt-trayecto">Pensamiento Computacional – Programación</span> de <strong id="cert-txt-horas">60</strong> horas de duración.
       </div>
 
-      <div style="font-size: 10.5pt; line-height: 1.5; margin-top: 3mm;">
-        POR TANTO, se le otorga el presente CERTIFICADO DE <strong id="cert-txt-certificacion">Pensamiento Computacional - Programación</strong> según Resolución Nro. <span id="cert-txt-resolucion">RESOC-2021-3362-GDEBA-DGCYE</span>
+      <div style="font-size: 10.5pt; line-height: 1.6; margin-top: 3mm;">
+        POR TANTO, se le otorga el presente CERTIFICADO DE <span id="cert-txt-certificacion">Pensamiento Computacional - Programación</span>
+      </div>
+
+      <div style="font-size: 9.5pt; margin-top: 2mm;">
+        según Resolución Nro. <span id="cert-txt-resolucion">RESOC-2021-3362-GDEBA-DGCYE</span>
       </div>
 
       <div style="font-size: 10pt; margin-top: 5mm;" id="cert-txt-fecha-frente">
         23 de Septiembre de 2026
       </div>
 
-      <table class="cert-table" style="margin-top: 10mm; text-align: center; font-size: 8.5pt;">
+      <table class="cert-table" style="margin-top: 8mm; text-align: center; font-size: 8.5pt;">
         <tr>
           <td style="width: 45%; border-top: 1px solid #000; padding-top: 2px;">Sello<br>Inspector</td>
           <td style="width: 10%;"></td>
@@ -967,6 +970,14 @@
       });
     }
 
+    function completarPuntos(texto, maxChars = 55) {
+      let str = (texto || '').trim();
+      if (str.length < maxChars) {
+        str += ' ' + '.'.repeat(maxChars - str.length);
+      }
+      return str;
+    }
+
     async function generarCertificadoPDF(trayectoJson, alumnoNombre, usuarioDni, inscripcionId) {
       const trayecto = JSON.parse(decodeURIComponent(trayectoJson));
       const alumno = decodeURIComponent(alumnoNombre);
@@ -986,11 +997,11 @@
 
       document.getElementById('cert-txt-alumno').textContent = alumno.toUpperCase();
       document.getElementById('cert-txt-dni').textContent = dniFormateado;
-      document.getElementById('cert-txt-trayecto').textContent = trayecto.nombre;
+      document.getElementById('cert-txt-trayecto').textContent = completarPuntos(trayecto.nombre, 45);
 
       let hsReloj = trayecto.horas || '360';
       document.getElementById('cert-txt-horas').textContent = hsReloj;
-      document.getElementById('cert-txt-certificacion').textContent = trayecto.nombre;
+      document.getElementById('cert-txt-certificacion').textContent = completarPuntos(trayecto.nombre, 40);
 
       let fechaEmision = trayecto.fecha_entrega || '23 de Septiembre de 2026';
       document.getElementById('cert-txt-fecha-frente').textContent = fechaEmision;
@@ -1027,7 +1038,7 @@
         let lineStr = '';
         if (moduloItem) {
           let codStr = moduloItem.codigo ? ` (${moduloItem.codigo})` : '';
-          lineStr = `<div><strong>${i}.</strong> ${moduloItem.nombre}${codStr}</div>`;
+          lineStr = `<div><strong>${i}.</strong> ${completarPuntos(moduloItem.nombre + codStr, 32)}</div>`;
         } else {
           lineStr = `<div><strong>${i}.</strong> ....................................................</div>`;
         }
@@ -1045,7 +1056,6 @@
       const element = document.getElementById('certificado-container');
       element.style.display = 'block';
 
-      // Impresión Hoja por Hoja para evitar encimados y saltos erróneos
       const paginaFrente = document.getElementById('cert-frente');
       const paginaReverso = document.getElementById('cert-reverso');
 
@@ -1057,7 +1067,6 @@
         jsPDF:        { unit: 'mm', format: [210, 148], orientation: 'landscape' }
       };
 
-      // Generar PDF limpio de 2 páginas A5 sin páginas vacías
       const pdf = await html2pdf().set(opt).from(paginaFrente).toPdf().get('pdf');
       pdf.addPage([210, 148], 'landscape');
       await html2pdf().set(opt).from(paginaReverso).toContainer().toCanvas().toPdf().get('pdf');
