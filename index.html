@@ -986,9 +986,38 @@ dibujaRenglonPunteado(frente, dniFormateado, 115, 207, 100, fuenteBold, 11);
     // 4. Horas de duración: calza en el espacio "de [XX] horas de duración"
     frente.drawText(String(hsReloj), { x: 425, y: 182, size: 10, font: fuenteBold, color: colorNegro });
 
-    // 5. Denominación CERTIFICADO DE... (Subimos Y a 160)
-    dibujaRenglonPunteado(frente, (trayecto.certificacion || trayecto.nombre).toUpperCase(), 310, 157, 520, fuenteBold, 9.5);
+    // ==========================================
+    // 5. DENOMINACIÓN CERTIFICADO DE... (Multirrenglón + Puntos siempre)
+    // ==========================================
+    let textoCert = (trayecto.certificacion || trayecto.nombre).toUpperCase();
+    
+    let palabras = textoCert.split(' ');
+    let lineas = ['', '', ''];
+    let lineaActual = 0;
+    
+    // Ancho máximo disponible para cada renglón en píxeles
+    let maxAnchos = [210, 470, 470]; 
 
+    palabras.forEach(palabra => {
+      let prueba = lineas[lineaActual] ? lineas[lineaActual] + ' ' + palabra : palabra;
+      if (fuenteBold.widthOfTextAtSize(prueba, 9.5) < maxAnchos[lineaActual]) {
+        lineas[lineaActual] = prueba;
+      } else {
+        if (lineaActual < 2) {
+          lineaActual++;
+          lineas[lineaActual] = palabra;
+        }
+      }
+    });
+
+    // Renglón 1: Si hay texto lo dibuja con puntos al final; si no hay texto, dibuja la línea de puntos sola
+    dibujaRenglonPunteado(frente, lineas[0] || '', 300, 155, 520, fuenteBold, 9.5);
+
+    // Renglón 2
+    dibujaRenglonPunteado(frente, lineas[1] || '', 50, 135, 520, fuenteBold, 9.5);
+
+    // Renglón 3
+    dibujaRenglonPunteado(frente, lineas[2] || '', 50, 115, 520, fuenteBold, 9.5);
     // 6. Fecha de emisión
     frente.drawText(diaE, { x: 190, y: 78, size: 10, font: fuenteBold, color: colorNegro });
     frente.drawText(mesE, { x: 225, y: 78, size: 10, font: fuenteBold, color: colorNegro });
