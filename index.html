@@ -854,7 +854,7 @@
       });
     }
 
-   /* GENERADOR ESTAMPADOR VÍA PDF-LIB SOBRE plantilla.pdf */
+  /* GENERADOR ESTAMPADOR VÍA PDF-LIB SOBRE plantilla.pdf */
 async function generarCertificadoPDF(trayectoJson, alumnoNombre, usuarioDni, inscripcionId) {
   try {
     const trayecto = typeof trayectoJson === 'object' ? trayectoJson : JSON.parse(decodeURIComponent(trayectoJson));
@@ -929,22 +929,22 @@ async function generarCertificadoPDF(trayectoJson, alumnoNombre, usuarioDni, ins
     // ==========================================
     // 3. ESTAMPADO ANVERSO (PÁGINA 1)
     // ==========================================
-    // 1. Nombre del Alumno: al lado de "Por cuanto" (Y=175)
+    // 1. Nombre del Alumno: al lado de "Por cuanto"
     dibujaRenglonPunteado(frente, alumno.toUpperCase(), 115, 175, 380, fuenteBold, 10);
 
-    // 2. D.U. N°: al lado de "D.U. N°" (Y=155)
+    // 2. D.U. N°: al lado de "D.U. N°"
     dibujaRenglonPunteado(frente, dniFormateado, 85, 155, 380, fuenteBold, 10);
 
-    // 3. Nombre del Trayecto / Curso: debajo de "de" (Y=115)
+    // 3. Nombre del Trayecto / Curso: debajo de "de"
     dibujaRenglonPunteado(frente, trayecto.nombre.toUpperCase(), 50, 115, 380, fuenteBold, 9.5);
 
-    // 4. Denominación CERTIFICADO DE... (Y=95)
+    // 4. Denominación CERTIFICADO DE...
     dibujaRenglonPunteado(frente, (trayecto.certificacion || trayecto.nombre).toUpperCase(), 230, 95, 380, fuenteBold, 9.5);
 
-    // 5. Horas de duración (Y=78)
+    // 5. Horas de duración
     frente.drawText(String(hsReloj), { x: 50, y: 78, size: 10, font: fuenteBold, color: colorNegro });
 
-    // 6. Fecha de emisión (Y=78)
+    // 6. Fecha de emisión
     frente.drawText(diaE, { x: 190, y: 78, size: 10, font: fuenteBold, color: colorNegro });
     frente.drawText(mesE, { x: 225, y: 78, size: 10, font: fuenteBold, color: colorNegro });
     frente.drawText(anioE, { x: 305, y: 78, size: 10, font: fuenteBold, color: colorNegro });
