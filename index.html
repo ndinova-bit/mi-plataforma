@@ -929,25 +929,31 @@
         // ==========================================
         // 3. ESTAMPADO ANVERSO (PÁGINA 1)
         // ==========================================
-        // Nombre del Alumno
-        dibujaRenglonPunteado(frente, alumno.toUpperCase(), 160, 290, 530, fuenteBold, 12);
+      // ==========================================
+        // 3. ESTAMPADO ANVERSO (PÁGINA 1)
+        // Modificá el número de X e Y según necesites
+        // ==========================================
+        
+        // 1. Nombre del Alumno (Renglon "Por cuanto...")
+        // x: inicio en horizontal | y: altura | xMax: tope final para los puntos
+        dibujaRenglonPunteado(frente, alumno.toUpperCase(), 140, 298, 530, fuenteBold, 11);
 
-        // D.U. N°
-        dibujaRenglonPunteado(frente, dniFormateado, 120, 268, 530, fuenteBold, 11);
+        // 2. D.U. N°
+        dibujaRenglonPunteado(frente, dniFormateado, 100, 276, 530, fuenteBold, 11);
 
-        // Trayecto / Curso
-        dibujaRenglonPunteado(frente, trayecto.nombre.toUpperCase(), 90, 205, 530, fuenteBold, 11);
+        // 3. Trayecto / Curso de Formación Profesional de...
+        dibujaRenglonPunteado(frente, trayecto.nombre.toUpperCase(), 75, 208, 530, fuenteBold, 10);
 
-        // Certificación de
-        dibujaRenglonPunteado(frente, (trayecto.certificacion || trayecto.nombre).toUpperCase(), 240, 183, 530, fuenteBold, 11);
+        // 4. Certificado de...
+        dibujaRenglonPunteado(frente, (trayecto.certificacion || trayecto.nombre).toUpperCase(), 230, 186, 530, fuenteBold, 10);
 
-        // Horas de duración
-        frente.drawText(String(hsReloj), { x: 90, y: 162, size: 11, font: fuenteBold, color: colorNegro });
+        // 5. Horas de duración
+        frente.drawText(String(hsReloj), { x: 85, y: 164, size: 11, font: fuenteBold, color: colorNegro });
 
-        // Fecha Emisión
-        frente.drawText(diaE, { x: 230, y: 162, size: 11, font: fuenteBold, color: colorNegro });
-        frente.drawText(mesE, { x: 280, y: 162, size: 11, font: fuenteBold, color: colorNegro });
-        frente.drawText(anioE, { x: 380, y: 162, size: 11, font: fuenteBold, color: colorNegro });
+        // 6. Fecha Emisión (...de ... de 20...)
+        frente.drawText(diaE, { x: 220, y: 164, size: 11, font: fuenteBold, color: colorNegro });
+        frente.drawText(mesE, { x: 270, y: 164, size: 11, font: fuenteBold, color: colorNegro });
+        frente.drawText(anioE, { x: 375, y: 164, size: 11, font: fuenteBold, color: colorNegro });
 
         // ==========================================
         // 4. ESTAMPADO REVERSO (PÁGINA 2)
@@ -957,21 +963,24 @@
           modulosList = typeof trayecto.modulos === 'string' ? JSON.parse(trayecto.modulos) : (trayecto.modulos || []);
         } catch (e) {}
 
-        // Posiciones Y de los renglones 1 al 10 de módulos en la plantilla
-        const yModulosArr = [340, 322, 304, 286, 268, 250, 232, 214, 196, 178];
+        // Posiciones Y de los renglones 1 al 10 de módulos
+        // Si los módulos quedan más arriba/abajo de sus renglones, bajá o subí estos números:
+        const yModulosArr = [325, 307, 289, 271, 253, 235, 217, 199, 181, 163];
 
         modulosList.slice(0, 10).forEach((m, idx) => {
           const modTxt = `${m.nombre} ${m.codigo ? '(' + m.codigo + ')' : ''}`;
-          dibujaRenglonPunteado(reverso, modTxt, 80, yModulosArr[idx], 530, fuenteNorm, 10);
+          dibujaRenglonPunteado(reverso, modTxt, 75, yModulosArr[idx], 530, fuenteNorm, 9.5);
         });
 
         // Pie del Reverso
-        reverso.drawText(fEgreso, { x: 140, y: 142, size: 11, font: fuenteBold, color: colorNegro });
-        reverso.drawText(numEgresadoDef, { x: 140, y: 122, size: 11, font: fuenteBold, color: colorNegro });
+        // Fecha de egreso
+        reverso.drawText(fEgreso, { x: 130, y: 135, size: 10, font: fuenteBold, color: colorNegro });
+        // N° de egresado
+        reverso.drawText(numEgresadoDef, { x: 130, y: 115, size: 10, font: fuenteBold, color: colorNegro });
 
-        reverso.drawText(cfpVal, { x: 130, y: 40, size: 11, font: fuenteBold, color: colorNegro });
-        reverso.drawText(distritoVal, { x: 260, y: 40, size: 11, font: fuenteBold, color: colorNegro });
-
+        // CFP N° y Distrito
+        reverso.drawText(cfpVal, { x: 120, y: 35, size: 10, font: fuenteBold, color: colorNegro });
+        reverso.drawText(distritoVal, { x: 250, y: 35, size: 10, font: fuenteBold, color: colorNegro });
         // 5. Salida y descarga/apertura del documento final
         const pdfBytesFinal = await pdfDoc.save();
         const blob = new Blob([pdfBytesFinal], { type: 'application/pdf' });
