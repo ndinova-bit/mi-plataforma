@@ -987,7 +987,7 @@ dibujaRenglonPunteado(frente, dniFormateado, 115, 207, 100, fuenteBold, 11);
     frente.drawText(String(hsReloj), { x: 425, y: 182, size: 10, font: fuenteBold, color: colorNegro });
 
    // ==========================================
-    // 5. DENOMINACIÓN CERTIFICADO DE... (Coordenadas ajustadas)
+    // 5. DENOMINACIÓN CERTIFICADO DE...
     // ==========================================
     let textoCert = (trayecto.certificacion || trayecto.nombre).toUpperCase();
     
@@ -995,8 +995,8 @@ dibujaRenglonPunteado(frente, dniFormateado, 115, 207, 100, fuenteBold, 11);
     let lineas = ['', '', ''];
     let lineaActual = 0;
     
-    // Ancho máximo ajustado para el primer renglón y los dos siguientes
-    let maxAnchos = [180, 420, 420]; 
+    // Ancho máximo disponible para distribuir el texto
+    let maxAnchos = [210, 440, 440]; 
 
     palabras.forEach(palabra => {
       let prueba = lineas[lineaActual] ? lineas[lineaActual] + ' ' + palabra : palabra;
@@ -1010,14 +1010,14 @@ dibujaRenglonPunteado(frente, dniFormateado, 115, 207, 100, fuenteBold, 11);
       }
     });
 
-    // Renglón 1: Subimos Y a 160 para elevar la altura y ajustamos X a 310
-    dibujaRenglonPunteado(frente, lineas[0] || '', 310, 160, 520, fuenteBold, 9.5);
+    // Renglón 1: Y bajado a 157, X en 300 y xMax ampliado a 535 para cubrir todo el renglón
+    dibujaRenglonPunteado(frente, lineas[0] || '', 300, 157, 535, fuenteBold, 9.5);
 
-    // Renglón 2
-    dibujaRenglonPunteado(frente, lineas[1] || '', 80, 135, 520, fuenteBold, 9.5);
+    // Renglón 2: xMax en 535
+    dibujaRenglonPunteado(frente, lineas[1] || '', 80, 135, 535, fuenteBold, 9.5);
 
-    // Renglón 3
-    dibujaRenglonPunteado(frente, lineas[2] || '', 80, 115, 520, fuenteBold, 9.5);
+    // Renglón 3: xMax en 535
+    dibujaRenglonPunteado(frente, lineas[2] || '', 80, 115, 535, fuenteBold, 9.5);
     // ==========================================
     // 4. ESTAMPADO REVERSO (PÁGINA 2)
     // ==========================================
