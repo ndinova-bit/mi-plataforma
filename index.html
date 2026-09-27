@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Plataforma Educativa - FP (DGCyE PBA) v10.0</title>
+  <title>Plataforma Educativa - FP (DGCyE PBA) v11.0</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
@@ -855,226 +855,133 @@
     }
 
     /* GENERADOR ESTAMPADOR VÍA PDF-LIB SOBRE plantilla.pdf */
-  function generarCertificadoPDF(trayectoJson, alumnoNombre, usuarioDni, inscripcionId) {
-  try {
-    const trayecto = typeof trayectoJson === 'object' ? trayectoJson : JSON.parse(decodeURIComponent(trayectoJson));
-    const alumno = decodeURIComponent(alumnoNombre);
+    async function generarCertificadoPDF(trayectoJson, alumnoNombre, usuarioDni, inscripcionId) {
+      try {
+        const trayecto = typeof trayectoJson === 'object' ? trayectoJson : JSON.parse(decodeURIComponent(trayectoJson));
+        const alumno = decodeURIComponent(alumnoNombre);
 
-    const inputNumEg = document.getElementById(`num-eg-${inscripcionId}`);
-    let numEgresadoDef = inputNumEg ? inputNumEg.value.trim() : '';
+        const inputNumEg = document.getElementById(`num-eg-${inscripcionId}`);
+        let numEgresadoDef = inputNumEg ? inputNumEg.value.trim() : '';
 
-    if (!numEgresadoDef) {
-      numEgresadoDef = prompt('Ingrese N° de Egresado asignado:', '01');
-      if (!numEgresadoDef) return;
+        if (!numEgresadoDef) {
+          numEgresadoDef = prompt('Ingrese N° de Egresado asignado:', '01');
+          if (!numEgresadoDef) return;
+        }
+
+        const fEgreso = prompt('Ingrese Fecha de Egreso:', '27 de Noviembre de 2026');
+        if (!fEgreso) return;
+
+        let dniFormateado = String(usuarioDni).replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        let resVal = trayecto.resolucion || 'RESOC-2021-3362-GDEBA-DGCYE';
+        let cfpVal = '403';
+        let distritoVal = 'Luján';
+        let cursoNumVal = '395/26';
+
+        if (trayecto.descripcion) {
+          const matchCfp = trayecto.descripcion.match(/CFP N° (.*?) -/);
+          const matchDist = trayecto.descripcion.match(/Distrito: (.*?) \|/);
+          const matchCurso = trayecto.descripcion.match(/Curso N° (.*?) \|/);
+          if (matchCfp) cfpVal = matchCfp[1];
+          if (matchDist) distritoVal = matchDist[1];
+          if (matchCurso) cursoNumVal = matchCurso[1];
+        }
+
+        let hsReloj = trayecto.horas || '60';
+        let fechaEmision = trayecto.fecha_entrega || '23 de Septiembre de 2026';
+
+        // 1. Cargar el archivo plantilla.pdf subido
+        const resBytes = await fetch('./plantilla.pdf');
+        if (!resBytes.ok) throw new Error('No se encontró el archivo plantilla.pdf en la raíz del servidor/repositorio.');
+        const plantillaBytes = await resBytes.arrayBuffer();
+
+        // 2. Procesar con pdf-lib
+        const pdfDoc = await PDFLib.PDFDocument.load(plantillaBytes);
+        const fuenteBold = await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
+        const fuenteNorm = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+        const colorNegro = PDFLib.rgb(0, 0, 0);
+
+        const paginas = pdfDoc.getPages();
+        const frente = paginas[0];
+        const reverso = paginas.length > 1 ? paginas[1] : frente;
+
+        // Función para rellenar línea con puntos dinámicos
+        function dibujaRenglonPunteado(pagina, texto, xStart, yPos, xMax, font, size) {
+          pagina.drawText(texto, { x: xStart, y: yPos, size: size, font: font, color: colorNegro });
+          const textWidth = font.widthOfTextAtSize(texto, size);
+          let puntoX = xStart + textWidth + 3;
+          while (puntoX < xMax) {
+            pagina.drawText('.', { x: puntoX, y: yPos, size: size, font: fuenteNorm, color: colorNegro });
+            puntoX += 3;
+          }
+        }
+
+        // Parsear fecha de emisión
+        let diaE = '23', mesE = 'Septiembre', anioE = '2026';
+        if (fechaEmision) {
+          const partesF = fechaEmision.split('de');
+          if (partesF.length === 3) {
+            diaE = partesF[0].trim();
+            mesE = partesF[1].trim();
+            anioE = partesF[2].trim();
+          }
+        }
+
+        // ==========================================
+        // 3. ESTAMPADO ANVERSO (PÁGINA 1)
+        // ==========================================
+        // Nombre del Alumno
+        dibujaRenglonPunteado(frente, alumno.toUpperCase(), 160, 290, 530, fuenteBold, 12);
+
+        // D.U. N°
+        dibujaRenglonPunteado(frente, dniFormateado, 120, 268, 530, fuenteBold, 11);
+
+        // Trayecto / Curso
+        dibujaRenglonPunteado(frente, trayecto.nombre.toUpperCase(), 90, 205, 530, fuenteBold, 11);
+
+        // Certificación de
+        dibujaRenglonPunteado(frente, (trayecto.certificacion || trayecto.nombre).toUpperCase(), 240, 183, 530, fuenteBold, 11);
+
+        // Horas de duración
+        frente.drawText(String(hsReloj), { x: 90, y: 162, size: 11, font: fuenteBold, color: colorNegro });
+
+        // Fecha Emisión
+        frente.drawText(diaE, { x: 230, y: 162, size: 11, font: fuenteBold, color: colorNegro });
+        frente.drawText(mesE, { x: 280, y: 162, size: 11, font: fuenteBold, color: colorNegro });
+        frente.drawText(anioE, { x: 380, y: 162, size: 11, font: fuenteBold, color: colorNegro });
+
+        // ==========================================
+        // 4. ESTAMPADO REVERSO (PÁGINA 2)
+        // ==========================================
+        let modulosList = [];
+        try {
+          modulosList = typeof trayecto.modulos === 'string' ? JSON.parse(trayecto.modulos) : (trayecto.modulos || []);
+        } catch (e) {}
+
+        // Posiciones Y de los renglones 1 al 10 de módulos en la plantilla
+        const yModulosArr = [340, 322, 304, 286, 268, 250, 232, 214, 196, 178];
+
+        modulosList.slice(0, 10).forEach((m, idx) => {
+          const modTxt = `${m.nombre} ${m.codigo ? '(' + m.codigo + ')' : ''}`;
+          dibujaRenglonPunteado(reverso, modTxt, 80, yModulosArr[idx], 530, fuenteNorm, 10);
+        });
+
+        // Pie del Reverso
+        reverso.drawText(fEgreso, { x: 140, y: 142, size: 11, font: fuenteBold, color: colorNegro });
+        reverso.drawText(numEgresadoDef, { x: 140, y: 122, size: 11, font: fuenteBold, color: colorNegro });
+
+        reverso.drawText(cfpVal, { x: 130, y: 40, size: 11, font: fuenteBold, color: colorNegro });
+        reverso.drawText(distritoVal, { x: 260, y: 40, size: 11, font: fuenteBold, color: colorNegro });
+
+        // 5. Salida y descarga/apertura del documento final
+        const pdfBytesFinal = await pdfDoc.save();
+        const blob = new Blob([pdfBytesFinal], { type: 'application/pdf' });
+        const pdfUrl = URL.createObjectURL(blob);
+        window.open(pdfUrl, '_blank');
+
+      } catch (err) {
+        alert('Error al generar el certificado sobre la plantilla: ' + err.message);
+      }
     }
-
-    const fEgreso = prompt('Ingrese Fecha de Egreso:', '27 de Mayo de 2026');
-    if (!fEgreso) return;
-
-    let dniFormateado = String(usuarioDni).replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-
-    let resVal = trayecto.resolucion || 'RESOC-2021-3362-GDEBA-DGCYE';
-    let cfpVal = '403';
-    let distritoVal = 'Luján';
-    let cursoNumVal = '395/26';
-
-    if (trayecto.descripcion) {
-      const matchCfp = trayecto.descripcion.match(/CFP N° (.*?) -/);
-      const matchDist = trayecto.descripcion.match(/Distrito: (.*?) \|/);
-      const matchCurso = trayecto.descripcion.match(/Curso N° (.*?) \|/);
-      if (matchCfp) cfpVal = matchCfp[1];
-      if (matchDist) distritoVal = matchDist[1];
-      if (matchCurso) cursoNumVal = matchCurso[1];
-    }
-
-    let hsReloj = trayecto.horas || '60';
-    let fechaEmision = trayecto.fecha_entrega || '23 de Septiembre de 2026';
-
-    let modulosList = [];
-    try { 
-      modulosList = typeof trayecto.modulos === 'string' ? JSON.parse(trayecto.modulos) : (trayecto.modulos || []); 
-    } catch (e) {}
-
-    let modulosHtml = modulosList.map(m => 
-      `<div class="item-modulo">
-        <span class="mod-nom">• <strong>${m.nombre}</strong> ${m.codigo ? '('+m.codigo+')' : ''}</span>
-        <span class="linea-puntos"></span>
-        <span class="mod-estado">APROBADO</span>
-      </div>`
-    ).join('');
-
-    const ventanaImp = window.open('', '_blank');
-    ventanaImp.document.write(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Certificado - ${alumno}</title>
-        <style>
-          @page { size: A5 landscape; margin: 0; }
-          * { box-sizing: border-box; }
-          body { 
-            font-family: 'Arial', sans-serif; 
-            margin: 0; 
-            padding: 0; 
-            background: white; 
-            -webkit-print-color-adjust: exact; 
-          }
-          .hoja { 
-            width: 210mm; 
-            height: 148mm; 
-            padding: 12mm 15mm; 
-            page-break-after: always; 
-            position: relative; 
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-          }
-          
-          /* ENCABEZADOS */
-          .encabezado { text-align: center; font-size: 9pt; font-weight: bold; line-height: 1.3; }
-          .titulo-principal { text-align: center; font-size: 15pt; font-weight: bold; margin: 15px 0 20px 0; letter-spacing: 1.5px; }
-          
-          /* RENGLONES CORRESPONDENCIA FLEXBOX */
-          .bloque-texto {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            font-size: 10.5pt;
-          }
-
-          .renglon {
-            display: flex;
-            align-items: flex-end;
-            width: 100%;
-            white-space: nowrap;
-          }
-
-          .linea-puntos {
-            flex-grow: 1;
-            border-bottom: 1.5px dotted #000;
-            margin: 0 4px 3px 4px;
-            min-width: 15px;
-          }
-
-          .d-var {
-            font-weight: bold;
-            text-transform: uppercase;
-            padding: 0 2px;
-          }
-
-          .fechas { 
-            margin-top: 15px; 
-            font-size: 9.5pt; 
-            text-align: right; 
-            line-height: 1.5; 
-          }
-
-          /* REVERSO */
-          .titulo-reverso { font-size: 11pt; font-weight: bold; margin-bottom: 15px; text-align: center; border-bottom: 1px solid #000; padding-bottom: 5px; }
-          .contenedor-modulos { 
-            flex-grow: 1; 
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            font-size: 9.5pt; 
-          }
-          .item-modulo {
-            display: flex;
-            align-items: flex-end;
-            width: 100%;
-          }
-          .footer-reverso { 
-            display: flex; 
-            justify-content: space-between; 
-            border-top: 1px solid #000;
-            padding-top: 8px;
-            font-size: 9.5pt; 
-          }
-        </style>
-      </head>
-      <body>
-
-        <!-- FRENTE -->
-        <div class="hoja">
-          <div>
-            <div class="encabezado">
-              PROVINCIA DE BUENOS AIRES<br>
-              DIRECCIÓN GENERAL DE CULTURA Y EDUCACIÓN<br>
-              DIRECCIÓN DE FORMACIÓN PROFESIONAL
-            </div>
-            
-            <div class="titulo-principal">CERTIFICADO</div>
-            
-            <div class="bloque-texto">
-              <div class="renglon">
-                <span>Por cuanto</span>
-                <span class="d-var">${alumno}</span>
-                <span class="linea-puntos"></span>
-              </div>
-
-              <div class="renglon">
-                <span>D.N.I. N°</span>
-                <span class="d-var">${dniFormateado}</span>
-                <span class="linea-puntos"></span>
-                <span>ha aprobado el curso de</span>
-              </div>
-
-              <div class="renglon">
-                <span class="d-var">${trayecto.nombre}</span>
-                <span class="linea-puntos"></span>
-              </div>
-
-              <div class="renglon">
-                <span>con una carga horaria de</span>
-                <span class="d-var">${hsReloj} HS RELOJ</span>
-                <span class="linea-puntos"></span>
-                <span>se le otorga el presente</span>
-              </div>
-
-              <div class="renglon">
-                <span>Certificado correspondiente a la norma aprobatoria</span>
-                <span class="d-var">${resVal}</span>
-                <span class="linea-puntos"></span>
-              </div>
-            </div>
-          </div>
-
-          <div class="fechas">
-            Distrito: <strong>${distritoVal}</strong> | C.F.P. N° <strong>${cfpVal}</strong><br>
-            Fecha de Emisión: <strong>${fechaEmision}</strong>
-          </div>
-        </div>
-
-        <!-- REVERSO -->
-        <div class="hoja">
-          <div class="titulo-reverso">MÓDULOS CURRICULARES APROBADOS</div>
-          
-          <div class="contenedor-modulos">
-            ${modulosHtml || '<em>Sin módulos registrados</em>'}
-          </div>
-
-          <div class="footer-reverso">
-            <div>Fecha Egreso: <strong>${fEgreso}</strong></div>
-            <div>N° Egresado: <strong>${numEgresadoDef}</strong></div>
-            <div>Curso N°: <strong>${cursoNumVal}</strong></div>
-          </div>
-        </div>
-
-        <script>
-          window.onload = function() {
-            window.print();
-            setTimeout(function() { window.close(); }, 500);
-          };
-        <\/script>
-      </body>
-      </html>
-    `);
-    ventanaImp.document.close();
-
-  } catch (err) {
-    alert('Error al generar el certificado: ' + err.message);
-  }
-}
 
     async function procesarCargaMasiva() {
       const fileInput = document.getElementById('excel-file-input');
