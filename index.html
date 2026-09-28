@@ -1046,16 +1046,16 @@
         } catch (e) {}
 
         if (modulosList && modulosList.length > 0) {
-          // Coordenadas X ajustadas para no tapar los números 1 a 10
-          const colIzqX = 72;       // Inicio texto columna 1 a 5 (justo después de "1. ")
-          const colIzqMax = 282;    // Límite derecho de columna 1 a 5
+          // Margen X para no tapar los números (1. a 5. y 6. a 10.)
+          const colIzqX = 72;       // Inicio columna izquierda
+          const colIzqMax = 280;    // Límite derecho col izq
           
-          const colDerX = 310;      // Inicio texto columna 6 a 10 (justo después de "6. ")
-          const colDerMax = 525;    // Límite derecho de columna 6 a 10
+          const colDerX = 312;      // Inicio columna derecha
+          const colDerMax = 525;    // Límite derecho col der
 
-          // Alturas Y calibradas exactamente a la grilla del recuadro
-          const filasY = [406, 381, 356, 331, 306]; 
-          const altoRenglon2 = 8; // Distancia para el 2do renglón si la materia no entra en 1
+          // Coordenadas Y de la LÍNEA PRINCIPAL de cada número (1 al 5 y 6 al 10)
+          const filasY = [368, 338, 308, 278, 248]; 
+          const pasoSegundoRenglon = 13; // Distancia para bajar al sub-renglón punteado
 
           modulosList.slice(0, 10).forEach((mod, idx) => {
             const esColDer = idx >= 5;
@@ -1065,12 +1065,12 @@
             const xMax = esColDer ? colDerMax : colIzqMax;
             const yBase = filasY[filaIdx];
 
-            // 1. Formato: Código antes del Nombre
+            // 1. Formato: (CÓDIGO) NOMBRE
             let cod = mod.codigo ? `(${mod.codigo}) ` : '';
             let nom = mod.nombre ? mod.nombre.toUpperCase() : '';
             let textoModulo = `${cod}${nom}`.trim();
 
-            // 2. Separación en hasta 2 renglones con tamaño de letra 6.5
+            // 2. Partición de palabras
             let palabrasMod = textoModulo.split(' ');
             let lineasMod = ['', ''];
             let lActual = 0;
@@ -1078,7 +1078,7 @@
 
             palabrasMod.forEach(p => {
               let prueba = lineasMod[lActual] ? lineasMod[lActual] + ' ' + p : p;
-              if (fuenteBold.widthOfTextAtSize(prueba, 6.5) < anchoMax) {
+              if (fuenteBold.widthOfTextAtSize(prueba, 6.0) < anchoMax) {
                 lineasMod[lActual] = prueba;
               } else if (lActual === 0) {
                 lActual = 1;
@@ -1088,14 +1088,16 @@
 
             let tieneRenglon2 = lineasMod[1].trim() !== '';
 
-            // 3. Dibujo con regla de puntos
+            // 3. Dibujo respetando la norma de líneas punteadas
             if (!tieneRenglon2) {
-              // Entra en 1 solo renglón: escribe y dibuja puntos hasta el final
-              dibujaRenglonPunteado(reverso, lineasMod[0], xInicio, yBase, xMax, fuenteBold, 6.5);
+              // Si entra completo en 1 renglón: escribe y rellena con puntos hasta xMax
+              dibujaRenglonPunteado(reverso, lineasMod[0], xInicio, yBase, xMax, fuenteBold, 6.0);
             } else {
-              // 2 Renglones: Renglón 1 limpio sobre la base (sin puntos agregados), Renglón 2 escribe abajo y completa puntos
-              reverso.drawText(lineasMod[0], { x: xInicio, y: yBase, size: 6.5, font: fuenteBold, color: colorNegro });
-              dibujaRenglonPunteado(reverso, lineasMod[1], xInicio, yBase - altoRenglon2, xMax, fuenteBold, 6.5);
+              // 1er renglón: texto limpio sobre la línea principal (sin puntos agregados al final)
+              reverso.drawText(lineasMod[0], { x: xInicio, y: yBase, size: 6.0, font: fuenteBold, color: colorNegro });
+              
+              // 2do renglón: texto en la sub-línea inferior y rellena con puntos hasta xMax
+              dibujaRenglonPunteado(reverso, lineasMod[1], xInicio, yBase - pasoSegundoRenglon, xMax, fuenteBold, 6.0);
             }
           });
         }
