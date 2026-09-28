@@ -969,9 +969,9 @@
         // 1. Nombre del Alumno
         dibujaRenglonPunteado(frente, alumno.toUpperCase(), 130, 232, 532, fuenteBold, 11);
 
-        // 2. D.U. N°
-        dibujaRenglonPunteado(frente, dniFormateado, 115, 207, 230, fuenteBold, 11);
-
+        // 2. D.U. N° (Sin relleno punteado)
+        frente.drawText(dniFormateado, { x: 115, y: 207, size: 11, font: fuenteBold, color: colorNegro });
+        
         // 3. Nombre del Trayecto / Curso
         dibujaRenglonPunteado(frente, trayecto.nombre.toUpperCase(), 91, 182, 400, fuenteBold, 9.5);
 
