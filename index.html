@@ -979,16 +979,16 @@
         // 3. ESTAMPADO ANVERSO (PÁGINA 1)
         // ==========================================
         // 1. Nombre del Alumno
-        dibujaRenglonPunteado(frente, alumno.toUpperCase(), 130, 232, 532, fuenteBold, 11);
+        dibujaRenglonPunteado(frente, alumno.toUpperCase(), 130, 232, 532, fuenteBold, 14);
 
         // 2. D.U. N° (Sin relleno punteado)
-        frente.drawText(dniFormateado, { x: 115, y: 207, size: 11, font: fuenteBold, color: colorNegro });
+        frente.drawText(dniFormateado, { x: 115, y: 207, size: 12, font: fuenteRegular, color: colorNegro });
         
         // 3. Nombre del Trayecto / Curso
-        dibujaRenglonPunteado(frente, trayecto.nombre.toUpperCase(), 91, 182, 400, fuenteBold, 9.5);
+        dibujaRenglonPunteado(frente, trayecto.nombre.toUpperCase(), 91, 182, 400, fuenteRegular, 12);
 
         // 4. Horas de duración
-        frente.drawText(String(hsReloj), { x: 425, y: 182, size: 10, font: fuenteBold, color: colorNegro });
+        frente.drawText(String(hsReloj), { x: 425, y: 182, size: 12, font: fuenteRegular, color: colorNegro });
 
         // ==========================================
         // 5. DENOMINACIÓN CERTIFICADO DE... (Nombre + Resolución)
@@ -1034,10 +1034,10 @@
           if (r.texto.trim() !== '') {
             if (idx === ultimaLineaConTexto) {
               // Renglón final del texto: escribe el texto y completa con puntos hasta xMax
-              dibujaRenglonPunteado(frente, r.texto, r.x, r.y, r.xMax, fuenteBold, 8.5);
+              dibujaRenglonPunteado(frente, r.texto, r.x, r.y, r.xMax, fuenteRegular, 12);
             } else {
               // Renglón intermedio: escribe solo el texto sin agregar la línea punteada después
-              frente.drawText(r.texto, { x: r.x, y: r.y, size: 8.5, font: fuenteBold, color: colorNegro });
+              frente.drawText(r.texto, { x: r.x, y: r.y, size: 12, font: fuenteRegular, color: colorNegro });
             }
           }
         });
@@ -1045,9 +1045,9 @@
         // ==========================================
         // 6. FECHA DE EMISIÓN EN ANVERSO (Día, Mes, Año)
         // ==========================================
-        frente.drawText(String(diaE),  { x: 250, y: 98, size: 10, font: fuenteBold, color: colorNegro });
-        frente.drawText(String(mesE),  { x: 320, y: 98, size: 10, font: fuenteBold, color: colorNegro });
-        frente.drawText(String(anioE), { x: 495, y: 98, size: 10, font: fuenteBold, color: colorNegro });
+        frente.drawText(String(diaE),  { x: 250, y: 98, size: 12, font: fuenteRegular, color: colorNegro });
+        frente.drawText(String(mesE),  { x: 320, y: 98, size: 12, font: fuenteRegular, color: colorNegro });
+        frente.drawText(String(anioE), { x: 495, y: 98, size: 12, font: fuenteRegular, color: colorNegro });
 
 // ==========================================
         // 4. ESTAMPADO REVERSO (PÁGINA 2) - MÓDULOS
@@ -1058,11 +1058,12 @@
         } catch (e) {}
 
         if (modulosList && modulosList.length > 0) {
+          // Límites de las columnas
           const colIzqX = 55;       
-          const colIzqMax = 280;    
+          const colIzqMax = 270;    // Ajustado para que no invada la columna derecha
           
-          const colDerX = 320;      
-          const colDerMax = 525;    
+          const colDerX = 325;      // Movido un poco a la derecha para dar aire
+          const colDerMax = 530;    
 
           const filasY = [371, 338, 308, 278, 248]; 
           const pasoSegundoRenglon = 13; 
@@ -1086,7 +1087,9 @@
 
             palabrasMod.forEach(p => {
               let prueba = lineasMod[lActual] ? lineasMod[lActual] + ' ' + p : p;
-              if (fuenteBold.widthOfTextAtSize(prueba, 6.0) < anchoMax) {
+              
+              // ¡CLAVE! Se mide con tamaño 10.0 y fuenteRegular
+              if (fuenteRegular.widthOfTextAtSize(prueba, 10.0) < anchoMax) {
                 lineasMod[lActual] = prueba;
               } else if (lActual === 0) {
                 lActual = 1;
@@ -1097,16 +1100,14 @@
             let tieneRenglon2 = lineasMod[1].trim() !== '';
 
             if (!tieneRenglon2) {
-  // Primer renglón con texto + puntos (tamaño 10.0, fuente regular)
-  dibujaRenglonPunteado(reverso, lineasMod[0], xInicio, yBase, xMax, fuenteRegular, 10.0);
-  
-  // Segundo renglón punteado completo (tamaño 10.0, fuente regular)
-  dibujaRenglonPunteado(reverso, '', xInicio, yBase - pasoSegundoRenglon, xMax, fuenteRegular, 10.0);
-} else {
-  // Si ocupa 2 renglones
-  reverso.drawText(lineasMod[0], { x: xInicio, y: yBase, size: 10.0, font: fuenteRegular, color: colorNegro });
-  dibujaRenglonPunteado(reverso, lineasMod[1], xInicio, yBase - pasoSegundoRenglon, xMax, fuenteRegular, 10.0);
-}
+              // 1er renglón con puntos y 2do renglón punteado completo (ambos a 10pt)
+              dibujaRenglonPunteado(reverso, lineasMod[0], xInicio, yBase, xMax, fuenteRegular, 10.0);
+              dibujaRenglonPunteado(reverso, '', xInicio, yBase - pasoSegundoRenglon, xMax, fuenteRegular, 10.0);
+            } else {
+              // 1er renglón texto y 2do renglón completa con puntos (ambos a 10pt)
+              reverso.drawText(lineasMod[0], { x: xInicio, y: yBase, size: 10.0, font: fuenteRegular, color: colorNegro });
+              dibujaRenglonPunteado(reverso, lineasMod[1], xInicio, yBase - pasoSegundoRenglon, xMax, fuenteRegular, 10.0);
+            }
           });
         }
 
