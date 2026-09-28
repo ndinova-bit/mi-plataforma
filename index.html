@@ -883,178 +883,168 @@
       });
     }
 
-  /* GENERADOR ESTAMPADOR VÍA PDF-LIB SOBRE plantilla.pdf */
-async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, inscripcionId) {
-  try {
-    alert("¡Código actualizado!"); // <-- Agregá solo esta línea para probar
-    const trayecto = typeof trayectoJson === 'object' ? trayectoJson : JSON.parse(decodeURIComponent(trayectoJson));
-    const alumno = decodeURIComponent(alumnoNombre);
+    /* GENERADOR ESTAMPADOR VÍA PDF-LIB SOBRE plantilla.pdf */
+    async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, inscripcionId) {
+      try {
+        const trayecto = typeof trayectoJson === 'object' ? trayectoJson : JSON.parse(decodeURIComponent(trayectoJson));
+        const alumno = decodeURIComponent(alumnoNombre);
 
-    const inputNumEg = document.getElementById(`num-eg-${inscripcionId}`);
-    let numEgresadoDef = inputNumEg ? inputNumEg.value.trim() : '';
+        const inputNumEg = document.getElementById(`num-eg-${inscripcionId}`);
+        let numEgresadoDef = inputNumEg ? inputNumEg.value.trim() : '';
 
-    if (!numEgresadoDef) {
-      numEgresadoDef = prompt('Ingrese N° de Egresado asignado:', '01');
-      if (!numEgresadoDef) return;
-    }
-
-    const fEgreso = prompt('Ingrese Fecha de Egreso:', '27 de Noviembre de 2026');
-    if (!fEgreso) return;
-
-   let dniFormateado = String(usuarioDni).replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-
-    // Validación: Si el usuario no era un DNI numérico, lo solicita
-    if (!dniFormateado) {
-      const dniManual = prompt('Ingrese el DNI/D.U. del alumno:', '12345678');
-      if (!dniManual) return;
-      dniFormateado = dniManual.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-    }
-
-    let resVal = trayecto.resolucion || 'RESOC-2021-3362-GDEBA-DGCYE';
-    let cfpVal = '403';
-    let distritoVal = 'Luján';
-    let cursoNumVal = '395/26';
-
-    if (trayecto.descripcion) {
-      const matchCfp = trayecto.descripcion.match(/CFP N° (.*?) -/);
-      const matchDist = trayecto.descripcion.match(/Distrito: (.*?) \|/);
-      const matchCurso = trayecto.descripcion.match(/Curso N° (.*?) \|/);
-      if (matchCfp) cfpVal = matchCfp[1];
-      if (matchDist) distritoVal = matchDist[1];
-      if (matchCurso) cursoNumVal = matchCurso[1];
-    }
-
-    let hsReloj = trayecto.horas || '60';
-    let fechaEmision = trayecto.fecha_entrega || '23 de Septiembre de 2026';
-
-    // 1. Cargar el archivo plantilla.pdf subido
-    const resBytes = await fetch('./plantilla.pdf');
-    if (!resBytes.ok) throw new Error('No se encontró el archivo plantilla.pdf en la raíz del servidor/repositorio.');
-    const plantillaBytes = await resBytes.arrayBuffer();
-
-    // 2. Procesar con pdf-lib
-    const pdfDoc = await PDFLib.PDFDocument.load(plantillaBytes);
-    const fuenteBold = await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
-    const fuenteNorm = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
-    const colorNegro = PDFLib.rgb(0, 0, 0);
-
-    const paginas = pdfDoc.getPages();
-    const frente = paginas[0];
-    const reverso = paginas.length > 1 ? paginas[1] : frente;
-
-    // Función para rellenar línea con puntos dinámicos
-    function dibujaRenglonPunteado(pagina, texto, xStart, yPos, xMax, font, size) {
-  // 1. Dibuja el texto
-  pagina.drawText(texto, { x: xStart, y: yPos, size: size, font: font, color: colorNegro });
-  
-  // 2. Ancho del texto impreso
-  const textWidth = font.widthOfTextAtSize(texto, size);
-  
-  // 3. Inicio de los puntos dejando un espacio adecuado
-  let puntoX = xStart + textWidth + 5;
-  
-  // Usamos el mismo tamaño y fuente para que los puntos mantengan la misma línea base (Y)
-  while (puntoX < xMax) {
-    pagina.drawText('.', { x: puntoX, y: yPos, size: size, font: font, color: colorNegro });
-    puntoX += 4; // Espaciado entre puntos
-  }
-}
-
-    // Parsear fecha de emisión
-    let diaE = '23', mesE = 'Septiembre', anioE = '26';
-    if (fechaEmision) {
-      const partesF = fechaEmision.split('de');
-      if (partesF.length === 3) {
-        diaE = partesF[0].trim();
-        mesE = partesF[1].trim();
-        anioE = partesF[2].trim().slice(-2);
-      }
-    }
-
-    // ==========================================
-    // 3. ESTAMPADO ANVERSO (PÁGINA 1)
-    // ==========================================
-   // 1. Nombre del Alumno: al lado de "Por cuanto"
-dibujaRenglonPunteado(frente, alumno.toUpperCase(), 130, 232, 532, fuenteBold, 11);
-
-// 2. D.U. N°: al lado de "D.U. N°"
-dibujaRenglonPunteado(frente, dniFormateado, 115, 207, 100, fuenteBold, 11);
-
-  // 3. Nombre del Trayecto / Curso: al lado del "de" (Subimos Y a 195)
-    dibujaRenglonPunteado(frente, trayecto.nombre.toUpperCase(), 91, 182, 400, fuenteBold, 9.5);
-
-    // 4. Horas de duración: calza en el espacio "de [XX] horas de duración"
-    frente.drawText(String(hsReloj), { x: 425, y: 182, size: 10, font: fuenteBold, color: colorNegro });
-
-   // ==========================================
-    // 5. DENOMINACIÓN CERTIFICADO DE...
-    // ==========================================
-    let textoCert = (trayecto.certificacion || trayecto.nombre).toUpperCase();
-    
-    let palabras = textoCert.split(' ');
-    let lineas = ['', '', ''];
-    let lineaActual = 0;
-    
-    // Ancho máximo disponible para distribuir el texto
-    let maxAnchos = [210, 440, 440]; 
-
-    palabras.forEach(palabra => {
-      let prueba = lineas[lineaActual] ? lineas[lineaActual] + ' ' + palabra : palabra;
-      if (fuenteBold.widthOfTextAtSize(prueba, 9.5) < maxAnchos[lineaActual]) {
-        lineas[lineaActual] = prueba;
-      } else {
-        if (lineaActual < 2) {
-          lineaActual++;
-          lineas[lineaActual] = palabra;
+        if (!numEgresadoDef) {
+          numEgresadoDef = prompt('Ingrese N° de Egresado asignado:', '01');
+          if (!numEgresadoDef) return;
         }
+
+        const fEgreso = prompt('Ingrese Fecha de Egreso:', '27 de Noviembre de 2026');
+        if (!fEgreso) return;
+
+        let dniFormateado = String(usuarioDni).replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+        // Validación: Si el usuario no era un DNI numérico, lo solicita
+        if (!dniFormateado) {
+          const dniManual = prompt('Ingrese el DNI/D.U. del alumno:', '12345678');
+          if (!dniManual) return;
+          dniFormateado = dniManual.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
+
+        let resVal = trayecto.resolucion ? `según Resolución Nro. ${trayecto.resolucion}` : '';
+        let cfpVal = '403';
+        let distritoVal = 'Luján';
+        let cursoNumVal = '395/26';
+
+        if (trayecto.descripcion) {
+          const matchCfp = trayecto.descripcion.match(/CFP N° (.*?) -/);
+          const matchDist = trayecto.descripcion.match(/Distrito: (.*?) \|/);
+          const matchCurso = trayecto.descripcion.match(/Curso N° (.*?) \|/);
+          if (matchCfp) cfpVal = matchCfp[1];
+          if (matchDist) distritoVal = matchDist[1];
+          if (matchCurso) cursoNumVal = matchCurso[1];
+        }
+
+        let hsReloj = trayecto.horas || '60';
+        let fechaEmision = trayecto.fecha_entrega || '23 de Septiembre de 2026';
+
+        // 1. Cargar el archivo plantilla.pdf subido
+        const resBytes = await fetch('./plantilla.pdf');
+        if (!resBytes.ok) throw new Error('No se encontró el archivo plantilla.pdf en la raíz del servidor/repositorio.');
+        const plantillaBytes = await resBytes.arrayBuffer();
+
+        // 2. Procesar con pdf-lib
+        const pdfDoc = await PDFLib.PDFDocument.load(plantillaBytes);
+        const fuenteBold = await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
+        const fuenteNorm = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+        const colorNegro = PDFLib.rgb(0, 0, 0);
+
+        const paginas = pdfDoc.getPages();
+        const frente = paginas[0];
+        const reverso = paginas.length > 1 ? paginas[1] : frente;
+
+        // Función para rellenar línea con puntos dinámicos
+        function dibujaRenglonPunteado(pagina, texto, xStart, yPos, xMax, font, size) {
+          pagina.drawText(texto, { x: xStart, y: yPos, size: size, font: font, color: colorNegro });
+          const textWidth = font.widthOfTextAtSize(texto, size);
+          let puntoX = xStart + textWidth + 5;
+          while (puntoX < xMax) {
+            pagina.drawText('.', { x: puntoX, y: yPos, size: size, font: font, color: colorNegro });
+            puntoX += 4;
+          }
+        }
+
+        // Parsear fecha de emisión
+        let diaE = '23', mesE = 'Septiembre', anioE = '26';
+        if (fechaEmision) {
+          const partesF = fechaEmision.split('de');
+          if (partesF.length === 3) {
+            diaE = partesF[0].trim();
+            mesE = partesF[1].trim();
+            anioE = partesF[2].trim().slice(-2);
+          }
+        }
+
+        // ==========================================
+        // 3. ESTAMPADO ANVERSO (PÁGINA 1)
+        // ==========================================
+        // 1. Nombre del Alumno
+        dibujaRenglonPunteado(frente, alumno.toUpperCase(), 130, 232, 532, fuenteBold, 11);
+
+        // 2. D.U. N°
+        dibujaRenglonPunteado(frente, dniFormateado, 115, 207, 230, fuenteBold, 11);
+
+        // 3. Nombre del Trayecto / Curso
+        dibujaRenglonPunteado(frente, trayecto.nombre.toUpperCase(), 91, 182, 400, fuenteBold, 9.5);
+
+        // 4. Horas de duración
+        frente.drawText(String(hsReloj), { x: 425, y: 182, size: 10, font: fuenteBold, color: colorNegro });
+
+        // ==========================================
+        // 5. DENOMINACIÓN CERTIFICADO DE... (Nombre + Resolución)
+        // ==========================================
+        let baseNombreCert = (trayecto.certificacion || trayecto.nombre).toUpperCase();
+        let textoCert = resVal ? `${baseNombreCert} ${resVal.toUpperCase()}` : baseNombreCert;
+        
+        let palabras = textoCert.split(' ');
+        let lineas = ['', '', ''];
+        let lineaActual = 0;
+        let maxAnchos = [210, 440, 440]; 
+
+        palabras.forEach(palabra => {
+          let prueba = lineas[lineaActual] ? lineas[lineaActual] + ' ' + palabra : palabra;
+          if (fuenteBold.widthOfTextAtSize(prueba, 8.5) < maxAnchos[lineaActual]) {
+            lineas[lineaActual] = prueba;
+          } else {
+            if (lineaActual < 2) {
+              lineaActual++;
+              lineas[lineaActual] = palabra;
+            }
+          }
+        });
+
+        dibujaRenglonPunteado(frente, lineas[0] || '', 320, 159, 532, fuenteBold, 8.5);
+        dibujaRenglonPunteado(frente, lineas[1] || '', 68, 135, 532, fuenteBold, 8.5);
+        dibujaRenglonPunteado(frente, lineas[2] || '', 68, 117, 532, fuenteBold, 8.5);
+
+        // ==========================================
+        // 6. FECHA DE EMISIÓN EN ANVERSO (Día, Mes, Año)
+        // ==========================================
+        frente.drawText(String(diaE),  { x: 235, y: 92, size: 10, font: fuenteBold, color: colorNegro });
+        frente.drawText(String(mesE),  { x: 300, y: 92, size: 10, font: fuenteBold, color: colorNegro });
+        frente.drawText(String(anioE), { x: 488, y: 92, size: 10, font: fuenteBold, color: colorNegro });
+
+        // ==========================================
+        // 4. ESTAMPADO REVERSO (PÁGINA 2) - 10 MÓDULOS
+        // ==========================================
+        let modulosList = [];
+        try {
+          modulosList = typeof trayecto.modulos === 'string' ? JSON.parse(trayecto.modulos) : (trayecto.modulos || []);
+        } catch (e) {}
+
+        // Coordenadas Y recalculadas para subir el primer módulo y repartir uniformemente 10 renglones
+        const yModulosArr = [282, 263, 244, 225, 206, 187, 168, 149, 130, 111];
+
+        modulosList.slice(0, 10).forEach((m, idx) => {
+          const modTxt = `${m.nombre} ${m.codigo ? '(' + m.codigo + ')' : ''}`;
+          dibujaRenglonPunteado(reverso, modTxt, 55, yModulosArr[idx], 420, fuenteNorm, 8.5);
+        });
+
+        // Pie del Reverso
+        reverso.drawText(fEgreso, { x: 110, y: 52, size: 9.5, font: fuenteBold, color: colorNegro });
+        reverso.drawText(numEgresadoDef, { x: 110, y: 38, size: 9.5, font: fuenteBold, color: colorNegro });
+        reverso.drawText(cfpVal, { x: 90, y: 15, size: 9.5, font: fuenteBold, color: colorNegro });
+        reverso.drawText(distritoVal, { x: 160, y: 15, size: 9.5, font: fuenteBold, color: colorNegro });
+
+        // 5. Salida y apertura del documento final
+        const pdfBytesFinal = await pdfDoc.save();
+        const blob = new Blob([pdfBytesFinal], { type: 'application/pdf' });
+        const pdfUrl = URL.createObjectURL(blob);
+        window.open(pdfUrl, '_blank');
+
+      } catch (err) {
+        alert('Error al generar el certificado sobre la plantilla: ' + err.message);
       }
-    });
+    }
 
-    // Renglón 1: Y bajado a 157, X en 300 y xMax ampliado a 535 para cubrir todo el renglón
-    dibujaRenglonPunteado(frente, lineas[0] || '', 320, 159, 532, fuenteBold, 9.5);
-
-    // Renglón 2: xMax en 535
-    dibujaRenglonPunteado(frente, lineas[1] || '', 68, 135, 532, fuenteBold, 9.5);
-
-    // Renglón 3: xMax en 535
-    dibujaRenglonPunteado(frente, lineas[2] || '', 68, 117, 532, fuenteBold, 9.5);
-   // ==========================================
-    // 6. FECHA DE EMISIÓN EN ANVERSO (Día, Mes, Año)
-    // Renglón: "..............de..............................de 20........"
-    // ==========================================
-    frente.drawText(String(diaE),  { x: 247, y: 98, size: 10, font: fuenteBold, color: colorNegro });
-    frente.drawText(String(mesE),  { x: 320, y: 98, size: 10, font: fuenteBold, color: colorNegro });
-    frente.drawText(String(anioE), { x: 494, y: 98, size: 10, font: fuenteBold, color: colorNegro });    // ==========================================
-    // 4. ESTAMPADO REVERSO (PÁGINA 2)
-    // ==========================================
-    let modulosList = [];
-    try {
-      modulosList = typeof trayecto.modulos === 'string' ? JSON.parse(trayecto.modulos) : (trayecto.modulos || []);
-    } catch (e) {}
-
-    const yModulosArr = [225, 208, 191, 174, 157, 140, 123, 106, 89, 72];
-
-    modulosList.slice(0, 10).forEach((m, idx) => {
-      const modTxt = `${m.nombre} ${m.codigo ? '(' + m.codigo + ')' : ''}`;
-      dibujaRenglonPunteado(reverso, modTxt, 55, yModulosArr[idx], 380, fuenteNorm, 9);
-    });
-
-    // Pie del Reverso
-    reverso.drawText(fEgreso, { x: 110, y: 52, size: 9.5, font: fuenteBold, color: colorNegro });
-    reverso.drawText(numEgresadoDef, { x: 110, y: 38, size: 9.5, font: fuenteBold, color: colorNegro });
-    reverso.drawText(cfpVal, { x: 90, y: 15, size: 9.5, font: fuenteBold, color: colorNegro });
-    reverso.drawText(distritoVal, { x: 160, y: 15, size: 9.5, font: fuenteBold, color: colorNegro });
-
-    // 5. Salida y apertura del documento final
-    const pdfBytesFinal = await pdfDoc.save();
-    const blob = new Blob([pdfBytesFinal], { type: 'application/pdf' });
-    const pdfUrl = URL.createObjectURL(blob);
-    window.open(pdfUrl, '_blank');
-
-  } catch (err) {
-    alert('Error al generar el certificado sobre la plantilla: ' + err.message);
-  }
-}
     async function procesarCargaMasiva() {
       const fileInput = document.getElementById('excel-file-input');
       const file = fileInput.files[0];
