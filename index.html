@@ -1001,9 +1001,34 @@
           }
         });
 
-        dibujaRenglonPunteado(frente, lineas[0] || '', 320, 159, 532, fuenteBold, 8.5);
-        dibujaRenglonPunteado(frente, lineas[1] || '', 68, 135, 532, fuenteBold, 8.5);
-        dibujaRenglonPunteado(frente, lineas[2] || '', 68, 117, 532, fuenteBold, 8.5);
+        // Identificar cuál es la última línea que efectivamente tiene texto
+        let ultimaLineaConTexto = 0;
+        if (lineas[2].trim() !== '') {
+          ultimaLineaConTexto = 2;
+        } else if (lineas[1].trim() !== '') {
+          ultimaLineaConTexto = 1;
+        } else {
+          ultimaLineaConTexto = 0;
+        }
+
+        // Configuración de coordenadas para los 3 renglones
+        const configRenglones = [
+          { texto: lineas[0], x: 320, y: 159, xMax: 532 },
+          { texto: lineas[1], x: 68,  y: 135, xMax: 532 },
+          { texto: lineas[2], x: 68,  y: 117, xMax: 532 }
+        ];
+
+        configRenglones.forEach((r, idx) => {
+          if (r.texto.trim() !== '') {
+            if (idx === ultimaLineaConTexto) {
+              // Renglón final del texto: escribe el texto y completa con puntos hasta xMax
+              dibujaRenglonPunteado(frente, r.texto, r.x, r.y, r.xMax, fuenteBold, 8.5);
+            } else {
+              // Renglón intermedio: escribe solo el texto sin agregar la línea punteada después
+              frente.drawText(r.texto, { x: r.x, y: r.y, size: 8.5, font: fuenteBold, color: colorNegro });
+            }
+          }
+        });
 
         // ==========================================
         // 6. FECHA DE EMISIÓN EN ANVERSO (Día, Mes, Año)
