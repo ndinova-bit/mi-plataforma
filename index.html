@@ -1034,10 +1034,10 @@
           if (r.texto.trim() !== '') {
             if (idx === ultimaLineaConTexto) {
               // Renglón final del texto: escribe el texto y completa con puntos hasta xMax
-              dibujaRenglonPunteado(frente, r.texto, r.x, r.y, r.xMax, fuenteRegular, 12);
+              dibujaRenglonPunteado(frente, r.texto, r.x, r.y, r.xMax, fuenteRegular, 11);
             } else {
               // Renglón intermedio: escribe solo el texto sin agregar la línea punteada después
-              frente.drawText(r.texto, { x: r.x, y: r.y, size: 12, font: fuenteRegular, color: colorNegro });
+              frente.drawText(r.texto, { x: r.x, y: r.y, size: 11, font: fuenteRegular, color: colorNegro });
             }
           }
         });
