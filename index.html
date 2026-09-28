@@ -1037,7 +1037,7 @@
         frente.drawText(String(mesE),  { x: 320, y: 98, size: 10, font: fuenteBold, color: colorNegro });
         frente.drawText(String(anioE), { x: 495, y: 98, size: 10, font: fuenteBold, color: colorNegro });
 
-        // ==========================================
+// ==========================================
         // 4. ESTAMPADO REVERSO (PÁGINA 2) - MÓDULOS
         // ==========================================
         let modulosList = [];
@@ -1046,17 +1046,16 @@
         } catch (e) {}
 
         if (modulosList && modulosList.length > 0) {
-          // Margen X para no tapar los números (1. a 5. y 6. a 10.)
-          const colIzqX = 55;       // Inicio columna izquierda
-          const colIzqMax = 280;    // Límite derecho col izq
+          // Posición X ajustada para dar más espacio a los números
+          const colIzqX = 78;       // Columna izquierda (despeja 1. a 5.)
+          const colIzqMax = 280;    
           
-          const colDerX = 312;      // Inicio columna derecha
-          const colDerMax = 525;    // Límite derecho col der
+          const colDerX = 320;      // Columna derecha (despeja 6. a 10.)
+          const colDerMax = 525;    
 
-          // Cambiás solo el primer valor (368 -> sube a 372 o 374)
-          // El orden es: [Fila 1 y 6, Fila 2 y 7, Fila 3 y 8, Fila 4 y 9, Fila 5 y 10]
-          const filasY = [374, 338, 308, 278, 248]; 
-          const pasoSegundoRenglon = 13;
+          // Filas Y: Fila 1 y 6 bajó a 371
+          const filasY = [371, 338, 308, 278, 248]; 
+          const pasoSegundoRenglon = 13; 
 
           modulosList.slice(0, 10).forEach((mod, idx) => {
             const esColDer = idx >= 5;
@@ -1089,15 +1088,11 @@
 
             let tieneRenglon2 = lineasMod[1].trim() !== '';
 
-            // 3. Dibujo respetando la norma de líneas punteadas
+            // 3. Dibujo con puntos
             if (!tieneRenglon2) {
-              // Si entra completo en 1 renglón: escribe y rellena con puntos hasta xMax
               dibujaRenglonPunteado(reverso, lineasMod[0], xInicio, yBase, xMax, fuenteBold, 6.0);
             } else {
-              // 1er renglón: texto limpio sobre la línea principal (sin puntos agregados al final)
               reverso.drawText(lineasMod[0], { x: xInicio, y: yBase, size: 6.0, font: fuenteBold, color: colorNegro });
-              
-              // 2do renglón: texto en la sub-línea inferior y rellena con puntos hasta xMax
               dibujaRenglonPunteado(reverso, lineasMod[1], xInicio, yBase - pasoSegundoRenglon, xMax, fuenteBold, 6.0);
             }
           });
