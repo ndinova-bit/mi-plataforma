@@ -1097,39 +1097,38 @@
             let tieneRenglon2 = lineasMod[1].trim() !== '';
 
             if (!tieneRenglon2) {
-              // Si solo usó 1 renglón: completa el 1er renglón con puntos y dibuja el 2do renglón punteado entero
-              dibujaRenglonPunteado(reverso, lineasMod[0], xInicio, yBase, xMax, fuenteBold, 6.0);
-              dibujaRenglonPunteado(reverso, '', xInicio, yBase - pasoSegundoRenglon, xMax, fuenteBold, 6.0);
-            } else {
-              // Si usó 2 renglones: el 1ro dibuja solo texto y el 2do completa con puntos
-              reverso.drawText(lineasMod[0], { x: xInicio, y: yBase, size: 6.0, font: fuenteBold, color: colorNegro });
-              dibujaRenglonPunteado(reverso, lineasMod[1], xInicio, yBase - pasoSegundoRenglon, xMax, fuenteBold, 6.0);
-            }
+  // Primer renglón con texto + puntos (tamaño 10.0, fuente regular)
+  dibujaRenglonPunteado(reverso, lineasMod[0], xInicio, yBase, xMax, fuenteRegular, 10.0);
+  
+  // Segundo renglón punteado completo (tamaño 10.0, fuente regular)
+  dibujaRenglonPunteado(reverso, '', xInicio, yBase - pasoSegundoRenglon, xMax, fuenteRegular, 10.0);
+} else {
+  // Si ocupa 2 renglones
+  reverso.drawText(lineasMod[0], { x: xInicio, y: yBase, size: 10.0, font: fuenteRegular, color: colorNegro });
+  dibujaRenglonPunteado(reverso, lineasMod[1], xInicio, yBase - pasoSegundoRenglon, xMax, fuenteRegular, 10.0);
+}
           });
         }
 
-        // ==========================================
+       // ==========================================
         // PIE DEL REVERSO (Alineación fina de posiciones)
         // ==========================================
 
-        // 1. Fecha de Egreso y N° de Egresado
-        // Bajamos Y a 198 para que apoyen sobre las líneas
+        // 1. Fecha de Egreso y N° de Egresado (Arial 12, sin negrita)
         if (fEgreso) {
-          reverso.drawText(fEgreso, { x: 165, y: 198, size: 9, font: fuenteBold, color: colorNegro });
+          reverso.drawText(fEgreso, { x: 150, y: 202, size: 12, font: fuenteRegular, color: colorNegro });
         }
         if (numEgresadoDef) {
-          reverso.drawText(String(numEgresadoDef), { x: 380, y: 198, size: 9, font: fuenteBold, color: colorNegro });
+          reverso.drawText(String(numEgresadoDef), { x: 380, y: 202, size: 12, font: fuenteRegular, color: colorNegro });
         }
 
-        // 2. C.F.P N° y Distrito de
-        // Bajamos Y a 68 y aumentamos X (150 y 370) para centrarlos en las líneas punteadas
+        // 2. C.F.P N° y Distrito de (Arial 12, sin negrita)
         if (cfpVal) {
-          reverso.drawText(String(cfpVal), { x: 150, y: 68, size: 9, font: fuenteBold, color: colorNegro });
+          reverso.drawText(String(cfpVal), { x: 150, y: 70, size: 12, font: fuenteRegular, color: colorNegro });
         }
         if (distritoVal) {
-          reverso.drawText(String(distritoVal), { x: 370, y: 68, size: 9, font: fuenteBold, color: colorNegro });
+          reverso.drawText(String(distritoVal), { x: 370, y: 70, size: 12, font: fuenteRegular, color: colorNegro });
         }
-
         // 5. Salida y apertura del documento final
         const pdfBytesFinal = await pdfDoc.save();
         const blob = new Blob([pdfBytesFinal], { type: 'application/pdf' });
