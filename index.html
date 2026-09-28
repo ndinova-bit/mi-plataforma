@@ -1065,16 +1065,46 @@
         } catch (e) {}
 
         if (modulosList && modulosList.length > 0) {
-          // Límites de las columnas
           const colIzqX = 55;       
           const colIzqMax = 270;    
-          
           const colDerX = 325;      
           const colDerMax = 530;    
 
           const filasY = [371, 338, 308, 278, 248]; 
           const pasoSegundoRenglon = 13; 
-          const tamanoModulo = 9.0; // Reducido a 9pt manteniendo la estructura
+          const tamanoModulo = 9.0;
+          const trackingMod = -0.3; // Comprime levemente el espacio entre caracteres sin perder legibilidad
+
+          // Función para medir el ancho del texto considerando la compresión entre caracteres
+          function medirAnchoConTracking(texto, font, size, tracking) {
+            if (!texto) return 0;
+            const anchoBase = font.widthOfTextAtSize(texto, size);
+            const ajusteSpacing = (texto.length - 1) * tracking;
+            return Math.max(0, anchoBase + ajusteSpacing);
+          }
+
+          // Función para dibujar texto con espaciado personalizado (caracter por caracter)
+          function dibujaTextoConTracking(pagina, texto, xStart, yPos, font, size, tracking) {
+            let xActual = xStart;
+            for (let i = 0; i < texto.length; i++) {
+              const char = texto[i];
+              pagina.drawText(char, { x: xActual, y: yPos, size: size, font: font, color: colorNegro });
+              xActual += font.widthOfTextAtSize(char, size) + tracking;
+            }
+            return xActual;
+          }
+
+          // Dibujar renglón punteado con tracking aplicado en el texto inicial
+          function dibujaRenglonModulo(pagina, texto, xStart, yPos, xMax, font, size, tracking) {
+            let puntoX = xStart;
+            if (texto) {
+              puntoX = dibujaTextoConTracking(pagina, texto, xStart, yPos, font, size, tracking) + 4;
+            }
+            while (puntoX < xMax) {
+              pagina.drawText('.', { x: puntoX, y: yPos, size: size, font: font, color: colorNegro });
+              puntoX += 4;
+            }
+          }
 
           modulosList.slice(0, 10).forEach((mod, idx) => {
             const esColDer = idx >= 5;
@@ -1096,8 +1126,7 @@
             palabrasMod.forEach(p => {
               let prueba = lineasMod[lActual] ? lineasMod[lActual] + ' ' + p : p;
               
-              // Medición ajustada al tamaño 9.0 pt
-              if (fuenteRegular.widthOfTextAtSize(prueba, tamanoModulo) < anchoMax) {
+              if (medirAnchoConTracking(prueba, fuenteRegular, tamanoModulo, trackingMod) < anchoMax) {
                 lineasMod[lActual] = prueba;
               } else if (lActual === 0) {
                 lActual = 1;
@@ -1108,13 +1137,11 @@
             let tieneRenglon2 = lineasMod[1].trim() !== '';
 
             if (!tieneRenglon2) {
-              // 1er renglón con puntos y 2do renglón punteado completo (ambos a 9pt)
-              dibujaRenglonPunteado(reverso, lineasMod[0], xInicio, yBase, xMax, fuenteRegular, tamanoModulo);
-              dibujaRenglonPunteado(reverso, '', xInicio, yBase - pasoSegundoRenglon, xMax, fuenteRegular, tamanoModulo);
+              dibujaRenglonModulo(reverso, lineasMod[0], xInicio, yBase, xMax, fuenteRegular, tamanoModulo, trackingMod);
+              dibujaRenglonModulo(reverso, '', xInicio, yBase - pasoSegundoRenglon, xMax, fuenteRegular, tamanoModulo, trackingMod);
             } else {
-              // 1er renglón texto y 2do renglón completa con puntos (ambos a 9pt)
-              reverso.drawText(lineasMod[0], { x: xInicio, y: yBase, size: tamanoModulo, font: fuenteRegular, color: colorNegro });
-              dibujaRenglonPunteado(reverso, lineasMod[1], xInicio, yBase - pasoSegundoRenglon, xMax, fuenteRegular, tamanoModulo);
+              dibujaTextoConTracking(reverso, lineasMod[0], xInicio, yBase, fuenteRegular, tamanoModulo, trackingMod);
+              dibujaRenglonModulo(reverso, lineasMod[1], xInicio, yBase - pasoSegundoRenglon, xMax, fuenteRegular, tamanoModulo, trackingMod);
             }
           });
         }
