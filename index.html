@@ -1038,7 +1038,7 @@
         frente.drawText(String(anioE), { x: 495, y: 98, size: 10, font: fuenteBold, color: colorNegro });
 
 // ==========================================
-        // 4. ESTAMPADO REVERSO (PÁGINA 2) - MÓDULOS
+        // 4. ESTAMPADO REVERSO (PÁGINA 2)
         // ==========================================
         let modulosList = [];
         try {
@@ -1046,14 +1046,13 @@
         } catch (e) {}
 
         if (modulosList && modulosList.length > 0) {
-          // Posición X ajustada para dar más espacio a los números
-          const colIzqX = 78;       // Columna izquierda (despeja 1. a 5.)
+          // Columna izquierda pegada a los números (68) y columna derecha en 320
+          const colIzqX = 68;       
           const colIzqMax = 280;    
           
-          const colDerX = 320;      // Columna derecha (despeja 6. a 10.)
+          const colDerX = 320;      
           const colDerMax = 525;    
 
-          // Filas Y: Fila 1 y 6 bajó a 371
           const filasY = [371, 338, 308, 278, 248]; 
           const pasoSegundoRenglon = 13; 
 
@@ -1065,12 +1064,10 @@
             const xMax = esColDer ? colDerMax : colIzqMax;
             const yBase = filasY[filaIdx];
 
-            // 1. Formato: (CÓDIGO) NOMBRE
             let cod = mod.codigo ? `(${mod.codigo}) ` : '';
             let nom = mod.nombre ? mod.nombre.toUpperCase() : '';
             let textoModulo = `${cod}${nom}`.trim();
 
-            // 2. Partición de palabras
             let palabrasMod = textoModulo.split(' ');
             let lineasMod = ['', ''];
             let lActual = 0;
@@ -1088,7 +1085,6 @@
 
             let tieneRenglon2 = lineasMod[1].trim() !== '';
 
-            // 3. Dibujo con puntos
             if (!tieneRenglon2) {
               dibujaRenglonPunteado(reverso, lineasMod[0], xInicio, yBase, xMax, fuenteBold, 6.0);
             } else {
@@ -1097,11 +1093,28 @@
             }
           });
         }
-        // Pie del Reverso
-        reverso.drawText(fEgreso, { x: 110, y: 52, size: 9.5, font: fuenteBold, color: colorNegro });
-        reverso.drawText(numEgresadoDef, { x: 110, y: 38, size: 9.5, font: fuenteBold, color: colorNegro });
-        reverso.drawText(cfpVal, { x: 90, y: 15, size: 9.5, font: fuenteBold, color: colorNegro });
-        reverso.drawText(distritoVal, { x: 160, y: 15, size: 9.5, font: fuenteBold, color: colorNegro });
+
+        // ==========================================
+        // PIE DEL REVERSO (Fecha de Egreso, N° Egresado, CFP y Distrito)
+        // ==========================================
+
+        // 1. Fecha de Egreso y N° de Egresado (Línea superior)
+        // Subimos Y de 52/38 a ~212 para alinearlos con sus líneas punteadas
+        if (fEgreso) {
+          reverso.drawText(fEgreso, { x: 165, y: 212, size: 9, font: fuenteBold, color: colorNegro });
+        }
+        if (numEgresadoDef) {
+          reverso.drawText(String(numEgresadoDef), { x: 380, y: 212, size: 9, font: fuenteBold, color: colorNegro });
+        }
+
+        // 2. C.F.P N° y Distrito de (Línea inferior de certificación)
+        // Subimos Y de 15 a ~73 para asentarlos sobre "del C.F.P N°" y "del Distrito de"
+        if (cfpVal) {
+          reverso.drawText(String(cfpVal), { x: 120, y: 73, size: 9, font: fuenteBold, color: colorNegro });
+        }
+        if (distritoVal) {
+          reverso.drawText(String(distritoVal), { x: 340, y: 73, size: 9, font: fuenteBold, color: colorNegro });
+        }
 
         // 5. Salida y apertura del documento final
         const pdfBytesFinal = await pdfDoc.save();
