@@ -993,20 +993,24 @@
        // ==========================================
         // 5. DENOMINACIÓN CERTIFICADO DE... (Nombre + Resolución)
         // ==========================================
+        // Si el nombre del trayecto ya está en el renglón 3, recortamos el prefijo
+        // o tomamos solo el número de resolución para evitar duplicaciones con la plantilla.
         let baseNombreCert = (trayecto.certificacion || trayecto.nombre).toUpperCase();
-        let textoCert = resVal ? `${baseNombreCert} ${resVal.toUpperCase()}` : baseNombreCert;
         
-        const tamanoCert = 10.0;
-        const xMaxGeneral = 520; // Límite seguro para no desbordar el marco derecho
+        // Extraemos solo el texto/número de la resolución (sin la coletilla "según Resolución Nro.")
+        let resTextoLimpio = trayecto.resolucion ? trayecto.resolucion.toUpperCase() : '';
+        
+        // Si baseNombreCert ya incluye el título del certificado, no lo repetimos
+        let textoCert = resTextoLimpio; 
 
-        // Medición real a tamaño 10 con fuenteRegular
-        let palabras = textoCert.split(' ');
+        const tamanoCert = 10.0;
+        const xMaxGeneral = 520;
+
+        // Limpieza y distribución de palabras en los renglones correspondientes
+        let palabras = textoCert.split(' ').filter(Boolean);
         let lineas = ['', '', ''];
         let lineaActual = 0;
         
-        // Anchos disponibles exactos según punto de inicio:
-        // Renglón 0: 520 - 300 = 220px
-        // Renglones 1 y 2: 520 - 68 = 452px
         palabras.forEach(palabra => {
           let xInicioActual = (lineaActual === 0) ? 300 : 68;
           let anchoDisponible = xMaxGeneral - xInicioActual;
@@ -1020,15 +1024,16 @@
           }
         });
 
-        // Identificar la última línea con texto
-        let ultimaLineaConTexto = 0;
-        if (lineas[2].trim() !== '') {
-          ultimaLineaConTexto = 2;
-        } else if (lineas[1].trim() !== '') {
-          ultimaLineaConTexto = 1;
+        // Identificar la última línea activa que contenga texto
+        let ultimaLineaConTexto = -1;
+        for (let i = 2; i >= 0; i--) {
+          if (lineas[i].trim() !== '') {
+            ultimaLineaConTexto = i;
+            break;
+          }
         }
 
-        // Configuración de coordenadas
+        // Configuración de coordenadas exactas para los 3 renglones
         const configRenglones = [
           { texto: lineas[0], x: 300, y: 159, xMax: xMaxGeneral },
           { texto: lineas[1], x: 68,  y: 135, xMax: xMaxGeneral },
@@ -1038,10 +1043,8 @@
         configRenglones.forEach((r, idx) => {
           if (r.texto.trim() !== '') {
             if (idx === ultimaLineaConTexto) {
-              // Último renglón: escribe el texto y completa con puntos hasta xMax (520)
               dibujaRenglonPunteado(frente, r.texto, r.x, r.y, r.xMax, fuenteRegular, tamanoCert);
             } else {
-              // Renglón intermedio: escribe el texto alineado
               frente.drawText(r.texto, { x: r.x, y: r.y, size: tamanoCert, font: fuenteRegular, color: colorNegro });
             }
           }
@@ -1129,10 +1132,10 @@
 
         // 2. C.F.P N° y Distrito de (Arial 12, sin negrita)
         if (cfpVal) {
-          reverso.drawText(String(cfpVal), { x: 150, y: 68, size: 12, font: fuenteRegular, color: colorNegro });
+          reverso.drawText(String(cfpVal), { x: 150, y: 70, size: 12, font: fuenteRegular, color: colorNegro });
         }
         if (distritoVal) {
-          reverso.drawText(String(distritoVal), { x: 390, y: 68, size: 12, font: fuenteRegular, color: colorNegro });
+          reverso.drawText(String(distritoVal), { x: 390, y: 70, size: 12, font: fuenteRegular, color: colorNegro });
         }
         // 5. Salida y apertura del documento final
         const pdfBytesFinal = await pdfDoc.save();
