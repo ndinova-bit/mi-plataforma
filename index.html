@@ -1067,13 +1067,14 @@
         if (modulosList && modulosList.length > 0) {
           // Límites de las columnas
           const colIzqX = 55;       
-          const colIzqMax = 270;    // Ajustado para que no invada la columna derecha
+          const colIzqMax = 270;    
           
-          const colDerX = 325;      // Movido un poco a la derecha para dar aire
+          const colDerX = 325;      
           const colDerMax = 530;    
 
           const filasY = [371, 338, 308, 278, 248]; 
           const pasoSegundoRenglon = 13; 
+          const tamanoModulo = 9.0; // Reducido a 9pt manteniendo la estructura
 
           modulosList.slice(0, 10).forEach((mod, idx) => {
             const esColDer = idx >= 5;
@@ -1095,8 +1096,8 @@
             palabrasMod.forEach(p => {
               let prueba = lineasMod[lActual] ? lineasMod[lActual] + ' ' + p : p;
               
-              // ¡CLAVE! Se mide con tamaño 10.0 y fuenteRegular
-              if (fuenteRegular.widthOfTextAtSize(prueba, 10.0) < anchoMax) {
+              // Medición ajustada al tamaño 9.0 pt
+              if (fuenteRegular.widthOfTextAtSize(prueba, tamanoModulo) < anchoMax) {
                 lineasMod[lActual] = prueba;
               } else if (lActual === 0) {
                 lActual = 1;
@@ -1107,13 +1108,13 @@
             let tieneRenglon2 = lineasMod[1].trim() !== '';
 
             if (!tieneRenglon2) {
-              // 1er renglón con puntos y 2do renglón punteado completo (ambos a 10pt)
-              dibujaRenglonPunteado(reverso, lineasMod[0], xInicio, yBase, xMax, fuenteRegular, 10.0);
-              dibujaRenglonPunteado(reverso, '', xInicio, yBase - pasoSegundoRenglon, xMax, fuenteRegular, 10.0);
+              // 1er renglón con puntos y 2do renglón punteado completo (ambos a 9pt)
+              dibujaRenglonPunteado(reverso, lineasMod[0], xInicio, yBase, xMax, fuenteRegular, tamanoModulo);
+              dibujaRenglonPunteado(reverso, '', xInicio, yBase - pasoSegundoRenglon, xMax, fuenteRegular, tamanoModulo);
             } else {
-              // 1er renglón texto y 2do renglón completa con puntos (ambos a 10pt)
-              reverso.drawText(lineasMod[0], { x: xInicio, y: yBase, size: 10.0, font: fuenteRegular, color: colorNegro });
-              dibujaRenglonPunteado(reverso, lineasMod[1], xInicio, yBase - pasoSegundoRenglon, xMax, fuenteRegular, 10.0);
+              // 1er renglón texto y 2do renglón completa con puntos (ambos a 9pt)
+              reverso.drawText(lineasMod[0], { x: xInicio, y: yBase, size: tamanoModulo, font: fuenteRegular, color: colorNegro });
+              dibujaRenglonPunteado(reverso, lineasMod[1], xInicio, yBase - pasoSegundoRenglon, xMax, fuenteRegular, tamanoModulo);
             }
           });
         }
@@ -1132,10 +1133,10 @@
 
         // 2. C.F.P N° y Distrito de (Arial 12, sin negrita)
         if (cfpVal) {
-          reverso.drawText(String(cfpVal), { x: 150, y: 70, size: 12, font: fuenteRegular, color: colorNegro });
+          reverso.drawText(String(cfpVal), { x: 150, y: 72, size: 12, font: fuenteRegular, color: colorNegro });
         }
         if (distritoVal) {
-          reverso.drawText(String(distritoVal), { x: 390, y: 70, size: 12, font: fuenteRegular, color: colorNegro });
+          reverso.drawText(String(distritoVal), { x: 390, y: 72, size: 12, font: fuenteRegular, color: colorNegro });
         }
         // 5. Salida y apertura del documento final
         const pdfBytesFinal = await pdfDoc.save();
