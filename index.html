@@ -1058,7 +1058,7 @@
         } catch (e) {}
 
         if (modulosList && modulosList.length > 0) {
-          const colIzqX = 68;       
+          const colIzqX = 55;       
           const colIzqMax = 280;    
           
           const colDerX = 320;      
@@ -1116,18 +1116,18 @@
 
         // 1. Fecha de Egreso y N° de Egresado (Arial 12, sin negrita)
         if (fEgreso) {
-          reverso.drawText(fEgreso, { x: 150, y: 202, size: 12, font: fuenteRegular, color: colorNegro });
+          reverso.drawText(fEgreso, { x: 140, y: 210, size: 12, font: fuenteRegular, color: colorNegro });
         }
         if (numEgresadoDef) {
-          reverso.drawText(String(numEgresadoDef), { x: 380, y: 202, size: 12, font: fuenteRegular, color: colorNegro });
+          reverso.drawText(String(numEgresadoDef), { x: 420, y: 210, size: 12, font: fuenteRegular, color: colorNegro });
         }
 
         // 2. C.F.P N° y Distrito de (Arial 12, sin negrita)
         if (cfpVal) {
-          reverso.drawText(String(cfpVal), { x: 150, y: 70, size: 12, font: fuenteRegular, color: colorNegro });
+          reverso.drawText(String(cfpVal), { x: 150, y: 72, size: 12, font: fuenteRegular, color: colorNegro });
         }
         if (distritoVal) {
-          reverso.drawText(String(distritoVal), { x: 370, y: 70, size: 12, font: fuenteRegular, color: colorNegro });
+          reverso.drawText(String(distritoVal), { x: 390, y: 42, size: 12, font: fuenteRegular, color: colorNegro });
         }
         // 5. Salida y apertura del documento final
         const pdfBytesFinal = await pdfDoc.save();
