@@ -1033,9 +1033,9 @@
         // ==========================================
         // 6. FECHA DE EMISIÓN EN ANVERSO (Día, Mes, Año)
         // ==========================================
-        frente.drawText(String(diaE),  { x: 250, y: 97, size: 10, font: fuenteBold, color: colorNegro });
-        frente.drawText(String(mesE),  { x: 320, y: 97, size: 10, font: fuenteBold, color: colorNegro });
-        frente.drawText(String(anioE), { x: 495, y: 97, size: 10, font: fuenteBold, color: colorNegro });
+        frente.drawText(String(diaE),  { x: 250, y: 98, size: 10, font: fuenteBold, color: colorNegro });
+        frente.drawText(String(mesE),  { x: 320, y: 98, size: 10, font: fuenteBold, color: colorNegro });
+        frente.drawText(String(anioE), { x: 495, y: 98, size: 10, font: fuenteBold, color: colorNegro });
 
         // ==========================================
         // 4. ESTAMPADO REVERSO (PÁGINA 2) - MÓDULOS
@@ -1047,15 +1047,16 @@
 
         if (modulosList && modulosList.length > 0) {
           // Margen X para no tapar los números (1. a 5. y 6. a 10.)
-          const colIzqX = 72;       // Inicio columna izquierda
+          const colIzqX = 55;       // Inicio columna izquierda
           const colIzqMax = 280;    // Límite derecho col izq
           
           const colDerX = 312;      // Inicio columna derecha
           const colDerMax = 525;    // Límite derecho col der
 
-          // Coordenadas Y de la LÍNEA PRINCIPAL de cada número (1 al 5 y 6 al 10)
-          const filasY = [368, 338, 308, 278, 248]; 
-          const pasoSegundoRenglon = 13; // Distancia para bajar al sub-renglón punteado
+          // Cambiás solo el primer valor (368 -> sube a 372 o 374)
+          // El orden es: [Fila 1 y 6, Fila 2 y 7, Fila 3 y 8, Fila 4 y 9, Fila 5 y 10]
+          const filasY = [374, 338, 308, 278, 248]; 
+          const pasoSegundoRenglon = 13;
 
           modulosList.slice(0, 10).forEach((mod, idx) => {
             const esColDer = idx >= 5;
