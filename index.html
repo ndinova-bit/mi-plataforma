@@ -990,58 +990,62 @@
         // 4. Horas de duración
         frente.drawText(String(hsReloj), { x: 425, y: 182, size: 12, font: fuenteRegular, color: colorNegro });
 
-        // ==========================================
+       // ==========================================
         // 5. DENOMINACIÓN CERTIFICADO DE... (Nombre + Resolución)
         // ==========================================
         let baseNombreCert = (trayecto.certificacion || trayecto.nombre).toUpperCase();
         let textoCert = resVal ? `${baseNombreCert} ${resVal.toUpperCase()}` : baseNombreCert;
         
+        const tamanoCert = 10.0;
+        const xMaxGeneral = 520; // Límite seguro para no desbordar el marco derecho
+
+        // Medición real a tamaño 10 con fuenteRegular
         let palabras = textoCert.split(' ');
         let lineas = ['', '', ''];
         let lineaActual = 0;
-        let maxAnchos = [210, 440, 440]; 
-
+        
+        // Anchos disponibles exactos según punto de inicio:
+        // Renglón 0: 520 - 300 = 220px
+        // Renglones 1 y 2: 520 - 68 = 452px
         palabras.forEach(palabra => {
+          let xInicioActual = (lineaActual === 0) ? 300 : 68;
+          let anchoDisponible = xMaxGeneral - xInicioActual;
           let prueba = lineas[lineaActual] ? lineas[lineaActual] + ' ' + palabra : palabra;
-          if (fuenteBold.widthOfTextAtSize(prueba, 8.5) < maxAnchos[lineaActual]) {
+
+          if (fuenteRegular.widthOfTextAtSize(prueba, tamanoCert) < anchoDisponible) {
             lineas[lineaActual] = prueba;
-          } else {
-            if (lineaActual < 2) {
-              lineaActual++;
-              lineas[lineaActual] = palabra;
-            }
+          } else if (lineaActual < 2) {
+            lineaActual++;
+            lineas[lineaActual] = palabra;
           }
         });
 
-        // Identificar cuál es la última línea que efectivamente tiene texto
+        // Identificar la última línea con texto
         let ultimaLineaConTexto = 0;
         if (lineas[2].trim() !== '') {
           ultimaLineaConTexto = 2;
         } else if (lineas[1].trim() !== '') {
           ultimaLineaConTexto = 1;
-        } else {
-          ultimaLineaConTexto = 0;
         }
 
-        // Configuración de coordenadas para los 3 renglones
+        // Configuración de coordenadas
         const configRenglones = [
-          { texto: lineas[0], x: 320, y: 159, xMax: 532 },
-          { texto: lineas[1], x: 68,  y: 135, xMax: 532 },
-          { texto: lineas[2], x: 68,  y: 117, xMax: 532 }
+          { texto: lineas[0], x: 300, y: 159, xMax: xMaxGeneral },
+          { texto: lineas[1], x: 68,  y: 135, xMax: xMaxGeneral },
+          { texto: lineas[2], x: 68,  y: 117, xMax: xMaxGeneral }
         ];
 
         configRenglones.forEach((r, idx) => {
           if (r.texto.trim() !== '') {
             if (idx === ultimaLineaConTexto) {
-              // Renglón final del texto: escribe el texto y completa con puntos hasta xMax
-              dibujaRenglonPunteado(frente, r.texto, r.x, r.y, r.xMax, fuenteRegular, 11);
+              // Último renglón: escribe el texto y completa con puntos hasta xMax (520)
+              dibujaRenglonPunteado(frente, r.texto, r.x, r.y, r.xMax, fuenteRegular, tamanoCert);
             } else {
-              // Renglón intermedio: escribe solo el texto sin agregar la línea punteada después
-              frente.drawText(r.texto, { x: r.x, y: r.y, size: 11, font: fuenteRegular, color: colorNegro });
+              // Renglón intermedio: escribe el texto alineado
+              frente.drawText(r.texto, { x: r.x, y: r.y, size: tamanoCert, font: fuenteRegular, color: colorNegro });
             }
           }
         });
-
         // ==========================================
         // 6. FECHA DE EMISIÓN EN ANVERSO (Día, Mes, Año)
         // ==========================================
@@ -1111,24 +1115,24 @@
           });
         }
 
-       // ==========================================
+      // ==========================================
         // PIE DEL REVERSO (Alineación fina de posiciones)
         // ==========================================
 
         // 1. Fecha de Egreso y N° de Egresado (Arial 12, sin negrita)
         if (fEgreso) {
-          reverso.drawText(fEgreso, { x: 140, y: 210, size: 12, font: fuenteRegular, color: colorNegro });
+          reverso.drawText(fEgreso, { x: 140, y: 202, size: 12, font: fuenteRegular, color: colorNegro });
         }
         if (numEgresadoDef) {
-          reverso.drawText(String(numEgresadoDef), { x: 420, y: 210, size: 12, font: fuenteRegular, color: colorNegro });
+          reverso.drawText(String(numEgresadoDef), { x: 420, y: 202, size: 12, font: fuenteRegular, color: colorNegro });
         }
 
         // 2. C.F.P N° y Distrito de (Arial 12, sin negrita)
         if (cfpVal) {
-          reverso.drawText(String(cfpVal), { x: 150, y: 72, size: 12, font: fuenteRegular, color: colorNegro });
+          reverso.drawText(String(cfpVal), { x: 150, y: 68, size: 12, font: fuenteRegular, color: colorNegro });
         }
         if (distritoVal) {
-          reverso.drawText(String(distritoVal), { x: 390, y: 42, size: 12, font: fuenteRegular, color: colorNegro });
+          reverso.drawText(String(distritoVal), { x: 390, y: 68, size: 12, font: fuenteRegular, color: colorNegro });
         }
         // 5. Salida y apertura del documento final
         const pdfBytesFinal = await pdfDoc.save();
