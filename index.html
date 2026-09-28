@@ -1033,25 +1033,70 @@
         // ==========================================
         // 6. FECHA DE EMISIÓN EN ANVERSO (Día, Mes, Año)
         // ==========================================
-        frente.drawText(String(diaE),  { x: 235, y: 92, size: 10, font: fuenteBold, color: colorNegro });
-        frente.drawText(String(mesE),  { x: 300, y: 92, size: 10, font: fuenteBold, color: colorNegro });
-        frente.drawText(String(anioE), { x: 488, y: 92, size: 10, font: fuenteBold, color: colorNegro });
+        frente.drawText(String(diaE),  { x: 250, y: 98, size: 10, font: fuenteBold, color: colorNegro });
+        frente.drawText(String(mesE),  { x: 320, y: 98, size: 10, font: fuenteBold, color: colorNegro });
+        frente.drawText(String(anioE), { x: 493, y: 98, size: 10, font: fuenteBold, color: colorNegro });
 
         // ==========================================
-        // 4. ESTAMPADO REVERSO (PÁGINA 2) - 10 MÓDULOS
+        // 4. ESTAMPADO REVERSO (PÁGINA 2) - MÓDULOS
         // ==========================================
         let modulosList = [];
         try {
           modulosList = typeof trayecto.modulos === 'string' ? JSON.parse(trayecto.modulos) : (trayecto.modulos || []);
         } catch (e) {}
 
-        // Coordenadas Y recalculadas para subir el primer módulo y repartir uniformemente 10 renglones
-        const yModulosArr = [282, 263, 244, 225, 206, 187, 168, 149, 130, 111];
+        if (modulosList && modulosList.length > 0) {
+          // Coordenadas base
+          const colIzqX = 60;       // Inicio texto columna 1 a 5 (después del "1. ")
+          const colIzqMax = 278;    // Límite derecho de columna 1 a 5
+          
+          const colDerX = 300;      // Inicio texto columna 6 a 10 (después del "6. ")
+          const colDerMax = 532;    // Límite derecho de columna 6 a 10
 
-        modulosList.slice(0, 10).forEach((m, idx) => {
-          const modTxt = `${m.nombre} ${m.codigo ? '(' + m.codigo + ')' : ''}`;
-          dibujaRenglonPunteado(reverso, modTxt, 55, yModulosArr[idx], 420, fuenteNorm, 8.5);
-        });
+          // Posiciones Y para las 5 filas
+          const filasY = [436, 408, 380, 352, 324]; 
+          const altoRenglon2 = 10; 
+
+          modulosList.slice(0, 10).forEach((mod, idx) => {
+            const esColDer = idx >= 5;
+            const filaIdx = idx % 5;
+            
+            const xInicio = esColDer ? colDerX : colIzqX;
+            const xMax = esColDer ? colDerMax : colIzqMax;
+            const yBase = filasY[filaIdx];
+
+            // 1. Código antes del Nombre
+            let cod = mod.codigo ? `(${mod.codigo}) ` : '';
+            let nom = mod.nombre ? mod.nombre.toUpperCase() : '';
+            let textoModulo = `${cod}${nom}`.trim();
+
+            // 2. Separación en hasta 2 renglones
+            let palabrasMod = textoModulo.split(' ');
+            let lineasMod = ['', ''];
+            let lActual = 0;
+            let anchoMax = xMax - xInicio;
+
+            palabrasMod.forEach(p => {
+              let prueba = lineasMod[lActual] ? lineasMod[lActual] + ' ' + p : p;
+              if (fuenteBold.widthOfTextAtSize(prueba, 7.5) < anchoMax) {
+                lineasMod[lActual] = prueba;
+              } else if (lActual === 0) {
+                lActual = 1;
+                lineasMod[1] = p;
+              }
+            });
+
+            let tieneRenglon2 = lineasMod[1].trim() !== '';
+
+            // 3. Dibujo con la regla de puntos (reemplazá reverso si en tu código usás dorso)
+            if (!tieneRenglon2) {
+              dibujaRenglonPunteado(reverso, lineasMod[0], xInicio, yBase, xMax, fuenteBold, 7.5);
+            } else {
+              reverso.drawText(lineasMod[0], { x: xInicio, y: yBase, size: 7.5, font: fuenteBold, color: colorNegro });
+              dibujaRenglonPunteado(reverso, lineasMod[1], xInicio, yBase - altoRenglon2, xMax, fuenteBold, 7.5);
+            }
+          });
+        }
 
         // Pie del Reverso
         reverso.drawText(fEgreso, { x: 110, y: 52, size: 9.5, font: fuenteBold, color: colorNegro });
