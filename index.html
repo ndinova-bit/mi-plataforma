@@ -17,10 +17,21 @@
   align-items: center; 
   height: 100vh; 
   width: 100vw;
-  background-color: #0f172a !important; /* Color de fondo para rellenar a los lados */
-  background-image: url('PRUEBA%20CFP%20SIN%20FONDO.png') !important; 
-  background-size: contain !important; /* En lugar de cover, usa contain */
-  background-position: center !important; 
+  background-color: #0b1329 !important; /* El azul oscuro de fondo */
+  
+  /* Carga la misma imagen dos veces */
+  background-image: 
+    url('PRUEBA%20CFP%20SIN%20FONDO.png'), 
+    url('PRUEBA%20CFP%20SIN%20FONDO.png') !important; 
+
+  /* Ubica una a la izquierda (10% del borde) y otra a la derecha (90%) */
+  background-position: 
+    left 8% center, 
+    right 8% center !important; 
+
+  /* Define el tamaño exacto de cada logo (320px de ancho) */
+  background-size: 320px auto, 320px auto !important; 
+
   background-repeat: no-repeat !important; 
   background-attachment: fixed !important; 
 }
