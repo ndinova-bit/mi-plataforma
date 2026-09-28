@@ -946,7 +946,7 @@
         // 2. Procesar con pdf-lib
         const pdfDoc = await PDFLib.PDFDocument.load(plantillaBytes);
         const fuenteBold = await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
-        const fuenteNorm = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+        const fuenteRegular = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
         const colorNegro = PDFLib.rgb(0, 0, 0);
 
         const paginas = pdfDoc.getPages();
