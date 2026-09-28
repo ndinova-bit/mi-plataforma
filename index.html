@@ -1050,7 +1050,7 @@
         frente.drawText(String(anioE), { x: 495, y: 98, size: 10, font: fuenteBold, color: colorNegro });
 
 // ==========================================
-        // 4. ESTAMPADO REVERSO (PÁGINA 2)
+        // 4. ESTAMPADO REVERSO (PÁGINA 2) - MÓDULOS
         // ==========================================
         let modulosList = [];
         try {
@@ -1058,8 +1058,7 @@
         } catch (e) {}
 
         if (modulosList && modulosList.length > 0) {
-          // Columna izquierda pegada a los números (68) y columna derecha en 320
-          const colIzqX = 52;       
+          const colIzqX = 68;       
           const colIzqMax = 280;    
           
           const colDerX = 320;      
@@ -1098,8 +1097,11 @@
             let tieneRenglon2 = lineasMod[1].trim() !== '';
 
             if (!tieneRenglon2) {
+              // Si solo usó 1 renglón: completa el 1er renglón con puntos y dibuja el 2do renglón punteado entero
               dibujaRenglonPunteado(reverso, lineasMod[0], xInicio, yBase, xMax, fuenteBold, 6.0);
+              dibujaRenglonPunteado(reverso, '', xInicio, yBase - pasoSegundoRenglon, xMax, fuenteBold, 6.0);
             } else {
+              // Si usó 2 renglones: el 1ro dibuja solo texto y el 2do completa con puntos
               reverso.drawText(lineasMod[0], { x: xInicio, y: yBase, size: 6.0, font: fuenteBold, color: colorNegro });
               dibujaRenglonPunteado(reverso, lineasMod[1], xInicio, yBase - pasoSegundoRenglon, xMax, fuenteBold, 6.0);
             }
@@ -1107,25 +1109,25 @@
         }
 
         // ==========================================
-        // PIE DEL REVERSO (Fecha de Egreso, N° Egresado, CFP y Distrito)
+        // PIE DEL REVERSO (Alineación fina de posiciones)
         // ==========================================
 
-        // 1. Fecha de Egreso y N° de Egresado (Línea superior)
-        // Subimos Y de 52/38 a ~212 para alinearlos con sus líneas punteadas
+        // 1. Fecha de Egreso y N° de Egresado
+        // Bajamos Y a 198 para que apoyen sobre las líneas
         if (fEgreso) {
-          reverso.drawText(fEgreso, { x: 165, y: 212, size: 9, font: fuenteBold, color: colorNegro });
+          reverso.drawText(fEgreso, { x: 165, y: 198, size: 9, font: fuenteBold, color: colorNegro });
         }
         if (numEgresadoDef) {
-          reverso.drawText(String(numEgresadoDef), { x: 380, y: 212, size: 9, font: fuenteBold, color: colorNegro });
+          reverso.drawText(String(numEgresadoDef), { x: 380, y: 198, size: 9, font: fuenteBold, color: colorNegro });
         }
 
-        // 2. C.F.P N° y Distrito de (Línea inferior de certificación)
-        // Subimos Y de 15 a ~73 para asentarlos sobre "del C.F.P N°" y "del Distrito de"
+        // 2. C.F.P N° y Distrito de
+        // Bajamos Y a 68 y aumentamos X (150 y 370) para centrarlos en las líneas punteadas
         if (cfpVal) {
-          reverso.drawText(String(cfpVal), { x: 120, y: 73, size: 9, font: fuenteBold, color: colorNegro });
+          reverso.drawText(String(cfpVal), { x: 150, y: 68, size: 9, font: fuenteBold, color: colorNegro });
         }
         if (distritoVal) {
-          reverso.drawText(String(distritoVal), { x: 340, y: 73, size: 9, font: fuenteBold, color: colorNegro });
+          reverso.drawText(String(distritoVal), { x: 370, y: 68, size: 9, font: fuenteBold, color: colorNegro });
         }
 
         // 5. Salida y apertura del documento final
