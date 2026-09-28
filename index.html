@@ -12,28 +12,29 @@
     body { margin: 0; padding: 0; background-color: #f3f4f6; color: #1f2937; height: 100vh; }
     
     #login-screen { 
-      display: flex; 
-      justify-content: center; 
-      align-items: center; 
-      height: 100vh; 
-      width: 100vw;
-      background-image: url('PRUEBA%20CFP%20SIN%20FONDO.png') !important; 
-      background-size: cover !important; 
-      background-position: center !important; 
-      background-repeat: no-repeat !important; 
-      background-attachment: fixed !important; 
-    }
+  display: flex; 
+  justify-content: center; 
+  align-items: center; 
+  height: 100vh; 
+  width: 100vw;
+  background-color: #0f172a !important; /* Color de fondo para rellenar a los lados */
+  background-image: url('PRUEBA%20CFP%20SIN%20FONDO.png') !important; 
+  background-size: contain !important; /* En lugar de cover, usa contain */
+  background-position: center !important; 
+  background-repeat: no-repeat !important; 
+  background-attachment: fixed !important; 
+}
 
-    .login-box { 
-      background: #ffffff !important; 
-      padding: 40px; 
-      border-radius: 10px; 
-      width: 360px; 
-      text-align: center; 
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4); 
-      position: relative;
-      z-index: 10;
-    }
+.login-box { 
+  background: #ffffff !important; 
+  padding: 40px; 
+  border-radius: 10px; 
+  width: 360px; 
+  text-align: center; 
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4); 
+  position: relative;
+  z-index: 10;
+}
     .login-box h2 { margin-bottom: 20px; color: #111827; }
     .login-box input, .login-box select { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #d1d5db; border-radius: 6px; }
 
