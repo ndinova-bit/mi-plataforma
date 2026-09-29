@@ -1014,33 +1014,37 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
 
     const tamanoCert = 11.0;
     const xMaxGeneral = 520;
-    
-    // Configuración exacta de coordenadas X e Y para cada uno de los 3 renglones posibles
+
+    // Configuración corregida:
+    // Renglón 1 inicia en 318 para NO pisar "CERTIFICADO DE"
     const configRenglones = [
-      { x: 300, y: 159, xMax: xMaxGeneral }, // Renglón 1: Empieza a la derecha de "CERTIFICADO DE..."
-      { x: 68,  y: 135, xMax: xMaxGeneral }, // Renglón 2: Arranca desde el margen izquierdo
-      { x: 68,  y: 117, xMax: xMaxGeneral }  // Renglón 3: Arranca desde el margen izquierdo
+      { x: 318, y: 159 }, // Renglón 1
+      { x: 68,  y: 135 }, // Renglón 2
+      { x: 68,  y: 117 }  // Renglón 3
     ];
 
-    let palabras = textoCert.split(' ').filter(Boolean);
-    let lineas = ['', '', ''];
+    // Algoritmo limpio de división por palabras (Word-wrap)
+    const palabras = textoCert.split(' ').filter(Boolean);
+    const lineas = ['', '', ''];
     let lineaActual = 0;
-    
-    // Distribución correcta sin solapamientos ni duplicaciones
-    palabras.forEach(palabra => {
+
+    for (const palabra of palabras) {
       let xInicioCurrent = configRenglones[lineaActual].x;
       let anchoDisponible = xMaxGeneral - xInicioCurrent;
-      let prueba = lineas[lineaActual] ? lineas[lineaActual] + ' ' + palabra : palabra;
+      
+      let intento = lineas[lineaActual] ? `${lineas[lineaActual]} ${palabra}` : palabra;
+      let anchoIntento = fuenteRegular.widthOfTextAtSize(intento, tamanoCert);
 
-      if (fuenteRegular.widthOfTextAtSize(prueba, tamanoCert) <= anchoDisponible) {
-        lineas[lineaActual] = prueba;
-      } else if (lineaActual < 2) {
+      if (anchoIntento <= anchoDisponible) {
+        lineas[lineaActual] = intento;
+      } else {
         lineaActual++;
+        if (lineaActual > 2) break; // Si supera los 3 renglones, corta para evitar sobreescritura
         lineas[lineaActual] = palabra;
       }
-    });
+    }
 
-    // Detectar cuál es el último renglón efectivamente ocupado para agregar los puntos al final
+    // Identificar el último renglón cargado
     let ultimaLineaConTexto = -1;
     for (let i = 2; i >= 0; i--) {
       if (lineas[i].trim() !== '') {
@@ -1049,14 +1053,22 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
       }
     }
 
-    // Dibujar cada renglón
+    // Dibujar cada renglón en pantalla de forma independiente
     configRenglones.forEach((r, idx) => {
       let textoRenglon = lineas[idx];
-      if (textoRenglon.trim() !== '') {
+      if (textoRenglon && textoRenglon.trim() !== '') {
         if (idx === ultimaLineaConTexto) {
-          dibujaRenglonPunteado(frente, textoRenglon, r.x, r.y, r.xMax, fuenteRegular, tamanoCert);
+          // Solo el último renglón lleva relleno punteado hasta el final
+          dibujaRenglonPunteado(frente, textoRenglon, r.x, r.y, xMaxGeneral, fuenteRegular, tamanoCert);
         } else {
-          frente.drawText(textoRenglon, { x: r.x, y: r.y, size: tamanoCert, font: fuenteRegular, color: colorNegro });
+          // Los renglones intermedios solo se escriben como texto simple
+          frente.drawText(textoRenglon, { 
+            x: r.x, 
+            y: r.y, 
+            size: tamanoCert, 
+            font: fuenteRegular, 
+            color: colorNegro 
+          });
         }
       }
     });
