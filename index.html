@@ -1050,7 +1050,7 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
     frente.drawText(String(mesE),  { x: 320, y: 98, size: 12, font: fuenteRegular, color: colorNegro });
     frente.drawText(String(anioE), { x: 495, y: 98, size: 12, font: fuenteRegular, color: colorNegro });
 
-    // ==========================================
+   // ==========================================
     // 4. ESTAMPADO REVERSO (MÓDULOS 1 A 10)
     // ==========================================
     let modulosArr = [];
@@ -1060,28 +1060,42 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
       console.error("Error al parsear módulos:", e);
     }
 
-    // Coordenadas base para la tabla de módulos en el reverso
-    const startY = 328;      // Altura Y inicial para el módulo 1 y 6
-    const lineSpacing = 22; // Espaciado vertical entre filas
+    // Coordenadas calibradas
+    const startY = 352;      // Posición Y de la primera línea (subido para alinearse con el N° 1 y 6)
+    const lineSpacing = 16.5; // Espaciado ajustado exactamente a la altura de cada renglón del PDF
+    const tamanoFuenteMod = 7; // Tamaño reducido para evitar solapamientos
+    const maxAnchoCol = 220;   // Ancho máximo en puntos por columna
+
+    // Función auxiliar para recortar texto largo si supera el ancho de la columna
+    function acortarTexto(texto, maxAncho, font, size) {
+      let t = texto;
+      if (font.widthOfTextAtSize(t, size) <= maxAncho) return t;
+      while (t.length > 0 && font.widthOfTextAtSize(t + '...', size) > maxAncho) {
+        t = t.slice(0, -1);
+      }
+      return t + '...';
+    }
 
     modulosArr.slice(0, 10).forEach((mod, index) => {
-      // Extrae la propiedad de nombre o título según venga en la estructura del objeto
       const nombreMod = typeof mod === 'string' ? mod : (mod.nombre || mod.titulo || mod.modulo || '');
       const codigoMod = mod.codigo ? ` (${mod.codigo})` : '';
-      const modTexto = `${nombreMod}${codigoMod}`.toUpperCase();
+      let modTexto = `${nombreMod}${codigoMod}`.toUpperCase();
 
-      let xPos = 85;  // Columna 1 (Íntems 1 a 5)
+      // Recortar si excede el ancho disponible de la columna
+      modTexto = acortarTexto(modTexto, maxAnchoCol, fuenteRegular, tamanoFuenteMod);
+
+      let xPos = 65;  // Columna 1 (debajo/junto a números 1 a 5)
       let yPos = startY - (index * lineSpacing);
 
       if (index >= 5) {
-        xPos = 320; // Columna 2 (Ítems 6 a 10)
+        xPos = 300; // Columna 2 (desplazada a la derecha para no tapar los números 6 a 10)
         yPos = startY - ((index - 5) * lineSpacing);
       }
 
       reverso.drawText(modTexto, {
         x: xPos,
         y: yPos,
-        size: 9,
+        size: tamanoFuenteMod,
         font: fuenteRegular,
         color: colorNegro
       });
