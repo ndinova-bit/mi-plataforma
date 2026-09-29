@@ -1051,7 +1051,7 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
     frente.drawText(String(anioE), { x: 495, y: 98, size: 12, font: fuenteRegular, color: colorNegro });
 
    // ==========================================
-    // 4. ESTAMPADO REVERSO (MÓDULOS 1 A 10 AJUSTADO: FUENTE 9 Y ESPACIADO)
+    // 4. ESTAMPADO REVERSO (AJUSTADO A LO ANCHO)
     // ==========================================
     let modulosArr = [];
     try {
@@ -1060,13 +1060,12 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
       console.error("Error al parsear módulos:", e);
     }
 
-    // Y inicial fija para módulos 1 y 6
     const yInicial = 370;
     const pasoEntreItems = 30.5; 
-    const altoRenglonSecundario = 12; // Aumentado de 10 a 12 para que la 2da línea baje más
+    const altoRenglonSecundario = 12; // Mantiene buen espacio vertical entre renglones
 
-    const tamanoFuenteMod = 9.0; // Aumentado de 8.0 a 9.0
-    const maxAnchoCol = 205;     // Ajustado de 220 a 205 para que el texto más grande no pise la columna derecha
+    const tamanoFuenteMod = 9.0;
+    const maxAnchoCol = 235; // Aumentado de 205 a 235 para aprovechar todo el ancho
 
     function dividirEnDosLineas(texto, font, size, maxAncho) {
       const palabras = texto.split(' ').filter(Boolean);
@@ -1074,16 +1073,12 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
       
       for (let p of palabras) {
         let prueba = l1 ? l1 + ' ' + p : p;
+        // Si entra en la primera línea, lo suma ahí
         if (font.widthOfTextAtSize(prueba, size) <= maxAncho) {
           l1 = prueba;
         } else {
-          let prueba2 = l2 ? l2 + ' ' + p : p;
-          if (font.widthOfTextAtSize(prueba2, size) <= maxAncho) {
-            l2 = prueba2;
-          } else {
-            l2 = l2 + '...';
-            break;
-          }
+          // Si no entra, pasa directo al segundo renglón sin recortar con "..."
+          l2 = l2 ? l2 + ' ' + p : p;
         }
       }
       return [l1, l2];
