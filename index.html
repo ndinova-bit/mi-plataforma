@@ -1008,24 +1008,37 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
 // ==========================================
     // 5. DENOMINACIÓN CERTIFICADO DE... (Nombre + Resolución)
     // ==========================================
-    // BUSCÁ Y BORRÁ ESTO:
-    let baseNombreCert = (trayecto.certificacion || trayecto.nombre).toUpperCase().trim();
-    let resTextoLimpio = trayecto.resolucion ? trayecto.resolucion.toUpperCase().trim() : '';
+    let baseNombreCert = (trayecto.certificacion || trayecto.nombre || '').toUpperCase().trim();
+    let resTextoLimpio = (trayecto.resolucion || '').toUpperCase().trim();
 
-    let textoCert = '';
+    // 1. Limpiamos baseNombreCert si ya traía pegado "SEGÚN RESOLUCIÓN..." (con o sin tilde)
+    baseNombreCert = baseNombreCert.split(/SEGÚN\s+RESOLUCIÓN|SEGUN\s+RESOLUCION/i)[0].trim();
 
-    // Si 'baseNombreCert' YA contiene "SEGÚN RESOLUCIÓN", lo dejamos tal cual o le sumamos la res si falta
-    if (baseNombreCert.includes('SEGÚN RESOLUCIÓN') || baseNombreCert.includes('SEGUN RESOLUCION')) {
-      textoCert = baseNombreCert;
-      // Si además hay algo en resTextoLimpio que no esté en baseNombreCert, se lo anexa al final
-      if (resTextoLimpio && !baseNombreCert.includes(resTextoLimpio)) {
-        textoCert += ` ${resTextoLimpio}`;
+    // 2. Extraemos y limpiamos la resolución para eliminar textos repetidos del nombre
+    if (resTextoLimpio) {
+      if (baseNombreCert) {
+        resTextoLimpio = resTextoLimpio.replaceAll(baseNombreCert, '').trim();
       }
-    } else {
-      // Si el nombre viene 'limpio', le agregamos la coletilla solo si existe resolución
-      textoCert = resTextoLimpio 
-        ? `${baseNombreCert} SEGÚN RESOLUCIÓN NRO. ${resTextoLimpio}` 
-        : baseNombreCert;
+
+      if (resTextoLimpio.includes('RESFC')) {
+        resTextoLimpio = 'RESFC' + resTextoLimpio.split('RESFC').pop().trim();
+      } else {
+        resTextoLimpio = resTextoLimpio
+          .replace(/^(RESOLUCIÓN|RESOLUCION)\s*/i, '')
+          .replace(/^(NRO\.|NRO|N°|NO\.)\s*/i, '')
+          .trim();
+      }
+    }
+
+    // 3. Armamos el texto final sin duplicar prefijos
+    let textoCert = baseNombreCert;
+
+    if (resTextoLimpio) {
+      if (resTextoLimpio.startsWith('RESFC') || resTextoLimpio.startsWith('NRO')) {
+        textoCert += ` SEGÚN RESOLUCIÓN ${resTextoLimpio}`;
+      } else {
+        textoCert += ` SEGÚN RESOLUCIÓN NRO. ${resTextoLimpio}`;
+      }
     }
 
     const tamanoCert = 10.5; // Bajamos medio punto para que queden cómodas las resoluciones largas
