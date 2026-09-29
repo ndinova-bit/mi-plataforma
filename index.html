@@ -1060,14 +1060,14 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
       console.error("Error al parsear módulos:", e);
     }
 
-    // Coordenadas Y calculadas exactamente según el paso real de la plantilla
-    // 370 es la altura fija exacta para los ítems 1 y 6
+    // Coordenadas Y: 370 mantiene los módulos 1 y 6 donde están.
+    // Reducimos el paso a 28.5 para hacer SUBIR los módulos 2, 3, 4, 5, 7, 8, 9 y 10.
     const yInicial = 370;
-    const pasoEntreItems = 32.5; // Espaciado vertical entre 1->2->3->4->5
-    const altoRenglonSecundario = 10; // Salto justo para la segunda línea punteada de un mismo ítem
+    const pasoEntreItems = 28.5; // Distancia corregida entre filas consecutivas
+    const altoRenglonSecundario = 10; // Salto para la segunda línea punteada del mismo número
 
     const tamanoFuenteMod = 6.5;
-    const maxAnchoCol = 190; 
+    const maxAnchoCol = 220; // Más ancho disponible al iniciar más cerca del número
 
     function dividirEnDosLineas(texto, font, size, maxAncho) {
       const palabras = texto.split(' ').filter(Boolean);
@@ -1100,8 +1100,8 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
       const esColumnaDerecha = index >= 5;
       const idxFila = esColumnaDerecha ? (index - 5) : index;
 
-      // X = 85 (columna izquierda) y X = 338 (columna derecha) movidas a la derecha
-      const xPos = esColumnaDerecha ? 338 : 85; 
+      // X = 58 (cerca de '1.', '2.'...) | X = 310 (cerca de '6.', '7.'...)
+      const xPos = esColumnaDerecha ? 310 : 58; 
       const yBase = yInicial - (idxFila * pasoEntreItems);          
 
       // Dibujar Renglón 1 (Línea principal)
@@ -1115,7 +1115,7 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
         });
       }
 
-      // Dibujar Renglón 2 (Segunda línea punteada del mismo número)
+      // Dibujar Renglón 2 (Segunda línea del mismo módulo)
       if (linea2) {
         reverso.drawText(linea2, {
           x: xPos,
