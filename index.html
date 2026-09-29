@@ -975,11 +975,26 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
       }
     }
 
-    // ==========================================
+// ==========================================
     // 3. ESTAMPADO ANVERSO (PÁGINA 1)
     // ==========================================
-    // 1. Nombre del Alumno (Solo el texto, sin función de línea punteada)
-    frente.drawText(alumno.toUpperCase(), { x: 130, y: 232, size: 14, font: fuenteBold, color: colorNegro });
+    // 1. Nombre del Alumno (Centrado sobre la línea punteada)
+    const tamanoNombre = 14;
+    const xInicioLineaNombre = 130;
+    const xFinLineaNombre = 532;
+    const centroLineaNombre = xInicioLineaNombre + (xFinLineaNombre - xInicioLineaNombre) / 2;
+    
+    const textoAlumno = alumno.toUpperCase();
+    const anchoTextoAlumno = fuenteBold.widthOfTextAtSize(textoAlumno, tamanoNombre);
+    const xNombreCentrado = centroLineaNombre - (anchoTextoAlumno / 2);
+
+    frente.drawText(textoAlumno, { 
+      x: xNombreCentrado, 
+      y: 232, 
+      size: tamanoNombre, 
+      font: fuenteBold, 
+      color: colorNegro 
+    });
 
     // 2. D.U. N° (Sin relleno punteado)
     frente.drawText(dniFormateado, { x: 115, y: 207, size: 12, font: fuenteRegular, color: colorNegro });
@@ -999,18 +1014,25 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
 
     const tamanoCert = 11.0;
     const xMaxGeneral = 520;
-    const xInicioPrimerRenglon = 390; // Desplazado a la derecha para no pisar "CERTIFICADO DE"
+    
+    // Configuración exacta de coordenadas X e Y para cada uno de los 3 renglones posibles
+    const configRenglones = [
+      { x: 300, y: 159, xMax: xMaxGeneral }, // Renglón 1: Empieza a la derecha de "CERTIFICADO DE..."
+      { x: 68,  y: 135, xMax: xMaxGeneral }, // Renglón 2: Arranca desde el margen izquierdo
+      { x: 68,  y: 117, xMax: xMaxGeneral }  // Renglón 3: Arranca desde el margen izquierdo
+    ];
 
     let palabras = textoCert.split(' ').filter(Boolean);
     let lineas = ['', '', ''];
     let lineaActual = 0;
     
+    // Distribución correcta sin solapamientos ni duplicaciones
     palabras.forEach(palabra => {
-      let xInicioActual = (lineaActual === 0) ? xInicioPrimerRenglon : 68;
-      let anchoDisponible = xMaxGeneral - xInicioActual;
+      let xInicioCurrent = configRenglones[lineaActual].x;
+      let anchoDisponible = xMaxGeneral - xInicioCurrent;
       let prueba = lineas[lineaActual] ? lineas[lineaActual] + ' ' + palabra : palabra;
 
-      if (fuenteRegular.widthOfTextAtSize(prueba, tamanoCert) < anchoDisponible) {
+      if (fuenteRegular.widthOfTextAtSize(prueba, tamanoCert) <= anchoDisponible) {
         lineas[lineaActual] = prueba;
       } else if (lineaActual < 2) {
         lineaActual++;
@@ -1018,6 +1040,7 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
       }
     });
 
+    // Detectar cuál es el último renglón efectivamente ocupado para agregar los puntos al final
     let ultimaLineaConTexto = -1;
     for (let i = 2; i >= 0; i--) {
       if (lineas[i].trim() !== '') {
@@ -1026,18 +1049,14 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
       }
     }
 
-    const configRenglones = [
-      { texto: lineas[0], x: xInicioPrimerRenglon, y: 159, xMax: xMaxGeneral },
-      { texto: lineas[1], x: 68,                     y: 135, xMax: xMaxGeneral },
-      { texto: lineas[2], x: 68,                     y: 117, xMax: xMaxGeneral }
-    ];
-
+    // Dibujar cada renglón
     configRenglones.forEach((r, idx) => {
-      if (r.texto.trim() !== '') {
+      let textoRenglon = lineas[idx];
+      if (textoRenglon.trim() !== '') {
         if (idx === ultimaLineaConTexto) {
-          dibujaRenglonPunteado(frente, r.texto, r.x, r.y, r.xMax, fuenteRegular, tamanoCert);
+          dibujaRenglonPunteado(frente, textoRenglon, r.x, r.y, r.xMax, fuenteRegular, tamanoCert);
         } else {
-          frente.drawText(r.texto, { x: r.x, y: r.y, size: tamanoCert, font: fuenteRegular, color: colorNegro });
+          frente.drawText(textoRenglon, { x: r.x, y: r.y, size: tamanoCert, font: fuenteRegular, color: colorNegro });
         }
       }
     });
