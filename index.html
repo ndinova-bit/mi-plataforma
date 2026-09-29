@@ -1050,8 +1050,8 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
     frente.drawText(String(mesE),  { x: 320, y: 98, size: 12, font: fuenteRegular, color: colorNegro });
     frente.drawText(String(anioE), { x: 495, y: 98, size: 12, font: fuenteRegular, color: colorNegro });
 
-  // ==========================================
-    // 4. ESTAMPADO REVERSO (MÓDULOS 1 A 10 CORREGIDO)
+    // ==========================================
+    // 4. ESTAMPADO REVERSO (MÓDULOS 1 A 10 AJUSTADO)
     // ==========================================
     let modulosArr = [];
     try {
@@ -1060,13 +1060,14 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
       console.error("Error al parsear módulos:", e);
     }
 
-    // Coordenadas Y exactas calibradas punto por punto para los números 1 al 5 (y 6 al 10)
-    // Renglón principal (donde arranca la línea de puntos superior de cada número)
-    const lineasY = [370, 335, 300, 265, 230]; 
-    const altoRenglonSecundario = 11; // Distancia exacta al renglón punteado inferior de cada número
+    // Coordenadas Y calculadas exactamente según el paso real de la plantilla
+    // 370 es la altura fija exacta para los ítems 1 y 6
+    const yInicial = 370;
+    const pasoEntreItems = 32.5; // Espaciado vertical entre 1->2->3->4->5
+    const altoRenglonSecundario = 10; // Salto justo para la segunda línea punteada de un mismo ítem
 
     const tamanoFuenteMod = 6.5;
-    const maxAnchoCol = 195; 
+    const maxAnchoCol = 190; 
 
     function dividirEnDosLineas(texto, font, size, maxAncho) {
       const palabras = texto.split(' ').filter(Boolean);
@@ -1099,9 +1100,9 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
       const esColumnaDerecha = index >= 5;
       const idxFila = esColumnaDerecha ? (index - 5) : index;
 
-      // X = 70 para dejar espacio a "1.", "2."... y X = 325 para dejar espacio a "6.", "7."...
-      const xPos = esColumnaDerecha ? 325 : 70; 
-      const yBase = lineasY[idxFila];          
+      // X = 85 (columna izquierda) y X = 338 (columna derecha) movidas a la derecha
+      const xPos = esColumnaDerecha ? 338 : 85; 
+      const yBase = yInicial - (idxFila * pasoEntreItems);          
 
       // Dibujar Renglón 1 (Línea principal)
       if (linea1) {
@@ -1114,7 +1115,7 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
         });
       }
 
-      // Dibujar Renglón 2 (Línea secundaria del mismo número)
+      // Dibujar Renglón 2 (Segunda línea punteada del mismo número)
       if (linea2) {
         reverso.drawText(linea2, {
           x: xPos,
