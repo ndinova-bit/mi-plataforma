@@ -1051,7 +1051,7 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
     frente.drawText(String(anioE), { x: 495, y: 98, size: 12, font: fuenteRegular, color: colorNegro });
 
    // ==========================================
-    // 4. ESTAMPADO REVERSO (MÓDULOS 1 A 10 AJUSTADO)
+    // 4. ESTAMPADO REVERSO (MÓDULOS 1 A 10 AJUSTADO: FUENTE 9 Y ESPACIADO)
     // ==========================================
     let modulosArr = [];
     try {
@@ -1062,12 +1062,11 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
 
     // Y inicial fija para módulos 1 y 6
     const yInicial = 370;
-    // Paso corregido a 30.5 para que los módulos 2-5 y 7-10 bajen a su línea correspondiente
     const pasoEntreItems = 30.5; 
-    const altoRenglonSecundario = 10; 
+    const altoRenglonSecundario = 12; // Aumentado de 10 a 12 para que la 2da línea baje más
 
-    const tamanoFuenteMod = 8.0;
-    const maxAnchoCol = 220; 
+    const tamanoFuenteMod = 9.0; // Aumentado de 8.0 a 9.0
+    const maxAnchoCol = 205;     // Ajustado de 220 a 205 para que el texto más grande no pise la columna derecha
 
     function dividirEnDosLineas(texto, font, size, maxAncho) {
       const palabras = texto.split(' ').filter(Boolean);
@@ -1100,7 +1099,6 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
       const esColumnaDerecha = index >= 5;
       const idxFila = esColumnaDerecha ? (index - 5) : index;
 
-      // X = 42 (columna izquierda más a la izquierda) | X = 318 (columna derecha un poco más a la derecha)
       const xPos = esColumnaDerecha ? 318 : 42; 
       const yBase = yInicial - (idxFila * pasoEntreItems);          
 
