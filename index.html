@@ -978,8 +978,8 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
     // ==========================================
     // 3. ESTAMPADO ANVERSO (PÁGINA 1)
     // ==========================================
-    // 1. Nombre del Alumno
-    dibujaRenglonPunteado(frente, alumno.toUpperCase(), 130, 232, 532, fuenteBold, 14);
+    // 1. Nombre del Alumno (Solo el texto, sin función de línea punteada)
+    frente.drawText(alumno.toUpperCase(), { x: 130, y: 232, size: 14, font: fuenteBold, color: colorNegro });
 
     // 2. D.U. N° (Sin relleno punteado)
     frente.drawText(dniFormateado, { x: 115, y: 207, size: 12, font: fuenteRegular, color: colorNegro });
@@ -994,20 +994,19 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
     // 5. DENOMINACIÓN CERTIFICADO DE... (Nombre + Resolución)
     // ==========================================
     let baseNombreCert = (trayecto.certificacion || trayecto.nombre).toUpperCase();
-    
     let resTextoLimpio = trayecto.resolucion ? trayecto.resolucion.toUpperCase() : '';
-    
-    let textoCert = resTextoLimpio; 
+    let textoCert = resTextoLimpio ? `${baseNombreCert} SEGÚN RESOLUCIÓN NRO. ${resTextoLimpio}` : baseNombreCert; 
 
     const tamanoCert = 11.0;
     const xMaxGeneral = 520;
+    const xInicioPrimerRenglon = 390; // Desplazado a la derecha para no pisar "CERTIFICADO DE"
 
     let palabras = textoCert.split(' ').filter(Boolean);
     let lineas = ['', '', ''];
     let lineaActual = 0;
     
     palabras.forEach(palabra => {
-      let xInicioActual = (lineaActual === 0) ? 300 : 68;
+      let xInicioActual = (lineaActual === 0) ? xInicioPrimerRenglon : 68;
       let anchoDisponible = xMaxGeneral - xInicioActual;
       let prueba = lineas[lineaActual] ? lineas[lineaActual] + ' ' + palabra : palabra;
 
@@ -1028,9 +1027,9 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
     }
 
     const configRenglones = [
-      { texto: lineas[0], x: 300, y: 159, xMax: xMaxGeneral },
-      { texto: lineas[1], x: 68,  y: 135, xMax: xMaxGeneral },
-      { texto: lineas[2], x: 68,  y: 117, xMax: xMaxGeneral }
+      { texto: lineas[0], x: xInicioPrimerRenglon, y: 159, xMax: xMaxGeneral },
+      { texto: lineas[1], x: 68,                     y: 135, xMax: xMaxGeneral },
+      { texto: lineas[2], x: 68,                     y: 117, xMax: xMaxGeneral }
     ];
 
     configRenglones.forEach((r, idx) => {
