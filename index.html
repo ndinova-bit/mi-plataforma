@@ -1008,6 +1008,7 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
 // ==========================================
     // 5. DENOMINACIÓN CERTIFICADO DE... (Nombre + Resolución)
     // ==========================================
+    // BUSCÁ Y BORRÁ ESTO:
     let baseNombreCert = (trayecto.certificacion || trayecto.nombre).toUpperCase().trim();
     let resTextoLimpio = trayecto.resolucion ? trayecto.resolucion.toUpperCase().trim() : '';
 
