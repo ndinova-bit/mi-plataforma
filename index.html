@@ -1051,7 +1051,7 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
     frente.drawText(String(anioE), { x: 495, y: 98, size: 12, font: fuenteRegular, color: colorNegro });
 
   // ==========================================
-    // 4. ESTAMPADO REVERSO (MÓDULOS 1 A 10 CON SALTO DE RENGLÓN)
+    // 4. ESTAMPADO REVERSO (MÓDULOS 1 A 10 CORREGIDO)
     // ==========================================
     let modulosArr = [];
     try {
@@ -1060,12 +1060,13 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
       console.error("Error al parsear módulos:", e);
     }
 
-    // Coordenadas Y exactas para la LÍNEA PRINCIPAL de cada ítem (Ajustadas a la plantilla)
-    const lineasY = [388, 350, 312, 274, 236]; 
-    const altoRenglonSecundario = 12; // Distancia al 2° renglón del mismo número
+    // Coordenadas Y exactas calibradas punto por punto para los números 1 al 5 (y 6 al 10)
+    // Renglón principal (donde arranca la línea de puntos superior de cada número)
+    const lineasY = [370, 335, 300, 265, 230]; 
+    const altoRenglonSecundario = 11; // Distancia exacta al renglón punteado inferior de cada número
 
-    const tamanoFuenteMod = 7;
-    const maxAnchoCol = 220; // Ancho para que entre más texto antes de saltar o cortar
+    const tamanoFuenteMod = 6.5;
+    const maxAnchoCol = 195; 
 
     function dividirEnDosLineas(texto, font, size, maxAncho) {
       const palabras = texto.split(' ').filter(Boolean);
@@ -1098,8 +1099,8 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
       const esColumnaDerecha = index >= 5;
       const idxFila = esColumnaDerecha ? (index - 5) : index;
 
-      // X = 65 deja ver el '1.', '2.'... | X = 320 deja ver el '6.', '7.'...
-      const xPos = esColumnaDerecha ? 320 : 65; 
+      // X = 70 para dejar espacio a "1.", "2."... y X = 325 para dejar espacio a "6.", "7."...
+      const xPos = esColumnaDerecha ? 325 : 70; 
       const yBase = lineasY[idxFila];          
 
       // Dibujar Renglón 1 (Línea principal)
@@ -1113,7 +1114,7 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
         });
       }
 
-      // Dibujar Renglón 2 (Línea secundaria)
+      // Dibujar Renglón 2 (Línea secundaria del mismo número)
       if (linea2) {
         reverso.drawText(linea2, {
           x: xPos,
@@ -1124,6 +1125,7 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
         });
       }
     });
+    
     // ==========================================
     // PIE DEL REVERSO (Alineación fina de posiciones)
     // ==========================================
