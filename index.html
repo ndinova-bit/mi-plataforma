@@ -1008,21 +1008,35 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
 // ==========================================
     // 5. DENOMINACIÓN CERTIFICADO DE... (Nombre + Resolución)
     // ==========================================
-    let baseNombreCert = (trayecto.certificacion || trayecto.nombre).toUpperCase();
-    let resTextoLimpio = trayecto.resolucion ? trayecto.resolucion.toUpperCase() : '';
-    let textoCert = resTextoLimpio ? `${baseNombreCert} SEGÚN RESOLUCIÓN NRO. ${resTextoLimpio}` : baseNombreCert; 
+    let baseNombreCert = (trayecto.certificacion || trayecto.nombre).toUpperCase().trim();
+    let resTextoLimpio = trayecto.resolucion ? trayecto.resolucion.toUpperCase().trim() : '';
 
-    const tamanoCert = 11.0;
+    let textoCert = '';
+
+    // Si 'baseNombreCert' YA contiene "SEGÚN RESOLUCIÓN", lo dejamos tal cual o le sumamos la res si falta
+    if (baseNombreCert.includes('SEGÚN RESOLUCIÓN') || baseNombreCert.includes('SEGUN RESOLUCION')) {
+      textoCert = baseNombreCert;
+      // Si además hay algo en resTextoLimpio que no esté en baseNombreCert, se lo anexa al final
+      if (resTextoLimpio && !baseNombreCert.includes(resTextoLimpio)) {
+        textoCert += ` ${resTextoLimpio}`;
+      }
+    } else {
+      // Si el nombre viene 'limpio', le agregamos la coletilla solo si existe resolución
+      textoCert = resTextoLimpio 
+        ? `${baseNombreCert} SEGÚN RESOLUCIÓN NRO. ${resTextoLimpio}` 
+        : baseNombreCert;
+    }
+
+    const tamanoCert = 10.5; // Bajamos medio punto para que queden cómodas las resoluciones largas
     const xMaxGeneral = 520;
 
-    // Renglón 1 inicia en 320 para dejar libre "POR TANTO, se le otorga el presente CERTIFICADO DE"
     const configRenglones = [
-      { x: 320, y: 159 }, // Renglón 1
+      { x: 320, y: 159 }, // Renglón 1 (deja espacio a "CERTIFICADO DE")
       { x: 68,  y: 135 }, // Renglón 2
       { x: 68,  y: 117 }  // Renglón 3
     ];
 
-    // 1. Acomodar el texto único en los renglones disponibles
+    // Algoritmo de distribución por renglones (Word-Wrap)
     const palabras = textoCert.split(' ').filter(Boolean);
     const lineas = ['', '', ''];
     let lineaActual = 0;
@@ -1038,12 +1052,12 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
         lineas[lineaActual] = prueba;
       } else {
         lineaActual++;
-        if (lineaActual > 2) break; // Límite de 3 renglones
+        if (lineaActual > 2) break; // Máximo 3 renglones
         lineas[lineaActual] = palabra;
       }
     }
 
-    // 2. Determinar la última línea efectivamente utilizada
+    // Dibujar los renglones
     let ultimaLineaIndice = -1;
     for (let i = 2; i >= 0; i--) {
       if (lineas[i].trim() !== '') {
@@ -1052,17 +1066,13 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
       }
     }
 
-    // 3. Dibujar cada renglón EXACTAMENTE una vez
     configRenglones.forEach((r, idx) => {
-      let textoDelRenglon = lineas[idx];
-      
-      if (textoDelRenglon && textoDelRenglon.trim() !== '') {
+      let textoRenglon = lineas[idx];
+      if (textoRenglon && textoRenglon.trim() !== '') {
         if (idx === ultimaLineaIndice) {
-          // Solo el último renglón activo dibuja el texto Y completa con puntos hasta xMaxGeneral
-          dibujaRenglonPunteado(frente, textoDelRenglon, r.x, r.y, xMaxGeneral, fuenteRegular, tamanoCert);
+          dibujaRenglonPunteado(frente, textoRenglon, r.x, r.y, xMaxGeneral, fuenteRegular, tamanoCert);
         } else {
-          // Los renglones anteriores SOLO escriben su fragmento de texto
-          frente.drawText(textoDelRenglon, { 
+          frente.drawText(textoRenglon, { 
             x: r.x, 
             y: r.y, 
             size: tamanoCert, 
