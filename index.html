@@ -1050,8 +1050,8 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
     frente.drawText(String(mesE),  { x: 320, y: 98, size: 12, font: fuenteRegular, color: colorNegro });
     frente.drawText(String(anioE), { x: 495, y: 98, size: 12, font: fuenteRegular, color: colorNegro });
 
-   // ==========================================
-    // 4. ESTAMPADO REVERSO (MÓDULOS 1 A 10)
+  // ==========================================
+    // 4. ESTAMPADO REVERSO (MÓDULOS 1 A 10 CON SALTO DE RENGLÓN)
     // ==========================================
     let modulosArr = [];
     try {
@@ -1060,47 +1060,70 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
       console.error("Error al parsear módulos:", e);
     }
 
-    // Coordenadas calibradas
-    const startY = 352;      // Posición Y de la primera línea (subido para alinearse con el N° 1 y 6)
-    const lineSpacing = 16.5; // Espaciado ajustado exactamente a la altura de cada renglón del PDF
-    const tamanoFuenteMod = 7; // Tamaño reducido para evitar solapamientos
-    const maxAnchoCol = 220;   // Ancho máximo en puntos por columna
+    // Coordenadas Y exactas para la LÍNEA PRINCIPAL de cada ítem (Ajustadas a la plantilla)
+    const lineasY = [388, 350, 312, 274, 236]; 
+    const altoRenglonSecundario = 12; // Distancia al 2° renglón del mismo número
 
-    // Función auxiliar para recortar texto largo si supera el ancho de la columna
-    function acortarTexto(texto, maxAncho, font, size) {
-      let t = texto;
-      if (font.widthOfTextAtSize(t, size) <= maxAncho) return t;
-      while (t.length > 0 && font.widthOfTextAtSize(t + '...', size) > maxAncho) {
-        t = t.slice(0, -1);
+    const tamanoFuenteMod = 7;
+    const maxAnchoCol = 220; // Ancho para que entre más texto antes de saltar o cortar
+
+    function dividirEnDosLineas(texto, font, size, maxAncho) {
+      const palabras = texto.split(' ').filter(Boolean);
+      let l1 = '', l2 = '';
+      
+      for (let p of palabras) {
+        let prueba = l1 ? l1 + ' ' + p : p;
+        if (font.widthOfTextAtSize(prueba, size) <= maxAncho) {
+          l1 = prueba;
+        } else {
+          let prueba2 = l2 ? l2 + ' ' + p : p;
+          if (font.widthOfTextAtSize(prueba2, size) <= maxAncho) {
+            l2 = prueba2;
+          } else {
+            l2 = l2 + '...';
+            break;
+          }
+        }
       }
-      return t + '...';
+      return [l1, l2];
     }
 
     modulosArr.slice(0, 10).forEach((mod, index) => {
       const nombreMod = typeof mod === 'string' ? mod : (mod.nombre || mod.titulo || mod.modulo || '');
       const codigoMod = mod.codigo ? ` (${mod.codigo})` : '';
-      let modTexto = `${nombreMod}${codigoMod}`.toUpperCase();
+      const modTextoCompleto = `${nombreMod}${codigoMod}`.toUpperCase();
 
-      // Recortar si excede el ancho disponible de la columna
-      modTexto = acortarTexto(modTexto, maxAnchoCol, fuenteRegular, tamanoFuenteMod);
+      const [linea1, linea2] = dividirEnDosLineas(modTextoCompleto, fuenteRegular, tamanoFuenteMod, maxAnchoCol);
 
-      let xPos = 65;  // Columna 1 (debajo/junto a números 1 a 5)
-      let yPos = startY - (index * lineSpacing);
+      const esColumnaDerecha = index >= 5;
+      const idxFila = esColumnaDerecha ? (index - 5) : index;
 
-      if (index >= 5) {
-        xPos = 300; // Columna 2 (desplazada a la derecha para no tapar los números 6 a 10)
-        yPos = startY - ((index - 5) * lineSpacing);
+      // X = 65 deja ver el '1.', '2.'... | X = 320 deja ver el '6.', '7.'...
+      const xPos = esColumnaDerecha ? 320 : 65; 
+      const yBase = lineasY[idxFila];          
+
+      // Dibujar Renglón 1 (Línea principal)
+      if (linea1) {
+        reverso.drawText(linea1, {
+          x: xPos,
+          y: yBase,
+          size: tamanoFuenteMod,
+          font: fuenteRegular,
+          color: colorNegro
+        });
       }
 
-      reverso.drawText(modTexto, {
-        x: xPos,
-        y: yPos,
-        size: tamanoFuenteMod,
-        font: fuenteRegular,
-        color: colorNegro
-      });
+      // Dibujar Renglón 2 (Línea secundaria)
+      if (linea2) {
+        reverso.drawText(linea2, {
+          x: xPos,
+          y: yBase - altoRenglonSecundario,
+          size: tamanoFuenteMod,
+          font: fuenteRegular,
+          color: colorNegro
+        });
+      }
     });
-
     // ==========================================
     // PIE DEL REVERSO (Alineación fina de posiciones)
     // ==========================================
