@@ -1488,42 +1488,74 @@
     }
 
     async function registrarUsuario() {
-      const nombre = document.getElementById('user-nombre').value.trim();
-      const usuario = document.getElementById('user-usuario').value.trim();
-      const pass = document.getElementById('user-pass').value.trim();
-      const rol = document.getElementById('user-rol').value;
+  const nombre = document.getElementById('user-nombre').value.trim();
+  const usuario = document.getElementById('user-usuario').value.trim(); // DNI
+  const pass = document.getElementById('user-pass').value.trim();
+  const rol = document.getElementById('user-rol').value;
 
-      if (!nombre || !usuario || !pass) return Swal.fire({ icon: 'warning', title: 'Atención', text: 'Completá todos los campos.' });
+  if (!nombre || !usuario || !pass) {
+    return Swal.fire({ icon: 'warning', title: 'Atención', text: 'Completá todos los campos.' });
+  }
 
-      const { error } = await db.from('usuarios').insert([{ nombre, usuario, pass, rol }]);
-      if (error) return Swal.fire({ icon: 'error', title: 'Error', text: 'El usuario ya existe o hubo un problema.' });
+  // 1. Armamos el mail sintético para Supabase Auth (ej: 12345678@cfp403.app)
+  const emailSintetico = `${usuario}@cfp403.app`;
 
-      const seleccionados = Array.from(document.querySelectorAll('.chk-trayecto:checked')).map(cb => cb.value);
+  // 2. Creamos la cuenta en Supabase Auth
+  const { data: authData, error: authError } = await db.auth.signUp({
+    email: emailSintetico,
+    password: pass
+  });
 
-      if (rol === 'estudiante') {
-        for (const tId of seleccionados) {
-          await db.from('inscripciones').insert([{ estudiante_user: usuario, trayecto_id: tId }]);
-        }
-      } else if (rol === 'docente' && seleccionados.length > 0) {
-        const { data: todosTrayectos } = await db.from('trayectos').select('*');
-        if (todosTrayectos) {
-          for (const tId of seleccionados) {
-            const tray = todosTrayectos.find(t => t.id == tId);
-            if (tray) {
-              let docentesUsers = tray.docente_user ? tray.docente_user.split(',').map(s => s.trim()).filter(Boolean) : [];
-              let docentesNombres = tray.docente_nombre ? tray.docente_nombre.split(',').map(s => s.trim()).filter(Boolean) : [];
+  if (authError) {
+    return Swal.fire({ icon: 'error', title: 'Error al registrar', text: authError.message });
+  }
 
-              if (!docentesUsers.includes(usuario)) {
-                docentesUsers.push(usuario);
-                docentesNombres.push(nombre);
-                await db.from('trayectos').update({
-                  docente_user: docentesUsers.join(', '),
-                  docente_nombre: docentesNombres.join(', ')
-                }).eq('id', tId);
-              }
-            }
+  const userId = authData.user.id;
+
+  // 3. Insertamos el perfil en public.profiles
+  const { error: profileError } = await db.from('profiles').insert([{
+    id: userId,
+    dni: usuario,
+    nombre: nombre,
+    rol: rol
+  }]);
+
+  if (profileError) {
+    return Swal.fire({ icon: 'error', title: 'Error en perfil', text: profileError.message });
+  }
+
+  // 4. Procesamos las inscripciones / asignaciones de trayectos seleccionados
+  const seleccionados = Array.from(document.querySelectorAll('.chk-trayecto:checked')).map(cb => cb.value);
+
+  if (rol === 'estudiante') {
+    for (const tId of seleccionados) {
+      await db.from('inscripciones').insert([{ estudiante_user: usuario, trayecto_id: tId }]);
+    }
+  } else if (rol === 'docente' && seleccionados.length > 0) {
+    const { data: todosTrayectos } = await db.from('trayectos').select('*');
+    if (todosTrayectos) {
+      for (const tId of seleccionados) {
+        const tray = todosTrayectos.find(t => t.id == tId);
+        if (tray) {
+          let docentesUsers = tray.docente_user ? tray.docente_user.split(',').map(s => s.trim()).filter(Boolean) : [];
+          let docentesNombres = tray.docente_nombre ? tray.docente_nombre.split(',').map(s => s.trim()).filter(Boolean) : [];
+
+          if (!docentesUsers.includes(usuario)) {
+            docentesUsers.push(usuario);
+            docentesNombres.push(nombre);
+            await db.from('trayectos').update({
+              docente_user: docentesUsers.join(', '),
+              docente_nombre: docentesNombres.join(', ')
+            }).eq('id', tId);
           }
         }
+      }
+    }
+  }
+
+  Swal.fire({ icon: 'success', title: '¡Usuario creado!', text: 'El registro se realizó con éxito.' });
+  cargarDatosDashboard();
+}
       }
 
       Toast.fire({ icon: 'success', title: `Usuario @${usuario} creado` });
