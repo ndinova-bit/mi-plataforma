@@ -1,26 +1,17 @@
-// CONFIGURACIÓN E INICIALIZACIÓN DE SUPABASE
+// Configuración de Supabase
 const SUPABASE_URL = 'https://dxgqtdaexlegsaohdywx.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_q3iliYP60gR5bP6vtTwoHA_8FWqg7iz';
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Crear cliente de Supabase asegurando no redeclarar la variable 'supabase'
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// HELPERS GLOBALES DE NOTIFICACIÓN
-const Toast = Swal.mixin({
-  toast: true,
-  position: 'top-end',
-  showConfirmButton: false,
-  timer: 3000,
-  timerProgressBar: true
-});
+// Helpers globales para alertas y manejo del cliente
+window.db = supabaseClient;
 
-function notify(icon, title) {
-  Toast.fire({ icon, title });
+function alertError(mensaje) {
+  alert('Error: ' + mensaje);
 }
 
-function alertError(title, text) {
-  Swal.fire({ icon: 'error', title, text, confirmButtonColor: '#2563eb' });
-}
-
-function alertSuccess(title, text) {
-  Swal.fire({ icon: 'success', title, text, confirmButtonColor: '#2563eb' });
+function alertSuccess(mensaje) {
+  alert('¡Éxito!: ' + mensaje);
 }
