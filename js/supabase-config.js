@@ -24,3 +24,18 @@ function alertSuccess(mensaje) {
     alert('¡Éxito!: ' + mensaje);
   }
 }
+// Definimos notify para que auth.js muestre los mensajes sin fallar
+function notify(mensaje, tipo = 'error') {
+  if (typeof Swal !== 'undefined') {
+    Swal.fire({
+      icon: tipo,
+      title: tipo === 'error' ? 'Atención' : '¡Éxito!',
+      text: mensaje
+    });
+  } else {
+    alert(mensaje);
+  }
+}
+
+// Exportamos globalmente
+window.notify = notify;
