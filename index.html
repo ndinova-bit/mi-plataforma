@@ -381,679 +381,7 @@
   </div>
 
   <script>
-    const SUPABASE_URL = 'https://dxgqtdaexlegsaohdywx.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_q3iliYP60gR5bP6vtTwoHA_8FWqg7iz';
-    const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    let currentUser = { id: '', name: '', user: '', role: '' };
-    let listaDocentesGlobal = [];
-    let chartAlumnosObj = null;
-    let chartEntregasObj = null;
-
-    // Helper para notificaciones tipo Toast
-    const Toast = Swal.mixin({
-      toast: true,
-      position: 'top-end',
-      showConfirmButton: false,
-      timer: 3000,
-      timerProgressBar: true
-    });
-
-   async function iniciarSesion() {
-  const u = document.getElementById('login-user').value.trim();
-  const p = document.getElementById('login-pass').value.trim();
-  const roleSelected = document.getElementById('role-select').value;
-
-  if (!u || !p) {
-    return Swal.fire({ 
-      icon: 'warning', 
-      title: 'Campos incompletos', 
-      text: 'Por favor ingresá usuario/email y contraseña.' 
-    });
-  }
-
-  // Lógica de formateo de email
-  let emailIngresado = u;
-  if (!emailIngresado.includes('@')) {
-    emailIngresado = emailIngresado + '@cfp403.app';
-  }
-
-  // Muestra un indicador de carga mientras procesa
-  Swal.fire({
-    title: 'Iniciando sesión...',
-    text: 'Validando credenciales en el servidor',
-    allowOutsideClick: false,
-    didOpen: () => { Swal.showLoading(); }
-  });
-
-  try {
-    // 1. Autenticar con Supabase Auth
-    const { data: authData, error: authError } = await db.auth.signInWithPassword({
-      email: emailIngresado,
-      password: p
-    });
-
-    if (authError || !authData.user) {
-      return Swal.fire({ 
-        icon: 'error', 
-        title: 'Acceso Denegado', 
-        text: authError?.message || 'Credenciales incorrectas o usuario no registrado.' 
-      });
-    }
-
-   // 2. Obtener el perfil del usuario desde la tabla public.profiles
-    const { data: profile, error: profileError } = await db
-      .from('profiles')
-      .select('*')
-      .eq('id', authData.user.id)
-      .maybeSingle();
-
-    if (profileError || !profile) {
-      console.error('Error al traer perfil:', profileError);
-      return Swal.fire({ 
-        icon: 'error', 
-        title: 'Error de Perfil', 
-        text: 'No se encontraron los datos del perfil asociado en la base de datos.' 
-      });
-    }
-
-    // 3. Validar si el rol seleccionado coincide con el de la base de datos
-    if (profile.rol !== roleSelected) {
-      await db.auth.signOut();
-      return Swal.fire({
-        icon: 'warning',
-        title: 'Rol Incorrecto',
-        text: `Tu usuario no posee el rol de "${roleSelected.toUpperCase()}". Seleccioná el perfil correcto.`
-      });
-    }
-
-    // 4. Guardar sesión actual
-    currentUser = { 
-      id: profile.id, 
-      name: profile.nombre || 'Usuario', 
-      user: profile.dni || profile.email, 
-      role: profile.rol 
-    };
-    
-    // Ajustes de UI
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('app-screen').style.display = 'block';
-    document.getElementById('display-username').textContent = currentUser.name;
-    
-    let tagRol = 'Estudiante';
-    if (currentUser.role === 'admin') tagRol = 'Administrador';
-    if (currentUser.role === 'docente') tagRol = 'Docente';
-    document.getElementById('display-role').textContent = tagRol;
-
-    // Ajustar visibilidad por rol
-    document.querySelectorAll('.admin-only').forEach(el => el.style.display = (currentUser.role === 'admin') ? 'block' : 'none');
-    document.querySelectorAll('.docente-only').forEach(el => el.style.display = (currentUser.role === 'docente') ? 'block' : 'none');
-    document.querySelectorAll('.docente-or-admin').forEach(el => el.style.display = (currentUser.role === 'admin' || currentUser.role === 'docente') ? 'block' : 'none');
-
-    // Cargar datos y notificar
-    await cargarDatosDashboard();
-    showTab('trayectos');
-    
-    Swal.close();
-    Toast.fire({ icon: 'success', title: `¡Bienvenido/a, ${currentUser.name}!` });
-
-  } catch (err) {
-    console.error('Error no controlado en login:', err);
-    Swal.fire({
-      icon: 'error',
-      title: 'Error Inesperado',
-      text: 'Ocurrió un error en el sistema: ' + (err.message || 'Error de conexión.')
-    });
-  }
-}
-
-    async function cerrarSesion() {
-  // Cierra la sesión activa en Supabase Auth
-  await db.auth.signOut();
-  
-  currentUser = null;
-  
-  document.getElementById('app-screen').style.display = 'none';
-  document.getElementById('login-screen').style.display = 'flex';
-  
-  Toast.fire({ icon: 'info', title: 'Sesión cerrada correctamente' });
-}
-
-    function showTab(id) {
-      document.querySelectorAll('.section').forEach(s => { s.classList.remove('active'); s.style.display = 'none'; });
-      document.querySelectorAll('.sidebar button').forEach(b => b.classList.remove('active'));
-      const target = document.getElementById(id);
-      if (target) { target.classList.add('active'); target.style.display = 'block'; }
-      const btn = document.getElementById('btn-' + id);
-      if (btn) btn.classList.add('active');
-
-      if (id === 'estudiantes') renderizarSeguimientoEstudiantes();
-      if (id === 'estadisticas') renderizarGraficos();
-    }
-
-    function toggleInscripcionesBox() {
-      const rol = document.getElementById('user-rol').value;
-      const box = document.getElementById('box-inscripciones');
-      const lbl = document.getElementById('lbl-inscripciones');
-      if (rol === 'estudiante') {
-        box.style.display = 'block';
-        lbl.textContent = 'Asignar Estudiante a Trayectos:';
-      } else if (rol === 'docente') {
-        box.style.display = 'block';
-        lbl.textContent = 'Asignar Docente a Trayectos:';
-      } else {
-        box.style.display = 'none';
-      }
-    }
-
-    function agregarFilaModulo() {
-      const contenedor = document.getElementById('contenedor-modulos');
-      const div = document.createElement('div');
-      div.className = 'modulo-card';
-      div.innerHTML = `
-        <div class="modulo-row-header">
-          <input type="text" class="mod-nombre" placeholder="Nombre del Módulo" style="width: 65%;">
-          <input type="text" class="mod-codigo" placeholder="Código (Ej: GH 0050)" style="width: 25%;">
-          <button class="btn btn-danger" onclick="eliminarFilaModulo(this)" style="padding:6px 10px;">X</button>
-        </div>
-        <div class="modulo-row-dates">
-          <label style="margin:0; font-weight:normal;">Inicio:</label>
-          <input type="date" class="mod-inicio" style="padding:4px 8px; font-size:12px;">
-          <label style="margin:0; font-weight:normal;">Fin:</label>
-          <input type="date" class="mod-fin" style="padding:4px 8px; font-size:12px;">
-        </div>`;
-      contenedor.appendChild(div);
-    }
-
-    function eliminarFilaModulo(btn) {
-      btn.closest('.modulo-card').remove();
-    }
-
-    async function cargarDatosDashboard() {
-      await actualizarSelects();
-      await renderizarTrayectos();
-      if (currentUser.role === 'docente') await renderizarRevisiones();
-      if (currentUser.role === 'admin') await renderizarUsuarios();
-    }
-
-    async function actualizarSelects() {
-      const { data: docentes } = await db.from('usuarios').select('*').eq('rol', 'docente');
-      listaDocentesGlobal = docentes || [];
-
-      const boxDocentesTrayecto = document.getElementById('checkboxes-docentes-trayecto');
-      if (boxDocentesTrayecto) {
-        if (listaDocentesGlobal.length > 0) {
-          boxDocentesTrayecto.innerHTML = listaDocentesGlobal.map(d => `
-            <label class="checkbox-item">
-              <input type="checkbox" value="${d.usuario}" data-nombre="${d.nombre}" class="chk-docente-trayecto"> ${d.nombre} (@${d.usuario})
-            </label>`).join('');
-        } else {
-          boxDocentesTrayecto.innerHTML = '<span style="font-size:12px; color:#6b7280;">No hay docentes registrados.</span>';
-        }
-      }
-
-      let { data: trayectos } = await db.from('trayectos').select('*');
-
-      if (currentUser.role === 'docente') {
-        trayectos = trayectos ? trayectos.filter(t => t.docente_user && t.docente_user.split(',').map(s=>s.trim()).includes(currentUser.user)) : [];
-      }
-
-      const selectC = document.getElementById('select-trayecto-contenido');
-      const selectA = document.getElementById('select-trayecto-actividad');
-      const selectS = document.getElementById('select-trayecto-seguimiento');
-      const boxCheckboxes = document.getElementById('checkboxes-trayectos');
-
-      const options = trayectos && trayectos.length > 0 
-        ? trayectos.map(t => `<option value="${t.id}">${t.nombre}</option>`).join('')
-        : '<option value="">Sin trayectos disponibles</option>';
-
-      if (selectC) selectC.innerHTML = options;
-      if (selectA) {
-        selectA.innerHTML = options;
-        actualizarSelectModulosActividad();
-      }
-      if (selectS) selectS.innerHTML = options;
-
-      if (boxCheckboxes) {
-        const { data: todosTrayectos } = await db.from('trayectos').select('*');
-        if (todosTrayectos && todosTrayectos.length > 0) {
-          boxCheckboxes.innerHTML = todosTrayectos.map(t => `
-            <label class="checkbox-item">
-              <input type="checkbox" value="${t.id}" class="chk-trayecto"> ${t.nombre}
-            </label>`).join('');
-        } else {
-          boxCheckboxes.innerHTML = '<span style="font-size:12px; color:#6b7280;">No hay trayectos creados aún.</span>';
-        }
-      }
-    }
-
-    async function actualizarSelectModulosActividad() {
-      const selectA = document.getElementById('select-trayecto-actividad');
-      const selectMod = document.getElementById('select-modulo-actividad');
-      if (!selectA || !selectMod) return;
-
-      const trayectoId = selectA.value;
-      if (!trayectoId) {
-        selectMod.innerHTML = '<option value="">Seleccionar Módulo...</option>';
-        return;
-      }
-
-      const { data: trayecto } = await db.from('trayectos').select('modulos').eq('id', trayectoId).single();
-      let modulosList = [];
-      try { modulosList = JSON.parse(trayecto.modulos || '[]'); } catch(e){}
-
-      if (modulosList.length > 0) {
-        selectMod.innerHTML = modulosList.map(m => `<option value="${m.nombre}">${m.nombre}</option>`).join('');
-      } else {
-        selectMod.innerHTML = '<option value="">General / Sin Módulo Específico</option>';
-      }
-    }
-
-    async function crearTrayecto() {
-      const nombre = document.getElementById('nombre-trayecto').value.trim();
-      const certificacion = document.getElementById('certificacion-trayecto').value.trim();
-      const horas = document.getElementById('horas-trayecto').value;
-      const cfp = document.getElementById('cfp-trayecto').value.trim();
-      const distrito = document.getElementById('distrito-trayecto').value.trim();
-      const resolucion = document.getElementById('resolucion-trayecto').value.trim();
-      const cursoNum = document.getElementById('curso-num-trayecto').value.trim();
-      const fecha_entrega = document.getElementById('fecha-entrega-trayecto').value.trim();
-      const desc = document.getElementById('desc-trayecto').value.trim();
-
-      if (!nombre) return Swal.fire({ icon: 'warning', title: 'Atención', text: 'Por favor ingresá el nombre del trayecto o curso.' });
-
-      const chksSelected = Array.from(document.querySelectorAll('.chk-docente-trayecto:checked'));
-      const docentesUsers = chksSelected.map(cb => cb.value).join(', ');
-      const docentesNombres = chksSelected.map(cb => cb.getAttribute('data-nombre')).join(', ');
-
-      const modulosCards = document.querySelectorAll('#contenedor-modulos .modulo-card');
-      const modulosArray = [];
-      modulosCards.forEach(card => {
-        const nom = card.querySelector('.mod-nombre').value.trim();
-        const cod = card.querySelector('.mod-codigo').value.trim();
-        const inicio = card.querySelector('.mod-inicio').value;
-        const fin = card.querySelector('.mod-fin').value;
-        if (nom) {
-          modulosArray.push({ nombre: nom, codigo: cod, inicio: inicio || '', fin: fin || '' });
-        }
-      });
-
-      const fullDescripcion = `Hs Reloj: ${horas || '-'} | CFP N° ${cfp || '403'} - Distrito: ${distrito || 'Luján'} | Res: ${resolucion || '-'} | Curso N° ${cursoNum || '-'} | Emisión: ${fecha_entrega || '-'} | ${desc}`;
-
-      const { error } = await db.from('trayectos').insert([{ 
-        nombre, 
-        resolucion: resolucion || certificacion, 
-        horas: horas || '',
-        fecha_entrega: fecha_entrega || '',
-        docente_user: docentesUsers || 'Sin asignar', 
-        docente_nombre: docentesNombres || 'Sin asignar', 
-        descripcion: fullDescripcion,
-        modulos: JSON.stringify(modulosArray)
-      }]);
-
-      if (error) return Swal.fire({ icon: 'error', title: 'Error', text: error.message });
-
-      Swal.fire({ icon: 'success', title: '¡Guardado!', text: 'Trayecto Formativo registrado con éxito.' });
-      cargarDatosDashboard();
-    }
-
-    async function eliminarTrayecto(id, nombreEnc) {
-      const nombre = decodeURIComponent(nombreEnc);
-      
-      const confirm = await Swal.fire({
-        title: `¿Eliminar "${nombre}"?`,
-        text: 'Esta acción borrará el curso permanentemente.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#dc2626',
-        confirmButtonText: 'Sí, eliminar',
-        cancelButtonText: 'Cancelar'
-      });
-
-      if (!confirm.isConfirmed) return;
-
-      const { error } = await db.from('trayectos').delete().eq('id', id);
-      if (error) {
-        Swal.fire({ icon: 'error', title: 'Error', text: error.message });
-      } else {
-        Toast.fire({ icon: 'success', title: 'Trayecto eliminado.' });
-        cargarDatosDashboard();
-      }
-    }
-
-    async function eliminarModuloDeTrayecto(trayectoId, moduloIndex) {
-      const confirm = await Swal.fire({
-        title: '¿Eliminar módulo?',
-        text: 'Se quitará este módulo del trayecto.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#dc2626',
-        confirmButtonText: 'Eliminar'
-      });
-
-      if (!confirm.isConfirmed) return;
-
-      const { data: trayecto } = await db.from('trayectos').select('modulos').eq('id', trayectoId).single();
-      let modArr = [];
-      try { modArr = JSON.parse(trayecto.modulos || '[]'); } catch(e){}
-
-      modArr.splice(moduloIndex, 1);
-
-      const { error } = await db.from('trayectos').update({ modulos: JSON.stringify(modArr) }).eq('id', trayectoId);
-      if (error) {
-        Swal.fire({ icon: 'error', title: 'Error', text: error.message });
-      } else {
-        Toast.fire({ icon: 'success', title: 'Módulo eliminado.' });
-        cargarDatosDashboard();
-      }
-    }
-
-    async function renderizarTrayectos() {
-      const container = document.getElementById('lista-trayectos');
-      let { data: trayectos } = await db.from('trayectos').select('*');
-      const { data: contenidos } = await db.from('contenidos').select('*');
-      const { data: entregas } = await db.from('entregas').select('*');
-
-      if (currentUser.role === 'estudiante') {
-        const { data: inscripciones } = await db.from('inscripciones').select('trayecto_id').eq('estudiante_user', currentUser.user);
-        const idsInscriptos = inscripciones ? inscripciones.map(i => i.trayecto_id) : [];
-        trayectos = trayectos ? trayectos.filter(t => idsInscriptos.includes(t.id)) : [];
-      } else if (currentUser.role === 'docente') {
-        trayectos = trayectos ? trayectos.filter(t => t.docente_user && t.docente_user.split(',').map(s => s.trim()).includes(currentUser.user)) : [];
-      }
-
-      if (!trayectos || trayectos.length === 0) {
-        container.innerHTML = '<div class="card empty-msg">No hay trayectos creados o asignados.</div>';
-        return;
-      }
-
-      const hoy = new Date().toISOString().split('T')[0];
-      container.innerHTML = '';
-
-      trayectos.forEach(t => {
-        const tContenidos = contenidos ? contenidos.filter(c => c.trayecto_id === t.id) : [];
-        const clases = tContenidos.filter(c => c.tipo === 'clase');
-        const actividades = tContenidos.filter(c => c.tipo === 'actividad');
-
-        let htmlModulosInfo = '';
-        try {
-          const modArr = JSON.parse(t.modulos || '[]');
-          if (modArr.length > 0) {
-            htmlModulosInfo = '<div style="margin-top:10px; font-size:12px; color:#374151;"><strong>Módulos Curriculares:</strong><ul style="margin:5px 0; padding-left:20px;">' +
-              modArr.map((m, idx) => {
-                const btnBorrarMod = currentUser.role === 'admin' 
-                  ? `<button class="btn btn-danger" style="padding:1px 5px; font-size:10px; margin-left:8px;" onclick="eliminarModuloDeTrayecto('${t.id}', ${idx})">Borrar Módulo</button>`
-                  : '';
-                return `<li>${m.nombre} ${m.codigo ? '('+m.codigo+')' : ''} ${m.inicio && m.fin ? '— Dictado: ' + m.inicio + ' al ' + m.fin : ''} ${btnBorrarMod}</li>`;
-              }).join('') +
-              '</ul></div>';
-          }
-        } catch(e){}
-
-        let htmlClases = '<h4>📖 Clases y Materiales</h4>';
-        if (clases.length === 0) htmlClases += '<p class="empty-msg">Sin clases publicadas aún.</p>';
-
-        clases.forEach(c => {
-          if (currentUser.role === 'estudiante' && c.fecha > hoy) return;
-          htmlClases += `
-            <div class="clase-box">
-              <strong>${c.titulo}</strong>
-              <div class="material-item">
-                <span>📄 ${c.descripcion}</span>
-                <a href="${c.link}" target="_blank" class="btn" style="padding:4px 8px; font-size:12px;">Abrir</a>
-              </div>
-            </div>`;
-        });
-
-        let htmlActividades = '<h4 style="margin-top:15px;">📝 Trabajos Prácticos</h4>';
-        if (actividades.length === 0) htmlActividades += '<p class="empty-msg">Sin TPs asignados aún.</p>';
-
-        actividades.forEach(a => {
-          let btnEntrega = '';
-          let infoEntrega = '';
-
-          if (currentUser.role === 'estudiante') {
-            const miEntrega = entregas ? entregas.find(e => e.actividad_id === a.id && e.estudiante === currentUser.user) : null;
-            if (miEntrega) {
-              infoEntrega = `<div style="font-size:12px; color:#0369a1; margin-top:5px;">✅ Entregado. Nota: ${miEntrega.nota ? miEntrega.nota + ' / 100' : 'Pendiente de revisión'}</div>`;
-              btnEntrega = `<button class="btn btn-secondary" style="font-size:12px; padding:4px 8px;" onclick="entregarTP('${t.id}', '${a.id}')">Reenviar</button>`;
-            } else {
-              btnEntrega = `<button class="btn btn-success" style="font-size:12px; padding:4px 8px;" onclick="entregarTP('${t.id}', '${a.id}')">Subir Entrega</button>`;
-            }
-          }
-
-          htmlActividades += `
-            <div class="actividad-box">
-              <strong>${a.titulo}</strong> ${a.modulo_asociado ? `<span style="font-size:11px; background:#e0e7ff; color:#3730a3; padding:2px 6px; border-radius:4px; margin-left:8px;">Módulo: ${a.modulo_asociado}</span>` : ''}
-              <p style="font-size:13px; margin:5px 0;">${a.descripcion}</p>
-              ${btnEntrega}
-              ${infoEntrega}
-            </div>`;
-        });
-
-        const btnEliminarTrayectoHtml = currentUser.role === 'admin' 
-          ? `<button class="btn btn-danger" style="margin-top:10px; margin-left:10px;" onclick="eliminarTrayecto('${t.id}', '${encodeURIComponent(t.nombre)}')">🗑️ Eliminar Trayecto</button>`
-          : '';
-
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.innerHTML = `
-          <span class="docente-badge">Docente(s): ${t.docente_nombre || 'Sin asignar'}</span>
-          <h3>${t.nombre}</h3>
-          <p style="font-size:13px; color:#4b5563;">${t.descripcion || ''}</p>
-          ${htmlModulosInfo}
-          <button class="btn btn-secondary" style="margin-top:10px;" onclick="document.getElementById('det-${t.id}').style.display = document.getElementById('det-${t.id}').style.display === 'none'?'block':'none'">Ver Contenidos y TPs</button>
-          ${btnEliminarTrayectoHtml}
-          <div id="det-${t.id}" style="display:none; margin-top:15px;">
-            ${htmlClases}
-            ${htmlActividades}
-          </div>`;
-        container.appendChild(card);
-      });
-    }
-
-    async function guardarEgresado(inscripcionId, numEgresado) {
-      const { error } = await db.from('inscripciones').update({ num_egresado: numEgresado.trim() }).eq('id', inscripcionId);
-      if (error) {
-        Swal.fire({ icon: 'error', title: 'Error', text: error.message });
-      } else {
-        Toast.fire({ icon: 'success', title: 'N° de Egresado asignado' });
-      }
-    }
-
-    async function guardarNotaConceptual(inscripcionId, moduloNombre, nota, fundamentacion) {
-      const val = parseInt(nota);
-      if (isNaN(val) || val < 0 || val > 100) {
-        return Swal.fire({ icon: 'warning', title: 'Valor inválido', text: 'Ingresá una nota del 0 al 100.' });
-      }
-      
-      const { data: insc } = await db.from('inscripciones').select('notas_conceptuales').eq('id', inscripcionId).single();
-      let mapConcept = {};
-      try { mapConcept = JSON.parse(insc.notas_conceptuales || '{}'); } catch(e){}
-
-      mapConcept[moduloNombre] = {
-        nota: val,
-        fundamentacion: (fundamentacion || '').trim()
-      };
-
-      const { error } = await db.from('inscripciones').update({ notas_conceptuales: JSON.stringify(mapConcept) }).eq('id', inscripcionId);
-      if (error) {
-        Swal.fire({ icon: 'error', title: 'Error', text: error.message });
-      } else {
-        Toast.fire({ icon: 'success', title: 'Nota conceptual guardada' });
-        renderizarSeguimientoEstudiantes();
-      }
-    }
-
-    async function renderizarSeguimientoEstudiantes() {
-      const trayectoId = document.getElementById('select-trayecto-seguimiento').value;
-      const contenedor = document.getElementById('contenedor-seguimiento');
-
-      if (!trayectoId) {
-        contenedor.innerHTML = '<div class="card empty-msg">Seleccioná un trayecto.</div>';
-        return;
-      }
-
-      const { data: trayectoInfo } = await db.from('trayectos').select('*').eq('id', trayectoId).single();
-      const { data: inscripciones } = await db.from('inscripciones').select('*').eq('trayecto_id', trayectoId);
-      const { data: usuarios } = await db.from('usuarios').select('*');
-      const { data: contenidos } = await db.from('contenidos').select('*').eq('trayecto_id', trayectoId).eq('tipo', 'actividad');
-      const { data: entregas } = await db.from('entregas').select('*').eq('trayecto_id', trayectoId);
-
-      if (!inscripciones || inscripciones.length === 0) {
-        contenedor.innerHTML = '<div class="card empty-msg">No hay alumnos inscriptos en este trayecto.</div>';
-        return;
-      }
-
-      contenedor.innerHTML = '';
-      let modulosList = [];
-      try { modulosList = JSON.parse(trayectoInfo.modulos || '[]'); } catch(e){}
-
-      inscripciones.forEach(i => {
-        const uInfo = usuarios ? usuarios.find(u => u.usuario === i.estudiante_user) : null;
-        const nombreAlumno = uInfo ? uInfo.nombre : i.estudiante_user;
-
-        let mapConcept = {};
-        try { mapConcept = JSON.parse(i.notas_conceptuales || '{}'); } catch(e){}
-
-        let htmlTablaModulos = '<h4>📐 Evaluación Modular Automática (Formación Profesional)</h4>';
-        let totalModulos = modulosList.length;
-        let modulosAprobados = 0;
-
-        if (totalModulos === 0) {
-          htmlTablaModulos += '<p class="empty-msg" style="padding:10px;">Este trayecto no posee módulos registrados.</p>';
-        } else {
-          htmlTablaModulos += '<table class="tabla-modulos-eval"><thead><tr><th>Módulo / Unidad Curricular</th><th>Código</th><th>Promedio TPs</th><th>Nota Conceptual / Taller (0-100) y Fundamentación</th><th>Condición Modular (Mín. 70)</th></tr></thead><tbody>';
-
-          modulosList.forEach((m, idx) => {
-            const tpsModulo = contenidos ? contenidos.filter(c => c.modulo_asociado === m.nombre) : [];
-            const idsTps = tpsModulo.map(tp => tp.id);
-            
-            const entregasCalificadas = entregas ? entregas.filter(e => 
-              e.estudiante === i.estudiante_user && 
-              idsTps.includes(e.actividad_id) && 
-              e.nota !== null && e.nota !== undefined && e.nota !== ""
-            ) : [];
-
-            let promTPs = null;
-            if (entregasCalificadas.length > 0) {
-              const suma = entregasCalificadas.reduce((acc, curr) => acc + (parseFloat(curr.nota) || 0), 0);
-              promTPs = suma / entregasCalificadas.length;
-            }
-
-            const conceptData = mapConcept[m.nombre];
-            let valConcept = null;
-            let txtFundamentacion = '';
-
-            if (conceptData !== undefined) {
-              if (typeof conceptData === 'object') {
-                valConcept = conceptData.nota !== undefined ? parseFloat(conceptData.nota) : null;
-                txtFundamentacion = conceptData.fundamentacion || '';
-              } else {
-                valConcept = parseFloat(conceptData);
-              }
-            }
-
-            let promedioFinal = 0;
-            let badgeHtml = '';
-
-            if (promTPs !== null && valConcept !== null) {
-              promedioFinal = Math.round((promTPs + valConcept) / 2);
-            } else if (promTPs !== null) {
-              promedioFinal = Math.round(promTPs);
-            } else if (valConcept !== null) {
-              promedioFinal = Math.round(valConcept);
-            } else {
-              promedioFinal = null;
-            }<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CFP N° 403 - Gestión Académica</title>
-  
-  <!-- CDN de librerías externas -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-</head>
-<body>
-
-  <!-- PANTALLA DE LOGIN -->
-  <div id="login-screen">
-    <h2>Iniciar Sesión</h2>
-    <input type="text" id="login-user" placeholder="Usuario / DNI">
-    <input type="password" id="login-pass" placeholder="Contraseña">
-    <select id="role-select">
-      <option value="estudiante">Estudiante</option>
-      <option value="docente">Docente</option>
-      <option value="admin">Administrador</option>
-    </select>
-    <button onclick="iniciarSesion()">Ingresar</button>
-  </div>
-
-  <!-- PANTALLA PRINCIPAL DE LA APP -->
-  <div id="app-screen" style="display: none;">
-    <header>
-      Bienvenido/a, <span id="display-username"></span> (<span id="display-role"></span>)
-      <button onclick="cerrarSesion()">Cerrar Sesión</button>
-    </header>
-
-    <div class="sidebar">
-      <button id="btn-trayectos" onclick="showTab('trayectos')">Trayectos</button>
-      <button id="btn-estudiantes" class="docente-or-admin" onclick="showTab('estudiantes')">Seguimiento</button>
-      <button id="btn-estadisticas" class="docente-or-admin" onclick="showTab('estadisticas')">Estadísticas</button>
-    </div>
-
-    <!-- SECCIÓN: TRAYECTOS Y REVISIONES -->
-    <div id="trayectos" class="section active">
-      <h3>Trayectos Formativos</h3>
-      <div id="lista-trayectos"></div>
-
-      <!-- Exclusivo Docentes/Admin -->
-      <div class="docente-only" style="margin-top:20px;">
-        <h4>Revisiones Pendientes</h4>
-        <table>
-          <thead>
-            <tr>
-              <th>Estudiante</th>
-              <th>Trabajo Práctico</th>
-              <th>Fecha</th>
-              <th>Archivo</th>
-              <th>Nota</th>
-            </tr>
-          </thead>
-          <tbody id="tabla-revisiones"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- SECCIÓN: SEGUIMIENTO DE ESTUDIANTES -->
-    <div id="estudiantes" class="section" style="display: none;">
-      <h3>Seguimiento de Estudiantes</h3>
-      <select id="select-trayecto-seguimiento" onchange="renderizarSeguimientoEstudiantes()"></select>
-      <div id="contenedor-seguimiento"></div>
-    </div>
-
-    <!-- SECCIÓN: ESTADÍSTICAS -->
-    <div id="estadisticas" class="section" style="display: none;">
-      <h3>Estadísticas del Centro</h3>
-      <div style="display: flex; gap: 20px;">
-        <div style="width: 300px; height: 300px;">
-          <canvas id="chartAlumnos"></canvas>
-        </div>
-        <div style="width: 400px; height: 300px;">
-          <canvas id="chartEntregas"></canvas>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- SCRIPT CON TODA LA LÓGICA DE LA APLICACIÓN -->
-  <script>
-    const SUPABASE_URL = 'https://dxgqtdaexlegsaohdywx.supabase.co';
+    const SUPABASE_URL = 'https://dxggtdaexlegsaohdywx.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_q3iliYP60gR5bP6vtTwoHA_8FWqg7iz';
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -1084,13 +412,11 @@
         });
       }
 
-      // Lógica de formateo de email
       let emailIngresado = u;
       if (!emailIngresado.includes('@')) {
         emailIngresado = emailIngresado + '@cfp403.app';
       }
 
-      // Muestra un indicador de carga mientras procesa
       Swal.fire({
         title: 'Iniciando sesión...',
         text: 'Validando credenciales en el servidor',
@@ -1113,15 +439,19 @@
           });
         }
 
-        // 2. Obtener el perfil del usuario desde la tabla public.profiles
-        const { data: profile, error: profileError } = await db
-          .from('profiles')
+        // 2. Obtener el perfil del usuario (primero desde 'usuarios', sino desde 'profiles')
+        let { data: profile } = await db
+          .from('usuarios')
           .select('*')
           .eq('id', authData.user.id)
           .maybeSingle();
 
-        if (profileError || !profile) {
-          console.error('Error al traer perfil:', profileError);
+        if (!profile) {
+          const resProf = await db.from('profiles').select('*').eq('id', authData.user.id).maybeSingle();
+          profile = resProf.data;
+        }
+
+        if (!profile) {
           return Swal.fire({ 
             icon: 'error', 
             title: 'Error de Perfil', 
@@ -1129,9 +459,9 @@
           });
         }
 
-        // 3. Validar si el rol seleccionado coincide con el de la base de datos
+        // 3. Validar si el rol coincide
         if (profile.rol !== roleSelected) {
-          await db.auth.signOut(); // Cierra la sesión si el rol no coincide
+          await db.auth.signOut();
           return Swal.fire({
             icon: 'warning',
             title: 'Rol Incorrecto',
@@ -1143,7 +473,7 @@
         currentUser = { 
           id: profile.id, 
           name: profile.nombre || 'Usuario', 
-          user: profile.dni || profile.email, 
+          user: profile.usuario || profile.dni || profile.email, 
           role: profile.rol 
         };
 
@@ -2200,7 +1530,7 @@
         return Swal.fire({ icon: 'warning', title: 'Atención', text: 'Completá todos los campos.' });
       }
 
-      const emailSintetico = `${usuario}@cfp403.app`;
+      const emailSintetico = usuario.includes('@') ? usuario : `${usuario}@cfp403.app`;
 
       const { data: authData, error: authError } = await db.auth.signUp({
         email: emailSintetico,
@@ -2213,15 +1543,16 @@
 
       const userId = authData.user.id;
 
-      const { error: profileError } = await db.from('profiles').insert([{
+      const { error: profileError } = await db.from('usuarios').insert([{
         id: userId,
-        dni: usuario,
+        usuario: usuario,
         nombre: nombre,
+        pass: pass,
         rol: rol
       }]);
 
       if (profileError) {
-        return Swal.fire({ icon: 'error', title: 'Error en perfil', text: profileError.message });
+        return Swal.fire({ icon: 'error', title: 'Error en base de datos', text: profileError.message });
       }
 
       const seleccionados = Array.from(document.querySelectorAll('.chk-trayecto:checked')).map(cb => cb.value);
@@ -2351,7 +1682,7 @@
         }
       }
 
-      const { error } = await db.from('profiles').delete().eq('id', id);
+      const { error } = await db.from('usuarios').delete().eq('id', id);
 
       if (error) {
         return Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo eliminar el usuario.' });
