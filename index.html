@@ -475,11 +475,17 @@
   Toast.fire({ icon: 'success', title: `¡Bienvenido/a, ${currentUser.name}!` });
 }
 
-    function cerrarSesion() {
-      document.getElementById('app-screen').style.display = 'none';
-      document.getElementById('login-screen').style.display = 'flex';
-      Toast.fire({ icon: 'info', title: 'Sesión cerrada correctamente' });
-    }
+    async function cerrarSesion() {
+  // Cierra la sesión activa en Supabase Auth
+  await db.auth.signOut();
+  
+  currentUser = null;
+  
+  document.getElementById('app-screen').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  
+  Toast.fire({ icon: 'info', title: 'Sesión cerrada correctamente' });
+}
 
     function showTab(id) {
       document.querySelectorAll('.section').forEach(s => { s.classList.remove('active'); s.style.display = 'none'; });
