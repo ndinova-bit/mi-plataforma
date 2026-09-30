@@ -441,9 +441,9 @@
       });
     }
 
-    // 2. Obtener el perfil del usuario desde la tabla public.profiles
+    // 2. Obtener el perfil del usuario desde la tabla public.usuarios
     const { data: profile, error: profileError } = await db
-      .from('profiles')
+      .from('usuarios')
       .select('*')
       .eq('id', authData.user.id)
       .maybeSingle();
@@ -457,7 +457,7 @@
       });
     }
 
-    // 3. Validar si el rol seleccionado coincide con el de la base de datos (Opcional)
+    // 3. Validar si el rol seleccionado coincide con el de la base de datos
     if (profile.rol !== roleSelected) {
       await db.auth.signOut(); // Cierra la sesión si el rol no coincide
       return Swal.fire({
@@ -471,10 +471,10 @@
     currentUser = { 
       id: profile.id, 
       name: profile.nombre || 'Usuario', 
-      user: profile.dni || profile.email, 
+      user: profile.usuario, 
       role: profile.rol 
     };
-
+    
     // Ajustes de UI
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app-screen').style.display = 'block';
