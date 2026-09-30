@@ -3,443 +3,191 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Plataforma Educativa & Portal Institucional - CFP N° 403 Luján</title>
+  <title>Plataforma CFP 403</title>
   
-  <!-- LIBRERÍAS EXTERNAS -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-  <!-- HOJAS DE ESTILO MODULARES -->
+  <!-- Hojas de Estilo (CSS) -->
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/responsive.css">
 </head>
 <body>
 
-  <!-- NAVBAR INSTITUCIONAL -->
-  <nav class="navbar">
-    <div class="brand">
-      <i class="fa-solid fa-graduation-cap brand-icon"></i>
-      <span>CFP N° 403 LUJÁN</span>
-    </div>
-    <div class="nav-links">
-      <a href="#" onclick="UI.showLanding()"><i class="fa-solid fa-house"></i> Inicio</a>
-      <a href="#cursos-seccion" onclick="UI.showLanding()"><i class="fa-solid fa-book-open"></i> Oferta 2027</a>
-      <a href="#contacto-seccion"><i class="fa-solid fa-envelope"></i> Contacto</a>
-      <button class="btn btn-cyan" id="btn-login-toggle" onclick="UI.showLoginScreen()">
-        <i class="fa-solid fa-right-to-bracket"></i> Campus Virtual
-      </button>
-    </div>
-  </nav>
-
-  <!-- VISTA PÚBLICA INSTITUCIONAL -->
+  <!-- 1. VISTA PÚBLICA / LANDING -->
   <div id="public-landing">
-    <section class="hero-section">
-      <h1>Centro de Formación Profesional N° 403</h1>
-      <p>Capacitación laboral, formación técnica continua y certificación oficial DGCyE PBA.</p>
-      <button class="btn btn-primary-lg" onclick="UI.showLoginScreen()">
-        <i class="fa-solid fa-user-graduate"></i> Ingresar a la Plataforma Educativa
-      </button>
-    </section>
+    <header style="background: var(--surface); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center;">
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <img src="PRUEBA CFP SIN FONDO.png" alt="CFP 403 Logo" style="height: 45px;">
+        <h2 style="font-size: 1.25rem;">CFP N° 403 - San Martin</h2>
+      </div>
+      <button class="btn btn-primary" onclick="UI.showLoginScreen()">Ingresar / Registrarse</button>
+    </header>
 
-    <!-- VIDEO INTERACTIVO INSTITUCIONAL -->
-    <div class="video-container">
-      <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/cfp403lujan/reel/CxBLUkerTwV/" data-instgrm-version="14"></blockquote>
-      <script async src="//www.instagram.com/embed.js"></script>
-    </div>
-
-    <!-- OFERTA DE CURSOS 2027 -->
-    <h2 class="section-title" id="cursos-seccion">
-      <i class="fa-solid fa-calendar-days"></i> Cursos e Inscripciones 2027
-    </h2>
-    <div class="courses-grid" id="public-courses-grid">
-      <div class="card empty-msg">Cargando oferta académica...</div>
-    </div>
-
-    <!-- REDES Y CONTACTO -->
-    <div class="contact-bar" id="contacto-seccion">
-      <a href="https://wa.me/5492323643809" target="_blank" class="contact-item">
-        <i class="fa-brands fa-whatsapp" style="color:#22c55e;"></i> WhatsApp Oficial
-      </a>
-      <a href="https://instagram.com/cfp403lujan" target="_blank" class="contact-item">
-        <i class="fa-brands fa-instagram" style="color:#e1306c;"></i> Instagram
-      </a>
-      <a href="mailto:cfp403lujan@abc.gob.ar" class="contact-item">
-        <i class="fa-solid fa-paper-plane" style="color:var(--accent-cyan);"></i> Correo Institucional
-      </a>
-    </div>
-  </div>
-
-  <!-- VISTA DE LOGIN Y AUTOREGISTRO -->
-  <div id="login-screen">
-    <div class="login-box">
-      <div class="tab-toggle">
-        <button id="tab-btn-login" class="active" onclick="UI.toggleAuthTab('login')">Ingresar</button>
-        <button id="tab-btn-register" onclick="UI.toggleAuthTab('register')">Solicitar Registro</button>
+    <main style="max-width: 1000px; margin: 3rem auto; padding: 0 1rem;">
+      <div class="card" style="text-align: center; padding: 3rem 1.5rem;">
+        <h1>Oferta Académica y Trayectos Formativos</h1>
+        <p style="color: var(--text-muted); margin-top: 0.5rem;">Consultá los cursos disponibles y sus respectivos módulos.</p>
       </div>
 
-      <!-- FORMULARIO DE INGRESO -->
+      <div id="lista-trayectos-cards">
+        <!-- Carga dinámica vía JS -->
+      </div>
+    </main>
+  </div>
+
+  <!-- 2. VISTA AUTH / LOGIN & REGISTRO -->
+  <div id="login-screen" style="display: none; min-height: 100vh; align-items: center; justify-content: center; background: var(--background); padding: 1rem;">
+    <div class="card" style="width: 100%; max-width: 420px;">
+      <div style="text-align: center; margin-bottom: 1.5rem;">
+        <img src="PRUEBA CFP SIN FONDO.png" alt="CFP Logo" style="height: 60px; margin-bottom: 0.5rem;">
+        <h3>Acceso al Sistema</h3>
+      </div>
+
+      <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">
+        <button id="tab-btn-login" class="btn btn-secondary active" style="flex: 1;" onclick="UI.toggleAuthTab('login')">Ingresar</button>
+        <button id="tab-btn-register" class="btn btn-secondary" style="flex: 1;" onclick="UI.toggleAuthTab('register')">Solicitar Cuenta</button>
+      </div>
+
+      <!-- Formulario Login -->
       <form id="form-login" onsubmit="event.preventDefault(); Auth.iniciarSesion();">
         <div class="form-group">
-          <label for="role-select">Perfil de Ingreso:</label>
-          <select id="role-select">
+          <label for="role-select">Rol de ingreso:</label>
+          <select id="role-select" class="form-control">
             <option value="estudiante">Estudiante</option>
             <option value="docente">Docente</option>
-            <option value="admin">Administrador</option>
+            <option value="admin">Administrativo / Directivo</option>
           </select>
         </div>
+
         <div class="form-group">
-          <input type="text" id="login-user" placeholder="Usuario / DNI / Email" required>
+          <label for="login-user">Usuario / DNI / Email:</label>
+          <input type="text" id="login-user" class="form-control" required placeholder="Ej: 38123456">
         </div>
+
         <div class="form-group">
-          <input type="password" id="login-pass" placeholder="Contraseña" required>
+          <label for="login-pass">Contraseña:</label>
+          <input type="password" id="login-pass" class="form-control" required placeholder="••••••••">
         </div>
-        <button class="btn btn-cyan btn-full" type="submit">
-          <i class="fa-solid fa-key"></i> Ingresar
-        </button>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Iniciar Sesión</button>
+        <button type="button" class="btn btn-secondary" style="width: 100%; margin-top: 0.5rem;" onclick="UI.showLanding()">Volver a Inicio</button>
       </form>
 
-      <!-- FORMULARIO DE REGISTRO PÚBLICO -->
-      <form id="form-register" style="display:none;" onsubmit="event.preventDefault(); Auth.solicitarRegistro();">
+      <!-- Formulario Registro -->
+      <form id="form-register" style="display: none;" onsubmit="event.preventDefault(); Auth.solicitarRegistro();">
         <div class="form-group">
-          <input type="text" id="reg-nombre" placeholder="Nombre Completo (tal cual DNI)" required>
+          <label for="reg-nombre">Nombre y Apellido:</label>
+          <input type="text" id="reg-nombre" class="form-control" required placeholder="Juan Pérez">
         </div>
+
         <div class="form-group">
-          <input type="text" id="reg-dni" placeholder="DNI / Documento de Usuario" required>
+          <label for="reg-dni">DNI / Usuario:</label>
+          <input type="text" id="reg-dni" class="form-control" required placeholder="Solo números">
         </div>
+
         <div class="form-group">
-          <input type="password" id="reg-pass" placeholder="Crear Contraseña" required>
+          <label for="reg-pass">Contraseña:</label>
+          <input type="password" id="reg-pass" class="form-control" required placeholder="••••••••">
         </div>
+
         <div class="form-group">
-          <label for="reg-rol">Rol Solicitado:</label>
-          <select id="reg-rol">
+          <label for="reg-rol">Tipo de Usuario:</label>
+          <select id="reg-rol" class="form-control">
             <option value="estudiante">Estudiante</option>
             <option value="docente">Docente</option>
           </select>
         </div>
-        <button class="btn btn-success btn-full" type="submit">
-          <i class="fa-solid fa-paper-plane"></i> Enviar Solicitud
-        </button>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Enviar Solicitud</button>
+        <button type="button" class="btn btn-secondary" style="width: 100%; margin-top: 0.5rem;" onclick="UI.showLanding()">Volver a Inicio</button>
       </form>
     </div>
   </div>
 
-  <!-- DASHBOARD / APLICACIÓN -->
-  <div id="app-screen">
-    <div class="dashboard">
-      <aside class="sidebar">
-        <div>
-          <div class="sidebar-header">
-            <i class="fa-solid fa-shield-halved"></i> CFP N° 403 Campus
-          </div>
-          <button id="btn-trayectos" class="active" onclick="UI.showTab('trayectos')">
-            <i class="fa-solid fa-book"></i> 📚 Trayectos Formativos
-          </button>
-          <button id="btn-recordatorios" onclick="UI.showTab('recordatorios')">
-            <i class="fa-solid fa-bell"></i> 🔔 Recordatorios
-          </button>
-          <button id="btn-estadisticas" class="docente-or-admin" onclick="UI.showTab('estadisticas')">
-            <i class="fa-solid fa-chart-line"></i> 📊 Estadísticas
-          </button>
-          <button id="btn-estudiantes" class="docente-or-admin" onclick="UI.showTab('estudiantes')">
-            <i class="fa-solid fa-user-check"></i> 🎓 Seguimiento Alumnos
-          </button>
-          <button id="btn-contenidos" class="docente-only" onclick="UI.showTab('contenidos')">
-            <i class="fa-solid fa-folder-plus"></i> 📂 Cargar Contenidos y TPs
-          </button>
-          <button id="btn-revisiones" class="docente-only" onclick="UI.showTab('revisiones')">
-            <i class="fa-solid fa-pen-to-square"></i> 📝 Corregir Entregas
-          </button>
-          <button id="btn-solicitudes" class="admin-only" onclick="UI.showTab('solicitudes')">
-            <i class="fa-solid fa-user-clock"></i> ⌛ Solicitudes Pendientes
-          </button>
-          <button id="btn-usuarios" class="admin-only" onclick="UI.showTab('usuarios')">
-            <i class="fa-solid fa-users-gear"></i> 👥 Gestión de Usuarios
-          </button>
+  <!-- 3. DASHBOARD / SISTEMA INTERNO -->
+  <div id="app-screen" style="display: none;">
+    <aside class="sidebar">
+      <div style="padding-bottom: 1rem; border-bottom: 1px solid var(--border); margin-bottom: 1rem;">
+        <strong id="display-username">Usuario</strong>
+        <p id="display-role" style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">ROL</p>
+      </div>
+
+      <nav style="display: flex; flex-direction: column; gap: 0.5rem; flex: 1;">
+        <button id="btn-trayectos" class="btn btn-secondary" onclick="UI.showTab('trayectos')">Trayectos</button>
+        <button id="btn-nuevo-trayecto" class="btn btn-secondary admin-only" onclick="UI.showTab('nuevo-trayecto')">Cargar Trayecto</button>
+      </nav>
+
+      <button class="btn btn-danger" style="margin-top: auto;" onclick="Auth.cerrarSesion()">Cerrar Sesión</button>
+    </aside>
+
+    <main class="main-content">
+      <section id="trayectos" class="section active">
+        <h2>Trayectos y Módulos</h2>
+        <div id="dash-lista-trayectos" style="margin-top: 1rem;">
+          <!-- Se completa mediante JS -->
         </div>
-        <div class="user-info">
-          Usuario: <strong id="display-username">-</strong><br>
-          Rol: <span id="display-role">-</span><br>
-          <button class="btn btn-danger btn-logout" onclick="Auth.cerrarSesion()">
-            <i class="fa-solid fa-power-off"></i> Cerrar Sesión
-          </button>
-        </div>
-      </aside>
+      </section>
 
-      <main class="main-content">
-        <!-- SECCIÓN: TRAYECTOS -->
-        <section id="trayectos" class="section active">
-          <h2>Trayectos Formativos</h2>
+      <section id="nuevo-trayecto" class="section admin-only">
+        <h2>Nuevo Trayecto Formativo</h2>
+        <form id="form-trayecto" onsubmit="event.preventDefault(); Trayectos.guardarTrayecto();" class="card" style="margin-top: 1rem;">
+          <div class="form-group">
+            <label for="trayecto-nombre">Nombre del Trayecto:</label>
+            <input type="text" id="trayecto-nombre" class="form-control" required placeholder="Ej: Programación Web">
+          </div>
+
+          <div class="form-group">
+            <label for="trayecto-sector">Sector Profesional:</label>
+            <input type="text" id="trayecto-sector" class="form-control" placeholder="Ej: Informática / Comunicación">
+          </div>
+
+          <div class="form-group">
+            <label for="trayecto-descripcion">Descripción:</label>
+            <textarea id="trayecto-descripcion" class="form-control" rows="3"></textarea>
+          </div>
+
+          <hr style="margin: 1.5rem 0; border: none; border-top: 1px solid var(--border);">
           
-          <div id="estudiante-progress-card" class="card" style="display:none;">
-            <h3><i class="fa-solid fa-chart-pie"></i> Tu Progreso General Académico</h3>
-            <div class="progress-bar-container">
-              <div id="liquid-progress-bar" class="progress-bar-fill"></div>
-            </div>
-            <div class="progress-info">
-              <span>Avance de Módulos Aprobados</span>
-              <span id="progress-percentage-text">0%</span>
-            </div>
+          <div style="display: flex; justify-content: space-between; align-align-items: center; margin-bottom: 1rem;">
+            <h4>Módulos del Trayecto</h4>
+            <button type="button" class="btn btn-secondary btn-xs" onclick="UI.agregarFilaModulo()">+ Agregar Módulo</button>
           </div>
 
-          <!-- FORMULARIO DE ALTA DE TRAYECTO (ADMIN) -->
-          <div class="card admin-only card-accent-top">
-            <h3>Alta de Trayecto Formativo / Curso</h3>
-            <div class="grid-2">
-              <div class="form-group">
-                <label>Nombre del Trayecto / Curso:</label>
-                <input type="text" id="nombre-trayecto" placeholder="Ej: Pensamiento Computacional – Programación">
+          <div id="contenedor-modulos">
+            <div class="modulo-card">
+              <div class="modulo-row-header">
+                <input type="text" class="mod-nombre" placeholder="Nombre del Módulo" style="width: 65%;">
+                <input type="text" class="mod-codigo" placeholder="Código (Ej: GH 0050)" style="width: 25%;">
               </div>
-              <div class="form-group">
-                <label>Denominación Certificación:</label>
-                <input type="text" id="certificacion-trayecto" placeholder="Ej: Pensamiento Computacional – Programación">
+              <div class="modulo-row-dates">
+                <label>Inicio:</label>
+                <input type="date" class="mod-inicio">
+                <label>Fin:</label>
+                <input type="date" class="mod-fin">
               </div>
             </div>
-
-            <div class="grid-3">
-              <div class="form-group">
-                <label>Carga Horaria Total (Hs Reloj):</label>
-                <input type="number" id="horas-trayecto" placeholder="Ej: 60">
-              </div>
-              <div class="form-group">
-                <label>C.F.P. N°:</label>
-                <input type="text" id="cfp-trayecto" placeholder="Ej: 403">
-              </div>
-              <div class="form-group">
-                <label>Distrito:</label>
-                <input type="text" id="distrito-trayecto" placeholder="Ej: Luján">
-              </div>
-            </div>
-
-            <div class="grid-2">
-              <div class="form-group">
-                <label>Resolución / Norma Aprobatoria:</label>
-                <input type="text" id="resolucion-trayecto" placeholder="Ej: RESOC-2021-3362-GDEBA-DGCYE">
-              </div>
-              <div class="form-group">
-                <label>Curso N° (Reg. Institucional):</label>
-                <input type="text" id="curso-num-trayecto" placeholder="Ej: 395/26">
-              </div>
-            </div>
-
-            <div class="grid-2">
-              <div class="form-group">
-                <label>Fecha de Confección / Emisión:</label>
-                <input type="text" id="fecha-entrega-trayecto" placeholder="Ej: 23 de Septiembre de 2026">
-              </div>
-              <div class="form-group">
-                <label>Docentes a Cargo (Opcional):</label>
-                <div id="checkboxes-docentes-trayecto" class="checkbox-group"></div>
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label>Descripción / Alcance Perfil Profesional:</label>
-              <textarea id="desc-trayecto" rows="2"></textarea>
-            </div>
-
-            <hr class="divider">
-            <h4>📐 Estructura Curricular y Módulos</h4>
-            <div id="contenedor-modulos">
-              <div class="modulo-card">
-                <div class="modulo-row-header">
-                  <input type="text" class="mod-nombre" placeholder="Nombre del Módulo" style="width: 65%;">
-                  <input type="text" class="mod-codigo" placeholder="Código (Ej: GH 0050)" style="width: 25%;">
-                  <button class="btn btn-danger btn-xs" onclick="UI.eliminarFilaModulo(this)">X</button>
-                </div>
-                <div class="modulo-row-dates">
-                  <label>Inicio:</label>
-                  <input type="date" class="mod-inicio">
-                  <label>Fin:</label>
-                  <input type="date" class="mod-fin">
-                </div>
-              </div>
-            </div>
-            <button class="btn btn-secondary btn-sm" onclick="UI.agregarFilaModulo()">➕ Agregar Otro Módulo</button>
-            <br><br>
-            <button class="btn btn-success" onclick="Trayectos.crearTrayecto()">💾 Guardar Trayecto Formativo</button>
           </div>
 
-          <h3>Mis Trayectos</h3>
-          <div id="lista-trayectos">
-            <div class="card empty-msg">Cargando trayectos...</div>
-          </div>
-        </section>
-
-        <!-- SECCIÓN: RECORDATORIOS -->
-        <section id="recordatorios" class="section">
-          <h2><i class="fa-solid fa-clock-rotate-left"></i> Próximos Vencimientos y Anuncios</h2>
-          <div class="card">
-            <div class="widget-accordion">
-              <div class="widget-header" onclick="UI.toggleWidget(this)">
-                <span>📌 Cierre de Entregas Trabajos Prácticos</span><i class="fa-solid fa-chevron-down"></i>
-              </div>
-              <div class="widget-body">Revisá la fecha límite fijada por tus docentes en cada módulo del plan de estudios.</div>
-            </div>
-            <div class="widget-accordion">
-              <div class="widget-header" onclick="UI.toggleWidget(this)">
-                <span>📢 Fechas de Inscripción 2027</span><i class="fa-solid fa-chevron-down"></i>
-              </div>
-              <div class="widget-body">Las inscripciones presenciales iniciarán en el período dispuesto por la Dirección Regional.</div>
-            </div>
-          </div>
-        </section>
-
-        <!-- SECCIÓN: SOLICITUDES PENDIENTES (ADMIN) -->
-        <section id="solicitudes" class="section admin-only">
-          <h2><i class="fa-solid fa-user-clock"></i> Solicitudes de Registro Pendientes de Aprobación</h2>
-          <div class="card responsive-table-card">
-            <table>
-              <thead>
-                <tr><th>Nombre</th><th>DNI / Usuario</th><th>Rol Solicitado</th><th>Acciones</th></tr>
-              </thead>
-              <tbody id="tabla-solicitudes-pendientes">
-                <tr><td colspan="4" class="empty-msg">Sin solicitudes pendientes.</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <!-- SECCIÓN: ESTADÍSTICAS -->
-        <section id="estadisticas" class="section docente-or-admin">
-          <h2>Panel de Estadísticas Académicas</h2>
-          <div class="grid-2">
-            <div class="card">
-              <h3>🎓 Estado Global de Alumnos</h3>
-              <div class="chart-container"><canvas id="chartAlumnos"></canvas></div>
-            </div>
-            <div class="card">
-              <h3>📝 Trabajos Prácticos y Revisiones</h3>
-              <div class="chart-container"><canvas id="chartEntregas"></canvas></div>
-            </div>
-          </div>
-        </section>
-
-        <!-- SECCIÓN: SEGUIMIENTO & CERTIFICADOS -->
-        <section id="estudiantes" class="section docente-or-admin">
-          <h2>Seguimiento Académico de Alumnos y Certificaciones ISO A5</h2>
-          <div class="card">
-            <div class="form-group">
-              <label>Seleccionar Trayecto Formativo:</label>
-              <select id="select-trayecto-seguimiento" onchange="Seguimiento.renderizarSeguimientoEstudiantes()"></select>
-            </div>
-          </div>
-          <div id="contenedor-seguimiento"></div>
-        </section>
-
-        <!-- SECCIÓN: CONTENIDOS (DOCENTES) -->
-        <section id="contenidos" class="section docente-only">
-          <h2>Gestión de Contenidos y Trabajos Prácticos</h2>
-          <div class="card">
-            <h3>📖 Cargar Clase</h3>
-            <div class="form-group"><label>Trayecto:</label><select id="select-trayecto-contenido"></select></div>
-            <div class="form-group"><label>Nombre Clase:</label><input type="text" id="clase-nombre"></div>
-            <div class="form-group"><label>Fecha Publicación:</label><input type="date" id="clase-fecha"></div>
-            <div class="form-group"><label>Título Material:</label><input type="text" id="material-titulo"></div>
-            <div class="form-group"><label>Enlace Recurso:</label><input type="url" id="material-link"></div>
-            <button class="btn" onclick="Contenidos.guardarClase()">Publicar Clase</button>
-          </div>
-
-          <div class="card card-accent-top">
-            <h3>📝 Asignar Trabajo Práctico</h3>
-            <div class="form-group">
-              <label>Trayecto:</label>
-              <select id="select-trayecto-actividad" onchange="UI.actualizarSelectModulosActividad()"></select>
-            </div>
-            <div class="form-group">
-              <label>Módulo Asociado:</label>
-              <select id="select-modulo-actividad"><option value="">Seleccionar Módulo...</option></select>
-            </div>
-            <div class="form-group"><label>Título TP:</label><input type="text" id="actividad-titulo"></div>
-            <div class="form-group"><label>Descripción / Consigna:</label><textarea id="actividad-desc" rows="3"></textarea></div>
-            <div class="form-group"><label>Fecha Límite:</label><input type="date" id="actividad-limite"></div>
-            <button class="btn btn-success" onclick="Contenidos.guardarActividad()">Publicar TP</button>
-          </div>
-        </section>
-
-        <!-- SECCIÓN: REVISIONES (DOCENTES) -->
-        <section id="revisiones" class="section docente-only">
-          <h2>Revisiones y Calificación de TPs (Escala 0 a 100)</h2>
-          <div class="card responsive-table-card">
-            <table>
-              <thead>
-                <tr><th>Estudiante</th><th>Trayecto / TP</th><th>Fecha</th><th>Trabajo</th><th>Calificación (0-100)</th></tr>
-              </thead>
-              <tbody id="tabla-revisiones">
-                <tr><td colspan="5" class="empty-msg">Sin entregas.</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <!-- SECCIÓN: USUARIOS (ADMIN) -->
-        <section id="usuarios" class="section admin-only">
-          <h2>Alta y Administración de Usuarios</h2>
-          
-          <div class="card card-accent-left">
-            <h3>📊 Carga Masiva de Estudiantes (Excel / CSV)</h3>
-            <p class="muted-text">
-              Subí un archivo <strong>.xlsx</strong> o <strong>.csv</strong> con las columnas: 
-              <code>Apellido</code>, <code>Nombre</code>, <code>DNI</code>, <code>Contraseña</code>, <code>Trayecto</code>.
-            </p>
-            <div class="form-group">
-              <input type="file" id="excel-file-input" accept=".xlsx, .xls, .csv">
-            </div>
-            <button class="btn btn-success" onclick="Usuarios.procesarCargaMasiva()">📤 Importar Estudiantes desde Archivo</button>
-          </div>
-
-          <div class="card">
-            <h3>Registrar Nuevo Usuario Individual</h3>
-            <div class="form-group"><label>Nombre Completo (Tal cual figura en D.U.):</label><input type="text" id="user-nombre"></div>
-            <div class="form-group"><label>D.U. / Nombre de Usuario:</label><input type="text" id="user-usuario"></div>
-            <div class="form-group"><label>Contraseña:</label><input type="password" id="user-pass"></div>
-            <div class="form-group">
-              <label>Rol:</label>
-              <select id="user-rol" onchange="UI.toggleInscripcionesBox()">
-                <option value="estudiante">Estudiante</option>
-                <option value="docente">Docente</option>
-                <option value="admin">Administrador</option>
-              </select>
-            </div>
-            <div class="form-group" id="box-inscripciones">
-              <label id="lbl-inscripciones">Asignar Estudiante a Trayectos:</label>
-              <div id="checkboxes-trayectos" class="checkbox-group"></div>
-            </div>
-            <button class="btn" onclick="Usuarios.registrarUsuario()">Crear Usuario</button>
-          </div>
-
-          <div class="card responsive-table-card">
-            <div class="table-header-flex">
-              <h3>Usuarios Registrados</h3>
-              <input type="text" id="buscar-usuario" placeholder="🔍 Buscar por nombre, DNI o rol..." onkeyup="Usuarios.filtrarUsuarios()" class="input-search">
-            </div>
-            <table>
-              <thead>
-                <tr><th>Nombre</th><th>Usuario / DNI</th><th>Rol</th><th>Trayectos Asignados</th><th>Acciones</th></tr>
-              </thead>
-              <tbody id="tabla-usuarios"></tbody>
-            </table>
-          </div>
-        </section>
-      </main>
-    </div>
+          <button type="submit" class="btn btn-primary" style="margin-top: 1.5rem;">Guardar Trayecto Completo</button>
+        </form>
+      </section>
+    </main>
   </div>
 
-  <!-- SCRIPTS MODULARES -->
+  <!-- Librerías Externas (CDNs) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <!-- Lógica Interna JS -->
   <script src="js/supabase-config.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/trayectos.js"></script>
-  <script src="js/contenidos.js"></script>
-  <script src="js/entregas.js"></script>
-  <script src="js/seguimiento.js"></script>
-  <script src="js/certificados.js"></script>
-  <script src="js/usuarios.js"></script>
-  <script src="js/estadisticas.js"></script>
-  <script src="js/app.js"></script>
+
+  <script>
+    // Inicialización al cargar la página
+    document.addEventListener('DOMContentLoaded', () => {
+      Trayectos.cargarTrayectos();
+    });
+  </script>
 </body>
 </html>
