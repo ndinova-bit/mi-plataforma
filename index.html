@@ -207,33 +207,13 @@
     </div>
 
     <!-- OFERTA DE CURSOS 2027 -->
-    <h2 style="text-align: center; margin-bottom: 30px;" id="cursos-seccion"><i class="fa-solid fa-calendar-days"></i> Cursos e Inscripciones 2027</h2>
-    <div class="courses-grid">
-      <div class="course-card">
-        <div>
-          <span class="tag-2027">CICLO LECTIVO 2027</span>
-          <h3>Pensamiento Computacional y Programación</h3>
-          <p style="color:var(--text-muted); font-size:0.85rem; margin-top:8px;">Aprende lógica, desarrollo de aplicaciones web y bases de datos con certificación oficial.</p>
-        </div>
-        <div style="margin-top:20px; font-size:0.8rem; color:var(--text-muted);"><i class="fa-regular fa-clock"></i> Carga Horaria: 60 Hs Reloj</div>
-      </div>
-      <div class="course-card">
-        <div>
-          <span class="tag-2027">CICLO LECTIVO 2027</span>
-          <h3>Operador de Soporte Técnico</h3>
-          <p style="color:var(--text-muted); font-size:0.85rem; margin-top:8px;">Diagnóstico, mantenimiento preventivo y reparación de sistemas informáticos.</p>
-        </div>
-        <div style="margin-top:20px; font-size:0.8rem; color:var(--text-muted);"><i class="fa-regular fa-clock"></i> Carga Horaria: 120 Hs Reloj</div>
-      </div>
-      <div class="course-card">
-        <div>
-          <span class="tag-2027">CICLO LECTIVO 2027</span>
-          <h3>Gestión de Redes Sociales y Marketing Digital</h3>
-          <p style="color:var(--text-muted); font-size:0.85rem; margin-top:8px;">Creación de contenido y estrategias de difusión para pymes y emprendimientos.</p>
-        </div>
-        <div style="margin-top:20px; font-size:0.8rem; color:var(--text-muted);"><i class="fa-regular fa-clock"></i> Carga Horaria: 80 Hs Reloj</div>
-      </div>
-    </div>
+<h2 style="text-align: center; margin-bottom: 30px;" id="cursos-seccion">
+  <i class="fa-solid fa-calendar-days"></i> Cursos e Inscripciones 2027
+</h2>
+
+<div class="courses-grid" id="public-courses-grid">
+  <div class="card empty-msg">Cargando oferta académica...</div>
+</div>
 
     <!-- REDES Y CONTACTO -->
     <div class="contact-bar" id="contacto-seccion">
@@ -879,34 +859,52 @@
       }
     }
 
-    async function crearTrayecto() {
-      const nombre = document.getElementById('nombre-trayecto').value.trim();
-      const certificacion = document.getElementById('certificacion-trayecto').value.trim();
-      const horas = document.getElementById('horas-trayecto').value;
-      const cfp = document.getElementById('cfp-trayecto').value.trim();
-      const distrito = document.getElementById('distrito-trayecto').value.trim();
-      const resolucion = document.getElementById('resolucion-trayecto').value.trim();
-      const cursoNum = document.getElementById('curso-num-trayecto').value.trim();
-      const fecha_entrega = document.getElementById('fecha-entrega-trayecto').value.trim();
-      const desc = document.getElementById('desc-trayecto').value.trim();
+   async function crearTrayecto() {
+  const nombre = document.getElementById('nombre-trayecto').value.trim();
+  const certificacion = document.getElementById('certificacion-trayecto').value.trim();
+  const horas = document.getElementById('horas-trayecto').value;
+  const cfp = document.getElementById('cfp-trayecto').value.trim();
+  const distrito = document.getElementById('distrito-trayecto').value.trim();
+  const resolucion = document.getElementById('resolucion-trayecto').value.trim();
+  const cursoNum = document.getElementById('curso-num-trayecto').value.trim();
+  const fecha_entrega = document.getElementById('fecha-entrega-trayecto').value.trim();
+  const desc = document.getElementById('desc-trayecto').value.trim();
 
-      if (!nombre) return Swal.fire({ icon: 'warning', title: 'Atención', text: 'Por favor ingresá el nombre del trayecto o curso.' });
+  if (!nombre) return Swal.fire({ icon: 'warning', title: 'Atención', text: 'Por favor ingresá el nombre del trayecto o curso.' });
 
-      const chksSelected = Array.from(document.querySelectorAll('.chk-docente-trayecto:checked'));
-      const docentesUsers = chksSelected.map(cb => cb.value).join(', ');
-      const docentesNombres = chksSelected.map(cb => cb.getAttribute('data-nombre')).join(', ');
+  const chksSelected = Array.from(document.querySelectorAll('.chk-docente-trayecto:checked'));
+  const docentesUsers = chksSelected.map(cb => cb.value).join(', ');
+  const docentesNombres = chksSelected.map(cb => cb.getAttribute('data-nombre')).join(', ');
 
-      const modulosCards = document.querySelectorAll('#contenedor-modulos .modulo-card');
-      const modulosArray = [];
-      modulosCards.forEach(card => {
-        const nom = card.querySelector('.mod-nombre').value.trim();
-        const cod = card.querySelector('.mod-codigo').value.trim();
-        const inicio = card.querySelector('.mod-inicio').value;
-        const fin = card.querySelector('.mod-fin').value;
-        if (nom) {
-          modulosArray.push({ nombre: nom, codigo: cod, inicio: inicio || '', fin: fin || '' });
-        }
-      });
+  const modulosCards = document.querySelectorAll('#contenedor-modulos .modulo-card');
+  const modulosArray = [];
+  modulosCards.forEach(card => {
+    const nom = card.querySelector('.mod-nombre').value.trim();
+    const cod = card.querySelector('.mod-codigo').value.trim();
+    const inicio = card.querySelector('.mod-inicio').value;
+    const fin = card.querySelector('.mod-fin').value;
+    if (nom) {
+      modulosArray.push({ nombre: nom, codigo: cod, inicio: inicio || '', fin: fin || '' });
+    }
+  });
+
+  // Guardamos en Supabase
+  const { data, error } = await db.from('trayectos').insert([{
+    nombre, certificacion, horas, cfp, distrito, resolucion,
+    curso_num: cursoNum, fecha_entrega, descripcion: desc,
+    docentes: docentesUsers, docentes_nombres: docentesNombres,
+    modulos: modulosArray
+  }]);
+
+  if (error) {
+    Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo crear el trayecto.' });
+  } else {
+    Swal.fire({ icon: 'success', title: '¡Éxito!', text: 'Trayecto guardado correctamente.' });
+    
+    // AQUÍ AGREGAMOS LA LÍNEA PARA ACTUALIZAR LA PORTADA AUTOMÁTICAMENTE:
+    cargarOfertaPublica();
+  }
+}
 
       const fullDescripcion = `Hs Reloj: ${horas || '-'} | CFP N° ${cfp || '403'} - Distrito: ${distrito || 'Luján'} | Res: ${resolucion || '-'} | Curso N° ${cursoNum || '-'} | Emisión: ${fecha_entrega || '-'} | ${desc}`;
 
@@ -1924,6 +1922,37 @@
       Toast.fire({ icon: 'success', title: 'Usuario eliminado correctamente' });
       cargarDatosDashboard();
     }
+    async function cargarOfertaPublica() {
+  const container = document.getElementById('public-courses-grid');
+  if (!container) return;
+
+  // Consultamos los trayectos activos en la base de datos
+  const { data: trayectos, error } = await db.from('trayectos').select('*');
+
+  if (error || !trayectos || trayectos.length === 0) {
+    container.innerHTML = '<div class="card empty-msg">Próximamente se publicará la oferta académica 2027.</div>';
+    return;
+  }
+
+  // Generamos las tarjetas id
+  container.innerHTML = trayectos.map(t => `
+    <div class="course-card">
+      <div>
+        <span class="tag-2027">CICLO LECTIVO 2027</span>
+        <h3>${t.nombre}</h3>
+        <p style="color:var(--text-muted); font-size:0.85rem; margin-top:8px;">
+          ${t.descripcion ? t.descripcion.split('|')[0] : 'Certificación Oficial DGCyE PBA'}
+        </p>
+      </div>
+      <div style="margin-top:20px; font-size:0.8rem; color:var(--text-muted);">
+        <i class="fa-regular fa-clock"></i> Carga Horaria: ${t.horas || 'Consultar'} Hs Reloj
+      </div>
+    </div>
+  `).join('');
+}
+
+// Ejecutar la carga automática al abrir la web
+document.addEventListener('DOMContentLoaded', cargarOfertaPublica);
   </script>
 </body>
 </html>
