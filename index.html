@@ -3,190 +3,36 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Plataforma Educativa & Portal Institucional - CFP N° 403 Luján v12.0</title>
+  <title>Plataforma Educativa & Portal Institucional - CFP N° 403 Luján</title>
   
-  <!-- LIBRERÍAS DE BASE Y DOCUMENTOS -->
+  <!-- LIBRERÍAS EXTERNAS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-  
-  <!-- LIBRERÍAS UI/UX: ALERTAS MODERNAS, GRÁFICOS E ICONOS -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-  <style>
-    :root {
-      --bg-main: #0b1329;
-      --bg-card: #1e293b;
-      --bg-card-hover: #334155;
-      --accent-blue: #2563eb;
-      --accent-cyan: #06b6d4;
-      --accent-green: #10b981;
-      --accent-red: #dc2626;
-      --accent-warning: #f59e0b;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --border-color: #334155;
-    }
-
-    * { box-sizing: border-box; font-family: 'Segoe UI', Arial, Helvetica, sans-serif; transition: background-color 0.2s, border-color 0.2s; }
-    body { margin: 0; padding: 0; background-color: var(--bg-main); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
-
-    /* NAVBAR INSTITUCIONAL */
-    nav.navbar { display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 100; }
-    .brand { display: flex; align-items: center; gap: 15px; font-weight: 700; font-size: 1.2rem; color: #fff; }
-    .nav-links { display: flex; gap: 20px; align-items: center; }
-    .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 0.95rem; font-weight: 500; }
-    .nav-links a:hover { color: var(--accent-cyan); }
-
-    /* BOTONES GLOBALES */
-    .btn { background: var(--accent-blue); color: #fff; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; font-size: 0.9rem; transition: all 0.2s; }
-    .btn:hover { opacity: 0.9; transform: translateY(-1px); }
-    .btn-cyan { background: var(--accent-cyan); color: #0f172a; }
-    .btn-secondary { background: #4b5563; }
-    .btn-success { background: var(--accent-green); }
-    .btn-warning { background: var(--accent-warning); color: white; }
-    .btn-danger { background: var(--accent-red); color: white; }
-
-    /* SECCIÓN PÚBLICA INSTITUCIONAL */
-    #public-landing { flex: 1; display: block; }
-    .hero-section { text-align: center; padding: 50px 20px; background: linear-gradient(180deg, rgba(37,99,235,0.15) 0%, rgba(11,19,41,0) 100%); }
-    .hero-section h1 { font-size: 2.3rem; margin-bottom: 15px; color: #ffffff; }
-    .hero-section p { font-size: 1.1rem; color: var(--text-muted); max-width: 700px; margin: 0 auto 30px; }
-
-    .video-container { max-width: 800px; margin: 0 auto 40px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color); box-shadow: 0 10px 30px rgba(0,0,0,0.5); background: #000; aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center; }
-    .video-placeholder { text-align: center; color: var(--text-muted); }
-
-    .courses-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto 50px; padding: 0 20px; }
-    .course-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; }
-    .course-card:hover { border-color: var(--accent-cyan); }
-    .tag-2027 { background: rgba(6, 182, 212, 0.15); color: var(--accent-cyan); font-size: 0.75rem; font-weight: 700; padding: 4px 8px; border-radius: 6px; width: fit-content; margin-bottom: 10px; }
-
-    .contact-bar { display: flex; justify-content: center; gap: 25px; padding: 25px; background: #0f172a; border-top: 1px solid var(--border-color); flex-wrap: wrap; }
-    .contact-item { display: flex; align-items: center; gap: 10px; color: var(--text-muted); text-decoration: none; font-size: 0.95rem; }
-    .contact-item:hover { color: var(--accent-cyan); }
-
-    /* LOGIN & AUTOREGISTRO */
-    #login-screen { 
-      display: none; 
-      justify-content: center; 
-      align-items: center; 
-      min-height: calc(100vh - 80px); 
-      width: 100vw;
-      background-color: var(--bg-main) !important;
-      background-image: url('PRUEBA%20CFP%20SIN%20FONDO.png'), url('PRUEBA%20CFP%20SIN%20FONDO.png') !important; 
-      background-position: left 8% center, right 8% center !important; 
-      background-size: 300px auto, 300px auto !important; 
-      background-repeat: no-repeat !important; 
-      background-attachment: fixed !important; 
-      padding: 20px;
-    }
-
-    .login-box { 
-      background: var(--bg-card) !important; 
-      padding: 35px; 
-      border-radius: 10px; 
-      width: 100%;
-      max-width: 400px; 
-      box-shadow: 0 4px 25px rgba(0, 0, 0, 0.6); 
-      border: 1px solid var(--border-color);
-      position: relative;
-      z-index: 10;
-    }
-    .login-box h2 { margin-bottom: 20px; color: #ffffff; font-size: 22px; text-align: center; }
-    .login-box input, .login-box select { width: 100%; padding: 12px; margin-bottom: 15px; background: #0f172a; color: #fff; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px; }
-    
-    .tab-toggle { display: flex; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); }
-    .tab-toggle button { flex: 1; padding: 10px; background: none; border: none; color: var(--text-muted); cursor: pointer; font-weight: 600; border-bottom: 2px solid transparent; }
-    .tab-toggle button.active { color: var(--accent-cyan); border-bottom-color: var(--accent-cyan); }
-
-    /* DASHBOARD PLATAFORMA */
-    #app-screen { display: none; min-height: 100vh; }
-    .dashboard { display: flex; min-height: 100vh; }
-    .sidebar { width: 260px; background: #0f172a; color: white; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; flex-shrink: 0; border-right: 1px solid var(--border-color); }
-    .sidebar-header { font-size: 18px; font-weight: bold; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); margin-bottom: 20px; color: var(--accent-cyan); }
-    .sidebar button { background: none; border: none; color: var(--text-muted); padding: 12px 15px; text-align: left; width: 100%; cursor: pointer; font-size: 14px; border-radius: 6px; margin-bottom: 8px; transition: all 0.2s; display: flex; align-items: center; gap: 10px; }
-    .sidebar button:hover, .sidebar button.active { background: var(--bg-card); color: white; font-weight: bold; }
-    .user-info { font-size: 13px; color: var(--text-muted); border-top: 1px solid var(--border-color); padding-top: 15px; margin-top: 15px; }
-    
-    .main-content { flex: 1; padding: 35px; overflow-y: auto; background: var(--bg-main); }
-    .section { display: none; }
-    .section.active { display: block !important; }
-    
-    .card { background: var(--bg-card); padding: 25px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-    .form-group { margin-bottom: 15px; }
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
-    label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 5px; color: var(--text-main); }
-    input, select, textarea { width: 100%; padding: 10px; background: #0f172a; color: #fff; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px; }
-    
-    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-    th, td { border: 1px solid var(--border-color); padding: 12px; text-align: left; font-size: 14px; color: var(--text-main); }
-    th { background: #0f172a; color: var(--text-muted); }
-    .empty-msg { color: var(--text-muted); font-style: italic; text-align: center; padding: 20px; }
-    
-    .clase-box, .actividad-box { background: #0f172a; border: 1px solid var(--border-color); padding: 15px; border-radius: 8px; margin-top: 15px; }
-    .actividad-box { border-left: 4px solid var(--accent-blue); }
-    .material-item { background: var(--bg-card); border: 1px solid var(--border-color); padding: 10px 15px; border-radius: 6px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; }
-    .docente-badge { display: inline-block; background: rgba(37,99,235,0.2); color: var(--accent-cyan); padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; margin-bottom: 10px; border: 1px solid var(--accent-blue); }
-    
-    .checkbox-group { display: flex; flex-direction: column; gap: 8px; margin-top: 5px; max-height: 120px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; border-radius: 6px; background: #0f172a; }
-    .checkbox-item { display: flex; align-items: center; gap: 8px; font-weight: normal; font-size: 14px; cursor: pointer; color: var(--text-main); }
-    .checkbox-item input { width: auto; margin: 0; }
-
-    .badge-estado { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; border: 1px solid transparent; }
-    .badge-ok { background: rgba(16, 185, 129, 0.2); color: var(--accent-green); border-color: var(--accent-green); }
-    .badge-pending { background: rgba(245, 158, 11, 0.2); color: var(--accent-warning); border-color: var(--accent-warning); }
-    .badge-missing { background: rgba(220, 38, 38, 0.2); color: #f87171; border-color: var(--accent-red); }
-
-    .modulo-card { background: #0f172a; border: 1px solid var(--border-color); padding: 12px; border-radius: 6px; margin-bottom: 10px; }
-    .modulo-row-header { display: flex; gap: 10px; margin-bottom: 8px; }
-    .modulo-row-dates { display: flex; gap: 10px; align-items: center; font-size: 12px; }
-
-    .tabla-modulos-eval { border-left: 4px solid var(--accent-green); margin-bottom: 20px; }
-    .egresado-box { background: rgba(16, 185, 129, 0.1); border: 1px solid var(--accent-green); padding: 12px 15px; border-radius: 6px; display: flex; align-items: center; gap: 10px; margin-top: 15px; margin-bottom: 15px; }
-
-    .chart-container { position: relative; height: 280px; width: 100%; }
-
-    /* BARRAS LÍQUIDAS ANIMADAS DE PROGRESO */
-    .progress-bar-container { background: #0f172a; border-radius: 20px; height: 16px; width: 100%; overflow: hidden; border: 1px solid var(--border-color); position: relative; margin: 10px 0; }
-    .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan)); width: 0%; transition: width 1s ease-in-out; border-radius: 20px; position: relative; }
-    .progress-bar-fill::after { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 100%); animation: liquidShimmer 2s infinite; }
-    @keyframes liquidShimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
-
-    /* ACCORDION / WIDGETS EXPANDIBLES */
-    .widget-accordion { border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 12px; overflow: hidden; }
-    .widget-header { background: var(--bg-card-hover); padding: 14px 18px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 600; }
-    .widget-body { padding: 18px; display: none; background: #0f172a; border-top: 1px solid var(--border-color); }
-
-    /* RESPONSIVE */
-    @media (max-width: 768px) {
-      #login-screen { background-image: none !important; padding: 15px; }
-      .login-box { padding: 25px 20px; width: 100%; }
-      .dashboard { flex-direction: column; }
-      .sidebar { width: 100%; padding: 15px; }
-      .main-content { padding: 15px; }
-      .grid-2, .grid-3 { grid-template-columns: 1fr; gap: 10px; }
-      .card { padding: 15px; overflow-x: auto; }
-      table { min-width: 500px; }
-      nav.navbar { flex-direction: column; gap: 15px; }
-    }
-  </style>
+  <!-- HOJAS DE ESTILO MODULARES -->
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/responsive.css">
 </head>
 <body>
 
-  <!-- NAVBAR GENERAL INSTITUCIONAL -->
+  <!-- NAVBAR INSTITUCIONAL -->
   <nav class="navbar">
     <div class="brand">
-      <i class="fa-solid fa-graduation-cap" style="color:var(--accent-cyan); font-size:1.8rem;"></i>
+      <i class="fa-solid fa-graduation-cap brand-icon"></i>
       <span>CFP N° 403 LUJÁN</span>
     </div>
     <div class="nav-links">
-      <a href="#" onclick="showLanding()"><i class="fa-solid fa-house"></i> Inicio</a>
-      <a href="#cursos-seccion" onclick="showLanding()"><i class="fa-solid fa-book-open"></i> Oferta 2027</a>
+      <a href="#" onclick="UI.showLanding()"><i class="fa-solid fa-house"></i> Inicio</a>
+      <a href="#cursos-seccion" onclick="UI.showLanding()"><i class="fa-solid fa-book-open"></i> Oferta 2027</a>
       <a href="#contacto-seccion"><i class="fa-solid fa-envelope"></i> Contacto</a>
-      <button class="btn btn-cyan" id="btn-login-toggle" onclick="showLoginScreen()"><i class="fa-solid fa-right-to-bracket"></i> Campus Virtual</button>
+      <button class="btn btn-cyan" id="btn-login-toggle" onclick="UI.showLoginScreen()">
+        <i class="fa-solid fa-right-to-bracket"></i> Campus Virtual
+      </button>
     </div>
   </nav>
 
@@ -195,99 +41,138 @@
     <section class="hero-section">
       <h1>Centro de Formación Profesional N° 403</h1>
       <p>Capacitación laboral, formación técnica continua y certificación oficial DGCyE PBA.</p>
-      <button class="btn" onclick="showLoginScreen()"><i class="fa-solid fa-user-graduate"></i> Ingresar a la Plataforma Educativa</button>
+      <button class="btn btn-primary-lg" onclick="UI.showLoginScreen()">
+        <i class="fa-solid fa-user-graduate"></i> Ingresar a la Plataforma Educativa
+      </button>
     </section>
 
-   <!-- VIDEO INTERACTIVO INSTITUCIONAL -->
-<div class="video-container" style="display: flex; justify-content: center; margin: 20px 0;">
-  
-  <!-- PEGÁS ACÁ EL CÓDIGO QUE TE DA INSTAGRAM -->
-  <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/cfp403lujan/reel/CxBLUkerTwV/" data-instgrm-version="14"></blockquote>
-  <script async src="//www.instagram.com/embed.js"></script>
+    <!-- VIDEO INTERACTIVO INSTITUCIONAL -->
+    <div class="video-container">
+      <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/cfp403lujan/reel/CxBLUkerTwV/" data-instgrm-version="14"></blockquote>
+      <script async src="//www.instagram.com/embed.js"></script>
+    </div>
 
-</div>
     <!-- OFERTA DE CURSOS 2027 -->
-<h2 style="text-align: center; margin-bottom: 30px;" id="cursos-seccion">
-  <i class="fa-solid fa-calendar-days"></i> Cursos e Inscripciones 2027
-</h2>
-
-<div class="courses-grid" id="public-courses-grid">
-  <div class="card empty-msg">Cargando oferta académica...</div>
-</div>
+    <h2 class="section-title" id="cursos-seccion">
+      <i class="fa-solid fa-calendar-days"></i> Cursos e Inscripciones 2027
+    </h2>
+    <div class="courses-grid" id="public-courses-grid">
+      <div class="card empty-msg">Cargando oferta académica...</div>
+    </div>
 
     <!-- REDES Y CONTACTO -->
     <div class="contact-bar" id="contacto-seccion">
-      <a href="https://wa.me/5492323643809" target="_blank" class="contact-item"><i class="fa-brands fa-whatsapp" style="color:#22c55e;"></i> WhatsApp Oficial</a>
-      <a href="https://instagram.com/cfp403lujan" target="_blank" class="contact-item"><i class="fa-brands fa-instagram" style="color:#e1306c;"></i> Instagram</a>
-      <a href="mailto:cfp403lujan@abc.gob.ar" class="contact-item"><i class="fa-solid fa-paper-plane" style="color:var(--accent-cyan);"></i> Correo Institucional</a>
+      <a href="https://wa.me/5492323643809" target="_blank" class="contact-item">
+        <i class="fa-brands fa-whatsapp" style="color:#22c55e;"></i> WhatsApp Oficial
+      </a>
+      <a href="https://instagram.com/cfp403lujan" target="_blank" class="contact-item">
+        <i class="fa-brands fa-instagram" style="color:#e1306c;"></i> Instagram
+      </a>
+      <a href="mailto:cfp403lujan@abc.gob.ar" class="contact-item">
+        <i class="fa-solid fa-paper-plane" style="color:var(--accent-cyan);"></i> Correo Institucional
+      </a>
     </div>
   </div>
 
-  <!-- LOGIN & AUTOREGISTRO CON APROBACIÓN PENDIENTE -->
+  <!-- VISTA DE LOGIN Y AUTOREGISTRO -->
   <div id="login-screen">
     <div class="login-box">
       <div class="tab-toggle">
-        <button id="tab-btn-login" class="active" onclick="toggleAuthTab('login')">Ingresar</button>
-        <button id="tab-btn-register" onclick="toggleAuthTab('register')">Solicitar Registro</button>
+        <button id="tab-btn-login" class="active" onclick="UI.toggleAuthTab('login')">Ingresar</button>
+        <button id="tab-btn-register" onclick="UI.toggleAuthTab('register')">Solicitar Registro</button>
       </div>
 
-      <!-- FORMULARIO INGRESO -->
-      <form id="form-login" onsubmit="event.preventDefault(); iniciarSesion();">
+      <!-- FORMULARIO DE INGRESO -->
+      <form id="form-login" onsubmit="event.preventDefault(); Auth.iniciarSesion();">
         <div class="form-group">
-          <label>Perfil de Ingreso:</label>
+          <label for="role-select">Perfil de Ingreso:</label>
           <select id="role-select">
             <option value="estudiante">Estudiante</option>
             <option value="docente">Docente</option>
             <option value="admin">Administrador</option>
           </select>
         </div>
-        <div class="form-group"><input type="text" id="login-user" placeholder="Usuario / DNI / Email" required></div>
-        <div class="form-group"><input type="password" id="login-pass" placeholder="Contraseña" required></div>
-        <button class="btn btn-cyan" style="width:100%; justify-content:center;" type="submit"><i class="fa-solid fa-key"></i> Ingresar</button>
+        <div class="form-group">
+          <input type="text" id="login-user" placeholder="Usuario / DNI / Email" required>
+        </div>
+        <div class="form-group">
+          <input type="password" id="login-pass" placeholder="Contraseña" required>
+        </div>
+        <button class="btn btn-cyan btn-full" type="submit">
+          <i class="fa-solid fa-key"></i> Ingresar
+        </button>
       </form>
 
-      <!-- FORMULARIO REGISTRO PÚBLICO (PENDIENTE) -->
-      <form id="form-register" style="display:none;" onsubmit="event.preventDefault(); solicitarRegistro();">
-        <div class="form-group"><input type="text" id="reg-nombre" placeholder="Nombre Completo (tal cual DNI)" required></div>
-        <div class="form-group"><input type="text" id="reg-dni" placeholder="DNI / Documento de Usuario" required></div>
-        <div class="form-group"><input type="password" id="reg-pass" placeholder="Crear Contraseña" required></div>
+      <!-- FORMULARIO DE REGISTRO PÚBLICO -->
+      <form id="form-register" style="display:none;" onsubmit="event.preventDefault(); Auth.solicitarRegistro();">
         <div class="form-group">
-          <label>Rol Solicitado:</label>
+          <input type="text" id="reg-nombre" placeholder="Nombre Completo (tal cual DNI)" required>
+        </div>
+        <div class="form-group">
+          <input type="text" id="reg-dni" placeholder="DNI / Documento de Usuario" required>
+        </div>
+        <div class="form-group">
+          <input type="password" id="reg-pass" placeholder="Crear Contraseña" required>
+        </div>
+        <div class="form-group">
+          <label for="reg-rol">Rol Solicitado:</label>
           <select id="reg-rol">
             <option value="estudiante">Estudiante</option>
             <option value="docente">Docente</option>
           </select>
         </div>
-        <button class="btn btn-success" style="width:100%; justify-content:center;" type="submit"><i class="fa-solid fa-paper-plane"></i> Enviar Solicitud</button>
+        <button class="btn btn-success btn-full" type="submit">
+          <i class="fa-solid fa-paper-plane"></i> Enviar Solicitud
+        </button>
       </form>
     </div>
   </div>
 
-  <!-- DASHBOARD -->
+  <!-- DASHBOARD / APLICACIÓN -->
   <div id="app-screen">
     <div class="dashboard">
-      <div class="sidebar">
+      <aside class="sidebar">
         <div>
-          <div class="sidebar-header"><i class="fa-solid fa-shield-halved"></i> CFP N° 403 Campus</div>
-          <button id="btn-trayectos" class="active" onclick="showTab('trayectos')"><i class="fa-solid fa-book"></i> 📚 Trayectos Formativos</button>
-          <button id="btn-recordatorios" onclick="showTab('recordatorios')"><i class="fa-solid fa-bell"></i> 🔔 Recordatorios</button>
-          <button id="btn-estadisticas" class="docente-or-admin" onclick="showTab('estadisticas')"><i class="fa-solid fa-chart-line"></i> 📊 Estadísticas</button>
-          <button id="btn-estudiantes" class="docente-or-admin" onclick="showTab('estudiantes')"><i class="fa-solid fa-user-check"></i> 🎓 Seguimiento Alumnos</button>
-          <button id="btn-contenidos" class="docente-only" onclick="showTab('contenidos')"><i class="fa-solid fa-folder-plus"></i> 📂 Cargar Contenidos y TPs</button>
-          <button id="btn-revisiones" class="docente-only" onclick="showTab('revisiones')"><i class="fa-solid fa-pen-to-square"></i> 📝 Corregir Entregas</button>
-          <button id="btn-solicitudes" class="admin-only" onclick="showTab('solicitudes')"><i class="fa-solid fa-user-clock"></i> ⌛ Solicitudes Pendientes</button>
-          <button id="btn-usuarios" class="admin-only" onclick="showTab('usuarios')"><i class="fa-solid fa-users-gear"></i> 👥 Gestión de Usuarios</button>
+          <div class="sidebar-header">
+            <i class="fa-solid fa-shield-halved"></i> CFP N° 403 Campus
+          </div>
+          <button id="btn-trayectos" class="active" onclick="UI.showTab('trayectos')">
+            <i class="fa-solid fa-book"></i> 📚 Trayectos Formativos
+          </button>
+          <button id="btn-recordatorios" onclick="UI.showTab('recordatorios')">
+            <i class="fa-solid fa-bell"></i> 🔔 Recordatorios
+          </button>
+          <button id="btn-estadisticas" class="docente-or-admin" onclick="UI.showTab('estadisticas')">
+            <i class="fa-solid fa-chart-line"></i> 📊 Estadísticas
+          </button>
+          <button id="btn-estudiantes" class="docente-or-admin" onclick="UI.showTab('estudiantes')">
+            <i class="fa-solid fa-user-check"></i> 🎓 Seguimiento Alumnos
+          </button>
+          <button id="btn-contenidos" class="docente-only" onclick="UI.showTab('contenidos')">
+            <i class="fa-solid fa-folder-plus"></i> 📂 Cargar Contenidos y TPs
+          </button>
+          <button id="btn-revisiones" class="docente-only" onclick="UI.showTab('revisiones')">
+            <i class="fa-solid fa-pen-to-square"></i> 📝 Corregir Entregas
+          </button>
+          <button id="btn-solicitudes" class="admin-only" onclick="UI.showTab('solicitudes')">
+            <i class="fa-solid fa-user-clock"></i> ⌛ Solicitudes Pendientes
+          </button>
+          <button id="btn-usuarios" class="admin-only" onclick="UI.showTab('usuarios')">
+            <i class="fa-solid fa-users-gear"></i> 👥 Gestión de Usuarios
+          </button>
         </div>
         <div class="user-info">
-          Usuario: <strong id="display-username" style="color:#fff;">-</strong><br>
-          Rol: <span id="display-role" style="color:var(--accent-cyan);">-</span><br>
-          <button class="btn btn-danger" style="padding:6px 12px; font-size:12px; margin-top:12px; width:100%; justify-content:center;" onclick="cerrarSesion()"><i class="fa-solid fa-power-off"></i> Cerrar Sesión</button>
+          Usuario: <strong id="display-username">-</strong><br>
+          Rol: <span id="display-role">-</span><br>
+          <button class="btn btn-danger btn-logout" onclick="Auth.cerrarSesion()">
+            <i class="fa-solid fa-power-off"></i> Cerrar Sesión
+          </button>
         </div>
-      </div>
+      </aside>
 
-      <div class="main-content">
-        <!-- TRAYECTOS -->
-        <div id="trayectos" class="section active">
+      <main class="main-content">
+        <!-- SECCIÓN: TRAYECTOS -->
+        <section id="trayectos" class="section active">
           <h2>Trayectos Formativos</h2>
           
           <div id="estudiante-progress-card" class="card" style="display:none;">
@@ -295,128 +180,159 @@
             <div class="progress-bar-container">
               <div id="liquid-progress-bar" class="progress-bar-fill"></div>
             </div>
-            <div style="display:flex; justify-content:space-between; font-size:0.85rem; color:var(--text-muted); margin-top:5px;">
+            <div class="progress-info">
               <span>Avance de Módulos Aprobados</span>
               <span id="progress-percentage-text">0%</span>
             </div>
           </div>
 
-          <div class="card admin-only" style="border-top: 4px solid var(--accent-blue);">
+          <!-- FORMULARIO DE ALTA DE TRAYECTO (ADMIN) -->
+          <div class="card admin-only card-accent-top">
             <h3>Alta de Trayecto Formativo / Curso</h3>
             <div class="grid-2">
-              <div class="form-group"><label>Nombre del Trayecto / Curso:</label><input type="text" id="nombre-trayecto" placeholder="Ej: Pensamiento Computacional – Programación"></div>
-              <div class="form-group"><label>Denominación Certificación:</label><input type="text" id="certificacion-trayecto" placeholder="Ej: Pensamiento Computacional – Programación"></div>
+              <div class="form-group">
+                <label>Nombre del Trayecto / Curso:</label>
+                <input type="text" id="nombre-trayecto" placeholder="Ej: Pensamiento Computacional – Programación">
+              </div>
+              <div class="form-group">
+                <label>Denominación Certificación:</label>
+                <input type="text" id="certificacion-trayecto" placeholder="Ej: Pensamiento Computacional – Programación">
+              </div>
             </div>
 
             <div class="grid-3">
-              <div class="form-group"><label>Carga Horaria Total (Hs Reloj):</label><input type="number" id="horas-trayecto" placeholder="Ej: 60"></div>
-              <div class="form-group"><label>C.F.P. N°:</label><input type="text" id="cfp-trayecto" placeholder="Ej: 403"></div>
-              <div class="form-group"><label>Distrito:</label><input type="text" id="distrito-trayecto" placeholder="Ej: Luján"></div>
+              <div class="form-group">
+                <label>Carga Horaria Total (Hs Reloj):</label>
+                <input type="number" id="horas-trayecto" placeholder="Ej: 60">
+              </div>
+              <div class="form-group">
+                <label>C.F.P. N°:</label>
+                <input type="text" id="cfp-trayecto" placeholder="Ej: 403">
+              </div>
+              <div class="form-group">
+                <label>Distrito:</label>
+                <input type="text" id="distrito-trayecto" placeholder="Ej: Luján">
+              </div>
             </div>
 
             <div class="grid-2">
-              <div class="form-group"><label>Resolución / Norma Aprobatoria:</label><input type="text" id="resolucion-trayecto" placeholder="Ej: RESOC-2021-3362-GDEBA-DGCYE"></div>
-              <div class="form-group"><label>Curso N° (Reg. Institucional):</label><input type="text" id="curso-num-trayecto" placeholder="Ej: 395/26"></div>
+              <div class="form-group">
+                <label>Resolución / Norma Aprobatoria:</label>
+                <input type="text" id="resolucion-trayecto" placeholder="Ej: RESOC-2021-3362-GDEBA-DGCYE">
+              </div>
+              <div class="form-group">
+                <label>Curso N° (Reg. Institucional):</label>
+                <input type="text" id="curso-num-trayecto" placeholder="Ej: 395/26">
+              </div>
             </div>
 
             <div class="grid-2">
-              <div class="form-group"><label>Fecha de Confección / Emisión:</label><input type="text" id="fecha-entrega-trayecto" placeholder="Ej: 23 de Septiembre de 2026"></div>
+              <div class="form-group">
+                <label>Fecha de Confección / Emisión:</label>
+                <input type="text" id="fecha-entrega-trayecto" placeholder="Ej: 23 de Septiembre de 2026">
+              </div>
               <div class="form-group">
                 <label>Docentes a Cargo (Opcional):</label>
                 <div id="checkboxes-docentes-trayecto" class="checkbox-group"></div>
               </div>
             </div>
 
-            <div class="form-group"><label>Descripción / Alcance Perfil Profesional:</label><textarea id="desc-trayecto" rows="2"></textarea></div>
+            <div class="form-group">
+              <label>Descripción / Alcance Perfil Profesional:</label>
+              <textarea id="desc-trayecto" rows="2"></textarea>
+            </div>
 
-            <hr style="margin:20px 0; border:0; border-top:1px solid var(--border-color);">
+            <hr class="divider">
             <h4>📐 Estructura Curricular y Módulos</h4>
             <div id="contenedor-modulos">
               <div class="modulo-card">
                 <div class="modulo-row-header">
                   <input type="text" class="mod-nombre" placeholder="Nombre del Módulo" style="width: 65%;">
                   <input type="text" class="mod-codigo" placeholder="Código (Ej: GH 0050)" style="width: 25%;">
-                  <button class="btn btn-danger" onclick="eliminarFilaModulo(this)" style="padding:6px 10px;">X</button>
+                  <button class="btn btn-danger btn-xs" onclick="UI.eliminarFilaModulo(this)">X</button>
                 </div>
                 <div class="modulo-row-dates">
-                  <label style="margin:0; font-weight:normal;">Inicio:</label>
-                  <input type="date" class="mod-inicio" style="padding:4px 8px; font-size:12px;">
-                  <label style="margin:0; font-weight:normal;">Fin:</label>
-                  <input type="date" class="mod-fin" style="padding:4px 8px; font-size:12px;">
+                  <label>Inicio:</label>
+                  <input type="date" class="mod-inicio">
+                  <label>Fin:</label>
+                  <input type="date" class="mod-fin">
                 </div>
               </div>
             </div>
-            <button class="btn btn-secondary" onclick="agregarFilaModulo()" style="margin-bottom:15px; font-size:12px;">➕ Agregar Otro Módulo</button>
-
-            <br>
-            <button class="btn btn-success" onclick="crearTrayecto()">💾 Guardar Trayecto Formativo</button>
+            <button class="btn btn-secondary btn-sm" onclick="UI.agregarFilaModulo()">➕ Agregar Otro Módulo</button>
+            <br><br>
+            <button class="btn btn-success" onclick="Trayectos.crearTrayecto()">💾 Guardar Trayecto Formativo</button>
           </div>
 
           <h3>Mis Trayectos</h3>
-          <div id="lista-trayectos"><div class="card empty-msg">Cargando trayectos...</div></div>
-        </div>
+          <div id="lista-trayectos">
+            <div class="card empty-msg">Cargando trayectos...</div>
+          </div>
+        </section>
 
-        <!-- RECORDATORIOS & WIDGETS -->
-        <div id="recordatorios" class="section">
+        <!-- SECCIÓN: RECORDATORIOS -->
+        <section id="recordatorios" class="section">
           <h2><i class="fa-solid fa-clock-rotate-left"></i> Próximos Vencimientos y Anuncios</h2>
           <div class="card">
             <div class="widget-accordion">
-              <div class="widget-header" onclick="toggleWidget(this)"><span>📌 Cierre de Entregas Trabajos Prácticos</span><i class="fa-solid fa-chevron-down"></i></div>
+              <div class="widget-header" onclick="UI.toggleWidget(this)">
+                <span>📌 Cierre de Entregas Trabajos Prácticos</span><i class="fa-solid fa-chevron-down"></i>
+              </div>
               <div class="widget-body">Revisá la fecha límite fijada por tus docentes en cada módulo del plan de estudios.</div>
             </div>
             <div class="widget-accordion">
-              <div class="widget-header" onclick="toggleWidget(this)"><span>📢 Fechas de Inscripción 2027</span><i class="fa-solid fa-chevron-down"></i></div>
+              <div class="widget-header" onclick="UI.toggleWidget(this)">
+                <span>📢 Fechas de Inscripción 2027</span><i class="fa-solid fa-chevron-down"></i>
+              </div>
               <div class="widget-body">Las inscripciones presenciales iniciarán en el período dispuesto por la Dirección Regional.</div>
             </div>
           </div>
-        </div>
+        </section>
 
-        <!-- SOLICITUDES PENDIENTES (ADMIN) -->
-        <div id="solicitudes" class="section admin-only">
+        <!-- SECCIÓN: SOLICITUDES PENDIENTES (ADMIN) -->
+        <section id="solicitudes" class="section admin-only">
           <h2><i class="fa-solid fa-user-clock"></i> Solicitudes de Registro Pendientes de Aprobación</h2>
-          <div class="card">
+          <div class="card responsive-table-card">
             <table>
               <thead>
                 <tr><th>Nombre</th><th>DNI / Usuario</th><th>Rol Solicitado</th><th>Acciones</th></tr>
               </thead>
-              <tbody id="tabla-solicitudes-pendientes"><tr><td colspan="4" class="empty-msg">Sin solicitudes pendientes.</td></tr></tbody>
+              <tbody id="tabla-solicitudes-pendientes">
+                <tr><td colspan="4" class="empty-msg">Sin solicitudes pendientes.</td></tr>
+              </tbody>
             </table>
           </div>
-        </div>
+        </section>
 
-        <!-- PESTAÑA DE ESTADÍSTICAS (GRÁFICOS) -->
-        <div id="estadisticas" class="section docente-or-admin">
+        <!-- SECCIÓN: ESTADÍSTICAS -->
+        <section id="estadisticas" class="section docente-or-admin">
           <h2>Panel de Estadísticas Académicas</h2>
           <div class="grid-2">
             <div class="card">
               <h3>🎓 Estado Global de Alumnos</h3>
-              <div class="chart-container">
-                <canvas id="chartAlumnos"></canvas>
-              </div>
+              <div class="chart-container"><canvas id="chartAlumnos"></canvas></div>
             </div>
             <div class="card">
               <h3>📝 Trabajos Prácticos y Revisiones</h3>
-              <div class="chart-container">
-                <canvas id="chartEntregas"></canvas>
-              </div>
+              <div class="chart-container"><canvas id="chartEntregas"></canvas></div>
             </div>
           </div>
-        </div>
+        </section>
 
-        <!-- SEGUIMIENTO DE ESTUDIANTES & CERTIFICADOS -->
-        <div id="estudiantes" class="section docente-or-admin">
+        <!-- SECCIÓN: SEGUIMIENTO & CERTIFICADOS -->
+        <section id="estudiantes" class="section docente-or-admin">
           <h2>Seguimiento Académico de Alumnos y Certificaciones ISO A5</h2>
           <div class="card">
             <div class="form-group">
               <label>Seleccionar Trayecto Formativo:</label>
-              <select id="select-trayecto-seguimiento" onchange="renderizarSeguimientoEstudiantes()"></select>
+              <select id="select-trayecto-seguimiento" onchange="Seguimiento.renderizarSeguimientoEstudiantes()"></select>
             </div>
           </div>
           <div id="contenedor-seguimiento"></div>
-        </div>
+        </section>
 
-        <!-- CONTENIDOS (DOCENTES) -->
-        <div id="contenidos" class="section docente-only">
+        <!-- SECCIÓN: CONTENIDOS (DOCENTES) -->
+        <section id="contenidos" class="section docente-only">
           <h2>Gestión de Contenidos y Trabajos Prácticos</h2>
           <div class="card">
             <h3>📖 Cargar Clase</h3>
@@ -425,12 +341,15 @@
             <div class="form-group"><label>Fecha Publicación:</label><input type="date" id="clase-fecha"></div>
             <div class="form-group"><label>Título Material:</label><input type="text" id="material-titulo"></div>
             <div class="form-group"><label>Enlace Recurso:</label><input type="url" id="material-link"></div>
-            <button class="btn" onclick="guardarClase()">Publicar Clase</button>
+            <button class="btn" onclick="Contenidos.guardarClase()">Publicar Clase</button>
           </div>
 
-          <div class="card" style="border-top: 4px solid var(--accent-blue);">
+          <div class="card card-accent-top">
             <h3>📝 Asignar Trabajo Práctico</h3>
-            <div class="form-group"><label>Trayecto:</label><select id="select-trayecto-actividad" onchange="actualizarSelectModulosActividad()"></select></div>
+            <div class="form-group">
+              <label>Trayecto:</label>
+              <select id="select-trayecto-actividad" onchange="UI.actualizarSelectModulosActividad()"></select>
+            </div>
             <div class="form-group">
               <label>Módulo Asociado:</label>
               <select id="select-modulo-actividad"><option value="">Seleccionar Módulo...</option></select>
@@ -438,37 +357,39 @@
             <div class="form-group"><label>Título TP:</label><input type="text" id="actividad-titulo"></div>
             <div class="form-group"><label>Descripción / Consigna:</label><textarea id="actividad-desc" rows="3"></textarea></div>
             <div class="form-group"><label>Fecha Límite:</label><input type="date" id="actividad-limite"></div>
-            <button class="btn btn-success" onclick="guardarActividad()">Publicar TP</button>
+            <button class="btn btn-success" onclick="Contenidos.guardarActividad()">Publicar TP</button>
           </div>
-        </div>
+        </section>
 
-        <!-- REVISIONES (DOCENTES) -->
-        <div id="revisiones" class="section docente-only">
+        <!-- SECCIÓN: REVISIONES (DOCENTES) -->
+        <section id="revisiones" class="section docente-only">
           <h2>Revisiones y Calificación de TPs (Escala 0 a 100)</h2>
-          <div class="card">
+          <div class="card responsive-table-card">
             <table>
               <thead>
                 <tr><th>Estudiante</th><th>Trayecto / TP</th><th>Fecha</th><th>Trabajo</th><th>Calificación (0-100)</th></tr>
               </thead>
-              <tbody id="tabla-revisiones"><tr><td colspan="5" class="empty-msg">Sin entregas.</td></tr></tbody>
+              <tbody id="tabla-revisiones">
+                <tr><td colspan="5" class="empty-msg">Sin entregas.</td></tr>
+              </tbody>
             </table>
           </div>
-        </div>
+        </section>
 
-        <!-- USUARIOS (ADMIN) -->
-        <div id="usuarios" class="section admin-only">
+        <!-- SECCIÓN: USUARIOS (ADMIN) -->
+        <section id="usuarios" class="section admin-only">
           <h2>Alta y Administración de Usuarios</h2>
           
-          <div class="card" style="border-left: 4px solid var(--accent-green);">
+          <div class="card card-accent-left">
             <h3>📊 Carga Masiva de Estudiantes (Excel / CSV)</h3>
-            <p style="font-size:13px; color:var(--text-muted);">
+            <p class="muted-text">
               Subí un archivo <strong>.xlsx</strong> o <strong>.csv</strong> con las columnas: 
               <code>Apellido</code>, <code>Nombre</code>, <code>DNI</code>, <code>Contraseña</code>, <code>Trayecto</code>.
             </p>
             <div class="form-group">
               <input type="file" id="excel-file-input" accept=".xlsx, .xls, .csv">
             </div>
-            <button class="btn btn-success" onclick="procesarCargaMasiva()">📤 Importar Estudiantes desde Archivo</button>
+            <button class="btn btn-success" onclick="Usuarios.procesarCargaMasiva()">📤 Importar Estudiantes desde Archivo</button>
           </div>
 
           <div class="card">
@@ -478,7 +399,7 @@
             <div class="form-group"><label>Contraseña:</label><input type="password" id="user-pass"></div>
             <div class="form-group">
               <label>Rol:</label>
-              <select id="user-rol" onchange="toggleInscripcionesBox()">
+              <select id="user-rol" onchange="UI.toggleInscripcionesBox()">
                 <option value="estudiante">Estudiante</option>
                 <option value="docente">Docente</option>
                 <option value="admin">Administrador</option>
@@ -488,13 +409,13 @@
               <label id="lbl-inscripciones">Asignar Estudiante a Trayectos:</label>
               <div id="checkboxes-trayectos" class="checkbox-group"></div>
             </div>
-            <button class="btn" onclick="registrarUsuario()">Crear Usuario</button>
+            <button class="btn" onclick="Usuarios.registrarUsuario()">Crear Usuario</button>
           </div>
 
-          <div class="card">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
-              <h3 style="margin:0;">Usuarios Registrados</h3>
-              <input type="text" id="buscar-usuario" placeholder="🔍 Buscar por nombre, DNI o rol..." onkeyup="filtrarUsuarios()" style="max-width:300px; padding:8px 12px; font-size:13px;">
+          <div class="card responsive-table-card">
+            <div class="table-header-flex">
+              <h3>Usuarios Registrados</h3>
+              <input type="text" id="buscar-usuario" placeholder="🔍 Buscar por nombre, DNI o rol..." onkeyup="Usuarios.filtrarUsuarios()" class="input-search">
             </div>
             <table>
               <thead>
@@ -503,1479 +424,22 @@
               <tbody id="tabla-usuarios"></tbody>
             </table>
           </div>
-        </div>
-      </div>
+        </section>
+      </main>
     </div>
   </div>
 
-  <script>
-    const SUPABASE_URL = 'https://dxgqtdaexlegsaohdywx.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_q3iliYP60gR5bP6vtTwoHA_8FWqg7iz';
-    const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    let currentUser = { id: '', name: '', user: '', role: '' };
-    let listaDocentesGlobal = [];
-    let chartAlumnosObj = null;
-    let chartEntregasObj = null;
-
-    const Toast = Swal.mixin({
-      toast: true,
-      position: 'top-end',
-      showConfirmButton: false,
-      timer: 3000,
-      timerProgressBar: true
-    });
-
-    function showLanding() {
-      document.getElementById('public-landing').style.display = 'block';
-      document.getElementById('login-screen').style.display = 'none';
-      document.getElementById('app-screen').style.display = 'none';
-    }
-
-    function showLoginScreen() {
-      document.getElementById('public-landing').style.display = 'none';
-      document.getElementById('login-screen').style.display = 'flex';
-      document.getElementById('app-screen').style.display = 'none';
-    }
-
-    function toggleAuthTab(tab) {
-      if(tab === 'login') {
-        document.getElementById('form-login').style.display = 'block';
-        document.getElementById('form-register').style.display = 'none';
-        document.getElementById('tab-btn-login').classList.add('active');
-        document.getElementById('tab-btn-register').classList.remove('active');
-      } else {
-        document.getElementById('form-login').style.display = 'none';
-        document.getElementById('form-register').style.display = 'block';
-        document.getElementById('tab-btn-register').classList.add('active');
-        document.getElementById('tab-btn-login').classList.remove('active');
-      }
-    }
-
-    function toggleWidget(header) {
-      const body = header.nextElementSibling;
-      const isVisible = body.style.display === 'block';
-      body.style.display = isVisible ? 'none' : 'block';
-      header.querySelector('i').className = isVisible ? 'fa-solid fa-chevron-down' : 'fa-solid fa-chevron-up';
-    }
-
-    async function iniciarSesion() {
-      const u = document.getElementById('login-user').value.trim();
-      const p = document.getElementById('login-pass').value.trim();
-      const roleSelected = document.getElementById('role-select').value;
-
-      if (!u || !p) {
-        return Swal.fire({ icon: 'warning', title: 'Campos incompletos', text: 'Por favor ingresá usuario/email y contraseña.' });
-      }
-
-      let emailIngresado = u.includes('@') ? u : `${u}@cfp403.app`;
-
-      Swal.fire({
-        title: 'Iniciando sesión...',
-        text: 'Validando credenciales en el servidor',
-        allowOutsideClick: false,
-        didOpen: () => { Swal.showLoading(); }
-      });
-
-      try {
-        const { data: authData, error: authError } = await db.auth.signInWithPassword({
-          email: emailIngresado, password: p
-        });
-
-        if (authError || !authData.user) {
-          return Swal.fire({ icon: 'error', title: 'Acceso Denegado', text: authError?.message || 'Credenciales incorrectas o usuario no registrado.' });
-        }
-
-        let { data: profile } = await db.from('usuarios').select('*').eq('id', authData.user.id).maybeSingle();
-
-        if (!profile) {
-          const resProf = await db.from('profiles').select('*').eq('id', authData.user.id).maybeSingle();
-          profile = resProf.data;
-        }
-
-        if (!profile) {
-          return Swal.fire({ icon: 'error', title: 'Error de Perfil', text: 'No se encontraron los datos del perfil asociado.' });
-        }
-
-        if (profile.estado === 'pendiente') {
-          await db.auth.signOut();
-          return Swal.fire({
-            icon: 'info',
-            title: 'Solicitud en Revisión',
-            text: 'Tu solicitud de registro aún no ha sido aprobada por un Administrador.'
-          });
-        }
-
-        if (profile.rol !== roleSelected) {
-          await db.auth.signOut();
-          return Swal.fire({
-            icon: 'warning', title: 'Rol Incorrecto',
-            text: `Tu usuario no posee el rol de "${roleSelected.toUpperCase()}". Seleccioná el perfil correcto.`
-          });
-        }
-
-        currentUser = { 
-          id: profile.id, name: profile.nombre || 'Usuario', 
-          user: profile.usuario || profile.dni || profile.email, role: profile.rol 
-        };
-
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('public-landing').style.display = 'none';
-        document.getElementById('app-screen').style.display = 'block';
-        document.getElementById('display-username').textContent = currentUser.name;
-        
-        let tagRol = 'Estudiante';
-        if (currentUser.role === 'admin') tagRol = 'Administrador';
-        if (currentUser.role === 'docente') tagRol = 'Docente';
-        document.getElementById('display-role').textContent = tagRol;
-
-        document.querySelectorAll('.admin-only').forEach(el => el.style.display = (currentUser.role === 'admin') ? 'block' : 'none');
-        document.querySelectorAll('.docente-only').forEach(el => el.style.display = (currentUser.role === 'docente') ? 'block' : 'none');
-        document.querySelectorAll('.docente-or-admin').forEach(el => el.style.display = (currentUser.role === 'admin' || currentUser.role === 'docente') ? 'block' : 'none');
-
-        if (currentUser.role === 'estudiante') {
-          document.getElementById('estudiante-progress-card').style.display = 'block';
-          actualizarProgresoLiquido(75);
-        }
-
-        await cargarDatosDashboard();
-        showTab('trayectos');
-        
-        Swal.close();
-        Toast.fire({ icon: 'success', title: `¡Bienvenido/a, ${currentUser.name}!` });
-
-      } catch (err) {
-        Swal.fire({ icon: 'error', title: 'Error Inesperado', text: err.message || 'Error de conexión.' });
-      }
-    }
-
-    async function solicitarRegistro() {
-      const nombre = document.getElementById('reg-nombre').value.trim();
-      const dni = document.getElementById('reg-dni').value.trim();
-      const pass = document.getElementById('reg-pass').value.trim();
-      const rol = document.getElementById('reg-rol').value;
-
-      if (!nombre || !dni || !pass) return Swal.fire({ icon: 'warning', title: 'Atención', text: 'Completá todos los campos.' });
-
-      const email = `${dni}@cfp403.app`;
-
-      const { data: authData, error: authErr } = await db.auth.signUp({ email, password: pass });
-      if (authErr) return Swal.fire({ icon: 'error', title: 'Error', text: authErr.message });
-
-      const { error: dbErr } = await db.from('usuarios').insert([{
-        id: authData.user.id, nombre, usuario: dni, pass, rol, estado: 'pendiente'
-      }]);
-
-      if (dbErr) return Swal.fire({ icon: 'error', title: 'Error', text: dbErr.message });
-
-      Swal.fire({
-        icon: 'success',
-        title: 'Solicitud Enviada',
-        text: 'Tu solicitud fue enviada con éxito. Podrás ingresar una vez aprobada por la administración.'
-      });
-      toggleAuthTab('login');
-    }
-
-    function actualizarProgresoLiquido(porcentaje) {
-      const fill = document.getElementById('liquid-progress-bar');
-      const text = document.getElementById('progress-percentage-text');
-      if (fill && text) {
-        setTimeout(() => {
-          fill.style.width = `${porcentaje}%`;
-          text.textContent = `${porcentaje}% Aprobado`;
-        }, 300);
-      }
-    }
-
-    async function cerrarSesion() {
-      await db.auth.signOut();
-      currentUser = null;
-      showLanding();
-      Toast.fire({ icon: 'info', title: 'Sesión cerrada correctamente' });
-    }
-
-    function showTab(id) {
-      document.querySelectorAll('.section').forEach(s => { s.classList.remove('active'); s.style.display = 'none'; });
-      document.querySelectorAll('.sidebar button').forEach(b => b.classList.remove('active'));
-      const target = document.getElementById(id);
-      if (target) { target.classList.add('active'); target.style.display = 'block'; }
-      const btn = document.getElementById('btn-' + id);
-      if (btn) btn.classList.add('active');
-
-      if (id === 'estudiantes') renderizarSeguimientoEstudiantes();
-      if (id === 'estadisticas') renderizarGraficos();
-      if (id === 'solicitudes' && currentUser.role === 'admin') cargarSolicitudesPendientes();
-    }
-
-    function toggleInscripcionesBox() {
-      const rol = document.getElementById('user-rol').value;
-      const box = document.getElementById('box-inscripciones');
-      const lbl = document.getElementById('lbl-inscripciones');
-      if (rol === 'estudiante') {
-        box.style.display = 'block';
-        lbl.textContent = 'Asignar Estudiante a Trayectos:';
-      } else if (rol === 'docente') {
-        box.style.display = 'block';
-        lbl.textContent = 'Asignar Docente a Trayectos:';
-      } else {
-        box.style.display = 'none';
-      }
-    }
-
-    function agregarFilaModulo() {
-      const contenedor = document.getElementById('contenedor-modulos');
-      const div = document.createElement('div');
-      div.className = 'modulo-card';
-      div.innerHTML = `
-        <div class="modulo-row-header">
-          <input type="text" class="mod-nombre" placeholder="Nombre del Módulo" style="width: 65%;">
-          <input type="text" class="mod-codigo" placeholder="Código (Ej: GH 0050)" style="width: 25%;">
-          <button class="btn btn-danger" onclick="eliminarFilaModulo(this)" style="padding:6px 10px;">X</button>
-        </div>
-        <div class="modulo-row-dates">
-          <label style="margin:0; font-weight:normal;">Inicio:</label>
-          <input type="date" class="mod-inicio" style="padding:4px 8px; font-size:12px;">
-          <label style="margin:0; font-weight:normal;">Fin:</label>
-          <input type="date" class="mod-fin" style="padding:4px 8px; font-size:12px;">
-        </div>`;
-      contenedor.appendChild(div);
-    }
-
-    function eliminarFilaModulo(btn) {
-      btn.closest('.modulo-card').remove();
-    }
-
-    async function cargarDatosDashboard() {
-      await actualizarSelects();
-      await renderizarTrayectos();
-      if (currentUser.role === 'docente') await renderizarRevisiones();
-      if (currentUser.role === 'admin') {
-        await renderizarUsuarios();
-        await cargarSolicitudesPendientes();
-      }
-    }
-
-    async function cargarSolicitudesPendientes() {
-      const { data: pendientes } = await db.from('usuarios').select('*').eq('estado', 'pendiente');
-      const tbody = document.getElementById('tabla-solicitudes-pendientes');
-      if (!pendientes || pendientes.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" class="empty-msg">Sin solicitudes pendientes.</td></tr>';
-        return;
-      }
-      tbody.innerHTML = pendientes.map(p => `
-        <tr>
-          <td><strong>${p.nombre}</strong></td>
-          <td>@${p.usuario}</td>
-          <td><span class="badge-estado badge-pending">${p.rol.toUpperCase()}</span></td>
-          <td>
-            <button class="btn btn-success" style="padding:4px 8px; font-size:12px;" onclick="aprobarUsuario('${p.id}')">Aprobar</button>
-            <button class="btn btn-danger" style="padding:4px 8px; font-size:12px;" onclick="rechazarUsuario('${p.id}')">Rechazar</button>
-          </td>
-        </tr>`).join('');
-    }
-
-    async function aprobarUsuario(id) {
-      await db.from('usuarios').update({ estado: 'aprobado' }).eq('id', id);
-      Toast.fire({ icon: 'success', title: 'Usuario aprobado' });
-      cargarSolicitudesPendientes();
-    }
-
-    async function rechazarUsuario(id) {
-      await db.from('usuarios').delete().eq('id', id);
-      Toast.fire({ icon: 'info', title: 'Solicitud rechazada' });
-      cargarSolicitudesPendientes();
-    }
-
-    async function actualizarSelects() {
-      const { data: docentes } = await db.from('usuarios').select('*').eq('rol', 'docente');
-      listaDocentesGlobal = docentes || [];
-
-      const boxDocentesTrayecto = document.getElementById('checkboxes-docentes-trayecto');
-      if (boxDocentesTrayecto) {
-        if (listaDocentesGlobal.length > 0) {
-          boxDocentesTrayecto.innerHTML = listaDocentesGlobal.map(d => `
-            <label class="checkbox-item">
-              <input type="checkbox" value="${d.usuario}" data-nombre="${d.nombre}" class="chk-docente-trayecto"> ${d.nombre} (@${d.usuario})
-            </label>`).join('');
-        } else {
-          boxDocentesTrayecto.innerHTML = '<span style="font-size:12px; color:var(--text-muted);">No hay docentes registrados.</span>';
-        }
-      }
-
-      let { data: trayectos } = await db.from('trayectos').select('*');
-
-      if (currentUser.role === 'docente') {
-        trayectos = trayectos ? trayectos.filter(t => t.docente_user && t.docente_user.split(',').map(s=>s.trim()).includes(currentUser.user)) : [];
-      }
-
-      const selectC = document.getElementById('select-trayecto-contenido');
-      const selectA = document.getElementById('select-trayecto-actividad');
-      const selectS = document.getElementById('select-trayecto-seguimiento');
-      const boxCheckboxes = document.getElementById('checkboxes-trayectos');
-
-      const options = trayectos && trayectos.length > 0 
-        ? trayectos.map(t => `<option value="${t.id}">${t.nombre}</option>`).join('')
-        : '<option value="">Sin trayectos disponibles</option>';
-
-      if (selectC) selectC.innerHTML = options;
-      if (selectA) {
-        selectA.innerHTML = options;
-        actualizarSelectModulosActividad();
-      }
-      if (selectS) selectS.innerHTML = options;
-
-      if (boxCheckboxes) {
-        const { data: todosTrayectos } = await db.from('trayectos').select('*');
-        if (todosTrayectos && todosTrayectos.length > 0) {
-          boxCheckboxes.innerHTML = todosTrayectos.map(t => `
-            <label class="checkbox-item">
-              <input type="checkbox" value="${t.id}" class="chk-trayecto"> ${t.nombre}
-            </label>`).join('');
-        } else {
-          boxCheckboxes.innerHTML = '<span style="font-size:12px; color:var(--text-muted);">No hay trayectos creados aún.</span>';
-        }
-      }
-    }
-
-    async function actualizarSelectModulosActividad() {
-      const selectA = document.getElementById('select-trayecto-actividad');
-      const selectMod = document.getElementById('select-modulo-actividad');
-      if (!selectA || !selectMod) return;
-
-      const trayectoId = selectA.value;
-      if (!trayectoId) {
-        selectMod.innerHTML = '<option value="">Seleccionar Módulo...</option>';
-        return;
-      }
-
-      const { data: trayecto } = await db.from('trayectos').select('modulos').eq('id', trayectoId).single();
-      let modulosList = [];
-      try { modulosList = JSON.parse(trayecto.modulos || '[]'); } catch(e){}
-
-      if (modulosList.length > 0) {
-        selectMod.innerHTML = modulosList.map(m => `<option value="${m.nombre}">${m.nombre}</option>`).join('');
-      } else {
-        selectMod.innerHTML = '<option value="">General / Sin Módulo Específico</option>';
-      }
-    }
-
-  async function crearTrayecto() {
-  const nombre = document.getElementById('nombre-trayecto').value.trim();
-  const certificacion = document.getElementById('certificacion-trayecto').value.trim();
-  const horas = document.getElementById('horas-trayecto').value;
-  const cfp = document.getElementById('cfp-trayecto').value.trim();
-  const distrito = document.getElementById('distrito-trayecto').value.trim();
-  const resolucion = document.getElementById('resolucion-trayecto').value.trim();
-  const cursoNum = document.getElementById('curso-num-trayecto').value.trim();
-  const fecha_entrega = document.getElementById('fecha-entrega-trayecto').value.trim();
-  const desc = document.getElementById('desc-trayecto').value.trim();
-
-  if (!nombre) return Swal.fire({ icon: 'warning', title: 'Atención', text: 'Por favor ingresá el nombre del trayecto o curso.' });
-
-  const chksSelected = Array.from(document.querySelectorAll('.chk-docente-trayecto:checked'));
-  const docentesUsers = chksSelected.map(cb => cb.value).join(', ');
-  const docentesNombres = chksSelected.map(cb => cb.getAttribute('data-nombre')).join(', ');
-
-  const modulosCards = document.querySelectorAll('#contenedor-modulos .modulo-card');
-  const modulosArray = [];
-  modulosCards.forEach(card => {
-    const nom = card.querySelector('.mod-nombre').value.trim();
-    const cod = card.querySelector('.mod-codigo').value.trim();
-    const inicio = card.querySelector('.mod-inicio').value;
-    const fin = card.querySelector('.mod-fin').value;
-    if (nom) {
-      modulosArray.push({ nombre: nom, codigo: cod, inicio: inicio || '', fin: fin || '' });
-    }
-  });
-
-  const fullDescripcion = `Hs Reloj: ${horas || '-'} | CFP N° ${cfp || '403'} - Distrito: ${distrito || 'Luján'} | Res: ${resolucion || '-'} | Curso N° ${cursoNum || '-'} | Emisión: ${fecha_entrega || '-'} | ${desc}`;
-
-  // Guardamos en Supabase
-  const { error } = await db.from('trayectos').insert([{ 
-    nombre, 
-    resolucion: resolucion || certificacion, 
-    horas: horas || '',
-    fecha_entrega: fecha_entrega || '',
-    docente_user: docentesUsers || 'Sin asignar', 
-    docente_nombre: docentesNombres || 'Sin asignar', 
-    descripcion: fullDescripcion,
-    modulos: JSON.stringify(modulosArray)
-  }]);
-
-  if (error) return Swal.fire({ icon: 'error', title: 'Error', text: error.message });
-
-  Swal.fire({ icon: 'success', title: '¡Guardado!', text: 'Trayecto Formativo registrado con éxito.' });
-  
-  // Actualizamos el dashboard y la portada pública en tiempo real
-  if (typeof cargarDatosDashboard === 'function') cargarDatosDashboard();
-  cargarOfertaPublica();
-}
-
-
-// --- CARGA DE OFERTA PÚBLICA ---
-
-async function cargarOfertaPublica() {
-  const container = document.getElementById('public-courses-grid');
-  if (!container) return;
-
-  const { data: trayectos, error } = await db.from('trayectos').select('*');
-
-  if (error || !trayectos || trayectos.length === 0) {
-    container.innerHTML = '<div class="card empty-msg">Próximamente se publicará la oferta académica 2027.</div>';
-    return;
-  }
-
-  container.innerHTML = trayectos.map(t => `
-    <div class="course-card">
-      <div>
-        <span class="tag-2027">CICLO LECTIVO 2027</span>
-        <h3>${t.nombre}</h3>
-        <p style="color:var(--text-muted); font-size:0.85rem; margin-top:8px;">
-          ${t.descripcion ? t.descripcion.split('|')[0] : 'Certificación Oficial DGCyE PBA'}
-        </p>
-      </div>
-      <div style="margin-top:20px; font-size:0.8rem; color:var(--text-muted);">
-        <i class="fa-regular fa-clock"></i> Carga Horaria: ${t.horas || 'Consultar'} Hs Reloj
-      </div>
-    </div>
-  `).join('');
-}
-
-// Cargar la oferta en la portada al iniciar la página
-document.addEventListener('DOMContentLoaded', cargarOfertaPublica);
-
-
-// --- ELIMINAR TRAYECTO ---
-
-async function eliminarTrayecto(id, nombreEnc) {
-  const nombre = decodeURIComponent(nombreEnc);
-  
-  const confirm = await Swal.fire({
-    title: `¿Eliminar "${nombre}"?`,
-    text: 'Esta acción borrará el curso permanentemente.',
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#dc2626',
-    confirmButtonText: 'Sí, eliminar',
-    cancelButtonText: 'Cancelar'
-  });
-
-  if (!confirm.isConfirmed) return;
-
-  const { error } = await db.from('trayectos').delete().eq('id', id);
-  if (error) {
-    Swal.fire({ icon: 'error', title: 'Error', text: error.message });
-  } else {
-    Toast.fire({ icon: 'success', title: 'Trayecto eliminado.' });
-    if (typeof cargarDatosDashboard === 'function') cargarDatosDashboard();
-    cargarOfertaPublica(); // <--- Refresca la portada pública al eliminar
-  }
-}
-
-    async function eliminarModuloDeTrayecto(trayectoId, moduloIndex) {
-      const confirm = await Swal.fire({
-        title: '¿Eliminar módulo?',
-        text: 'Se quitará este módulo del trayecto.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#dc2626',
-        confirmButtonText: 'Eliminar'
-      });
-
-      if (!confirm.isConfirmed) return;
-
-      const { data: trayecto } = await db.from('trayectos').select('modulos').eq('id', trayectoId).single();
-      let modArr = [];
-      try { modArr = JSON.parse(trayecto.modulos || '[]'); } catch(e){}
-
-      modArr.splice(moduloIndex, 1);
-
-      const { error } = await db.from('trayectos').update({ modulos: JSON.stringify(modArr) }).eq('id', trayectoId);
-      if (error) {
-        Swal.fire({ icon: 'error', title: 'Error', text: error.message });
-      } else {
-        Toast.fire({ icon: 'success', title: 'Módulo eliminado.' });
-        cargarDatosDashboard();
-      }
-    }
-
-    async function renderizarTrayectos() {
-      const container = document.getElementById('lista-trayectos');
-      let { data: trayectos } = await db.from('trayectos').select('*');
-      const { data: contenidos } = await db.from('contenidos').select('*');
-      const { data: entregas } = await db.from('entregas').select('*');
-
-      if (currentUser.role === 'estudiante') {
-        const { data: inscripciones } = await db.from('inscripciones').select('trayecto_id').eq('estudiante_user', currentUser.user);
-        const idsInscriptos = inscripciones ? inscripciones.map(i => i.trayecto_id) : [];
-        trayectos = trayectos ? trayectos.filter(t => idsInscriptos.includes(t.id)) : [];
-      } else if (currentUser.role === 'docente') {
-        trayectos = trayectos ? trayectos.filter(t => t.docente_user && t.docente_user.split(',').map(s => s.trim()).includes(currentUser.user)) : [];
-      }
-
-      if (!trayectos || trayectos.length === 0) {
-        container.innerHTML = '<div class="card empty-msg">No hay trayectos creados o asignados.</div>';
-        return;
-      }
-
-      const hoy = new Date().toISOString().split('T')[0];
-      container.innerHTML = '';
-
-      trayectos.forEach(t => {
-        const tContenidos = contenidos ? contenidos.filter(c => c.trayecto_id === t.id) : [];
-        const clases = tContenidos.filter(c => c.tipo === 'clase');
-        const actividades = tContenidos.filter(c => c.tipo === 'actividad');
-
-        let htmlModulosInfo = '';
-        try {
-          const modArr = JSON.parse(t.modulos || '[]');
-          if (modArr.length > 0) {
-            htmlModulosInfo = '<div style="margin-top:10px; font-size:12px; color:var(--text-muted);"><strong>Módulos Curriculares:</strong><ul style="margin:5px 0; padding-left:20px;">' +
-              modArr.map((m, idx) => {
-                const btnBorrarMod = currentUser.role === 'admin' 
-                  ? `<button class="btn btn-danger" style="padding:1px 5px; font-size:10px; margin-left:8px;" onclick="eliminarModuloDeTrayecto('${t.id}', ${idx})">Borrar Módulo</button>`
-                  : '';
-                return `<li>${m.nombre} ${m.codigo ? '('+m.codigo+')' : ''} ${m.inicio && m.fin ? '— Dictado: ' + m.inicio + ' al ' + m.fin : ''} ${btnBorrarMod}</li>`;
-              }).join('') +
-              '</ul></div>';
-          }
-        } catch(e){}
-
-        let htmlClases = '<h4>📖 Clases y Materiales</h4>';
-        if (clases.length === 0) htmlClases += '<p class="empty-msg">Sin clases publicadas aún.</p>';
-
-        clases.forEach(c => {
-          if (currentUser.role === 'estudiante' && c.fecha > hoy) return;
-          htmlClases += `
-            <div class="clase-box">
-              <strong>${c.titulo}</strong>
-              <div class="material-item">
-                <span>📄 ${c.descripcion}</span>
-                <a href="${c.link}" target="_blank" class="btn" style="padding:4px 8px; font-size:12px;">Abrir</a>
-              </div>
-            </div>`;
-        });
-
-        let htmlActividades = '<h4 style="margin-top:15px;">📝 Trabajos Prácticos</h4>';
-        if (actividades.length === 0) htmlActividades += '<p class="empty-msg">Sin TPs asignados aún.</p>';
-
-        actividades.forEach(a => {
-          let btnEntrega = '';
-          let infoEntrega = '';
-
-          if (currentUser.role === 'estudiante') {
-            const miEntrega = entregas ? entregas.find(e => e.actividad_id === a.id && e.estudiante === currentUser.user) : null;
-            if (miEntrega) {
-              infoEntrega = `<div style="font-size:12px; color:var(--accent-cyan); margin-top:5px;">✅ Entregado. Nota: ${miEntrega.nota ? miEntrega.nota + ' / 100' : 'Pendiente de revisión'}</div>`;
-              btnEntrega = `<button class="btn btn-secondary" style="font-size:12px; padding:4px 8px;" onclick="entregarTP('${t.id}', '${a.id}')">Reenviar</button>`;
-            } else {
-              btnEntrega = `<button class="btn btn-success" style="font-size:12px; padding:4px 8px;" onclick="entregarTP('${t.id}', '${a.id}')">Subir Entrega</button>`;
-            }
-          }
-
-          htmlActividades += `
-            <div class="actividad-box">
-              <strong>${a.titulo}</strong> ${a.modulo_asociado ? `<span style="font-size:11px; background:rgba(37,99,235,0.2); color:var(--accent-cyan); padding:2px 6px; border-radius:4px; margin-left:8px;">Módulo: ${a.modulo_asociado}</span>` : ''}
-              <p style="font-size:13px; margin:5px 0;">${a.descripcion}</p>
-              ${btnEntrega}
-              ${infoEntrega}
-            </div>`;
-        });
-
-        const btnEliminarTrayectoHtml = currentUser.role === 'admin' 
-          ? `<button class="btn btn-danger" style="margin-top:10px; margin-left:10px;" onclick="eliminarTrayecto('${t.id}', '${encodeURIComponent(t.nombre)}')">🗑️ Eliminar Trayecto</button>`
-          : '';
-
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.innerHTML = `
-          <span class="docente-badge">Docente(s): ${t.docente_nombre || 'Sin asignar'}</span>
-          <h3>${t.nombre}</h3>
-          <p style="font-size:13px; color:var(--text-muted);">${t.descripcion || ''}</p>
-          ${htmlModulosInfo}
-          <button class="btn btn-secondary" style="margin-top:10px;" onclick="document.getElementById('det-${t.id}').style.display = document.getElementById('det-${t.id}').style.display === 'none'?'block':'none'">Ver Contenidos y TPs</button>
-          ${btnEliminarTrayectoHtml}
-          <div id="det-${t.id}" style="display:none; margin-top:15px;">
-            ${htmlClases}
-            ${htmlActividades}
-          </div>`;
-        container.appendChild(card);
-      });
-    }
-
-    async function guardarEgresado(inscripcionId, numEgresado) {
-      const { error } = await db.from('inscripciones').update({ num_egresado: numEgresado.trim() }).eq('id', inscripcionId);
-      if (error) {
-        Swal.fire({ icon: 'error', title: 'Error', text: error.message });
-      } else {
-        Toast.fire({ icon: 'success', title: 'N° de Egresado asignado' });
-      }
-    }
-
-    async function guardarNotaConceptual(inscripcionId, moduloNombre, nota, fundamentacion) {
-      const val = parseInt(nota);
-      if (isNaN(val) || val < 0 || val > 100) {
-        return Swal.fire({ icon: 'warning', title: 'Valor inválido', text: 'Ingresá una nota del 0 al 100.' });
-      }
-      
-      const { data: insc } = await db.from('inscripciones').select('notas_conceptuales').eq('id', inscripcionId).single();
-      let mapConcept = {};
-      try { mapConcept = JSON.parse(insc.notas_conceptuales || '{}'); } catch(e){}
-
-      mapConcept[moduloNombre] = {
-        nota: val,
-        fundamentacion: (fundamentacion || '').trim()
-      };
-
-      const { error } = await db.from('inscripciones').update({ notas_conceptuales: JSON.stringify(mapConcept) }).eq('id', inscripcionId);
-      if (error) {
-        Swal.fire({ icon: 'error', title: 'Error', text: error.message });
-      } else {
-        Toast.fire({ icon: 'success', title: 'Nota conceptual guardada' });
-        renderizarSeguimientoEstudiantes();
-      }
-    }
-
-    async function renderizarSeguimientoEstudiantes() {
-      const trayectoId = document.getElementById('select-trayecto-seguimiento').value;
-      const contenedor = document.getElementById('contenedor-seguimiento');
-
-      if (!trayectoId) {
-        contenedor.innerHTML = '<div class="card empty-msg">Seleccioná un trayecto.</div>';
-        return;
-      }
-
-      const { data: trayectoInfo } = await db.from('trayectos').select('*').eq('id', trayectoId).single();
-      const { data: inscripciones } = await db.from('inscripciones').select('*').eq('trayecto_id', trayectoId);
-      const { data: usuarios } = await db.from('usuarios').select('*');
-      const { data: contenidos } = await db.from('contenidos').select('*').eq('trayecto_id', trayectoId).eq('tipo', 'actividad');
-      const { data: entregas } = await db.from('entregas').select('*').eq('trayecto_id', trayectoId);
-
-      if (!inscripciones || inscripciones.length === 0) {
-        contenedor.innerHTML = '<div class="card empty-msg">No hay alumnos inscriptos en este trayecto.</div>';
-        return;
-      }
-
-      contenedor.innerHTML = '';
-      let modulosList = [];
-      try { modulosList = JSON.parse(trayectoInfo.modulos || '[]'); } catch(e){}
-
-      inscripciones.forEach(i => {
-        const uInfo = usuarios ? usuarios.find(u => u.usuario === i.estudiante_user) : null;
-        const nombreAlumno = uInfo ? uInfo.nombre : i.estudiante_user;
-
-        let mapConcept = {};
-        try { mapConcept = JSON.parse(i.notas_conceptuales || '{}'); } catch(e){}
-
-        let htmlTablaModulos = '<h4>📐 Evaluación Modular Automática (Formación Profesional)</h4>';
-        let totalModulos = modulosList.length;
-        let modulosAprobados = 0;
-
-        if (totalModulos === 0) {
-          htmlTablaModulos += '<p class="empty-msg" style="padding:10px;">Este trayecto no posee módulos registrados.</p>';
-        } else {
-          htmlTablaModulos += '<table class="tabla-modulos-eval"><thead><tr><th>Módulo / Unidad Curricular</th><th>Código</th><th>Promedio TPs</th><th>Nota Conceptual / Taller (0-100) y Fundamentación</th><th>Condición Modular (Mín. 70)</th></tr></thead><tbody>';
-
-          modulosList.forEach((m, idx) => {
-            const tpsModulo = contenidos ? contenidos.filter(c => c.modulo_asociado === m.nombre) : [];
-            const idsTps = tpsModulo.map(tp => tp.id);
-            
-            const entregasCalificadas = entregas ? entregas.filter(e => 
-              e.estudiante === i.estudiante_user && 
-              idsTps.includes(e.actividad_id) && 
-              e.nota !== null && e.nota !== undefined && e.nota !== ""
-            ) : [];
-
-            let promTPs = null;
-            if (entregasCalificadas.length > 0) {
-              const suma = entregasCalificadas.reduce((acc, curr) => acc + (parseFloat(curr.nota) || 0), 0);
-              promTPs = suma / entregasCalificadas.length;
-            }
-
-            const conceptData = mapConcept[m.nombre];
-            let valConcept = null;
-            let txtFundamentacion = '';
-
-            if (conceptData !== undefined) {
-              if (typeof conceptData === 'object') {
-                valConcept = conceptData.nota !== undefined ? parseFloat(conceptData.nota) : null;
-                txtFundamentacion = conceptData.fundamentacion || '';
-              } else {
-                valConcept = parseFloat(conceptData);
-              }
-            }
-
-            let promedioFinal = 0;
-            let badgeHtml = '';
-
-            if (promTPs !== null && valConcept !== null) {
-              promedioFinal = Math.round((promTPs + valConcept) / 2);
-            } else if (promTPs !== null) {
-              promedioFinal = Math.round(promTPs);
-            } else if (valConcept !== null) {
-              promedioFinal = Math.round(valConcept);
-            } else {
-              promedioFinal = null;
-            }
-
-            if (promedioFinal !== null) {
-              if (promedioFinal >= 70) {
-                badgeHtml = `<span class="badge-estado badge-ok">APROBADO (${promedioFinal}/100)</span>`;
-                modulosAprobados++;
-              } else {
-                badgeHtml = `<span class="badge-estado badge-missing">NO APROBADO (${promedioFinal}/100)</span>`;
-              }
-            } else {
-              badgeHtml = `<span class="badge-estado badge-pending">PENDIENTE DE EVALUACIÓN</span>`;
-            }
-
-            const inputConceptHtml = currentUser.role !== 'estudiante' 
-              ? `<div style="display:flex; flex-direction:column; gap:5px;">
-                   <div style="display:flex; gap:5px; align-items:center;">
-                     <input type="number" min="0" max="100" value="${valConcept !== null ? valConcept : ''}" placeholder="0-100" id="cnc-${i.id}-${idx}" style="width:70px; padding:3px 6px; font-size:12px;">
-                     <button class="btn btn-secondary" style="padding:3px 6px; font-size:11px;" onclick="guardarNotaConceptual('${i.id}', '${m.nombre}', document.getElementById('cnc-${i.id}-${idx}').value, document.getElementById('fnd-${i.id}-${idx}').value)">💾</button>
-                   </div>
-                   <input type="text" value="${txtFundamentacion}" placeholder="Fundamentación / Obs. (opcional)" id="fnd-${i.id}-${idx}" style="padding:3px 6px; font-size:11px; width:100%;">
-                 </div>`
-              : `<div>
-                   <strong>${valConcept !== null ? valConcept + ' pts' : '-'}</strong>
-                   ${txtFundamentacion ? `<br><small style="color:var(--text-muted);">Obs: ${txtFundamentacion}</small>` : ''}
-                 </div>`;
-
-            htmlTablaModulos += `
-              <tr>
-                <td><strong>${idx + 1}. ${m.nombre}</strong></td>
-                <td><code>${m.codigo || '-'}</code></td>
-                <td><strong>${promTPs !== null ? Math.round(promTPs) + ' / 100' : 'Sin TPs'}</strong></td>
-                <td style="min-width:220px;">${inputConceptHtml}</td>
-                <td>${badgeHtml}</td>
-              </tr>`;
-          });
-
-          htmlTablaModulos += '</tbody></table>';
-        }
-
-        const estaEgresado = totalModulos > 0 && modulosAprobados === totalModulos;
-        const numEgVal = i.num_egresado || '';
-
-        let avisoCondicion = '';
-        if (!estaEgresado) {
-          avisoCondicion = `
-            <div style="background:rgba(220, 38, 38, 0.15); border:1px solid var(--accent-red); padding:8px 12px; border-radius:6px; font-size:12px; color:#f87171; margin-top:10px; margin-bottom:10px;">
-              ⚠️ <strong>Atención:</strong> El estudiante aún no cumple las condiciones para certificar (requiere mínimo 70 en todos los módulos).
-            </div>`;
-        } else {
-          avisoCondicion = `
-            <div style="background:rgba(16, 185, 129, 0.15); border:1px solid var(--accent-green); padding:8px 12px; border-radius:6px; font-size:12px; color:var(--accent-green); margin-top:10px; margin-bottom:10px;">
-              🎓 <strong>Alumno Aprobado:</strong> Se encuentra en condiciones de egresar.
-            </div>`;
-        }
-
-        const egresadoSection = `
-          <div class="egresado-box">
-            <span style="font-size:13px; font-weight:bold; color:var(--accent-green);">N° de Egresado (Registro Institucional):</span>
-            <input type="text" id="num-eg-${i.id}" value="${numEgVal}" placeholder="Ej: 01" style="width:140px; padding:4px 8px; font-size:13px;">
-            <button class="btn btn-success" style="padding:4px 10px; font-size:12px;" onclick="guardarEgresado('${i.id}', document.getElementById('num-eg-${i.id}').value)">💾 Guardar N°</button>
-          </div>`;
-
-        let htmlTrabajos = '<h4 style="margin-top:20px;">📝 Detalle de Trabajos Prácticos Entregados</h4><table><thead><tr><th>Trabajo Práctico</th><th>Módulo</th><th>Fecha</th><th>Archivo</th><th>Nota / Calificación (0-100)</th></tr></thead><tbody>';
-
-        if (!contenidos || contenidos.length === 0) {
-          htmlTrabajos += '<tr><td colspan="5" class="empty-msg">No hay TPs asignados en este trayecto.</td></tr>';
-        } else {
-          contenidos.forEach(act => {
-            const entrega = entregas ? entregas.find(e => e.actividad_id === act.id && e.estudiante === i.estudiante_user) : null;
-
-            if (entrega) {
-              const tieneNota = entrega.nota !== null && entrega.nota !== undefined && entrega.nota !== "";
-              const badgeClass = tieneNota ? 'badge-ok' : 'badge-pending';
-              const notaVal = tieneNota ? `${entrega.nota} / 100` : 'Sin corregir';
-
-              htmlTrabajos += `
-                <tr>
-                  <td><strong>${act.titulo}</strong></td>
-                  <td><small>${act.modulo_asociado || 'General'}</small></td>
-                  <td>${entrega.fecha}</td>
-                  <td><a href="${entrega.link}" target="_blank" class="btn" style="padding:3px 6px; font-size:11px;">Ver Entrega</a></td>
-                  <td><span class="badge-estado ${badgeClass}">${notaVal}</span></td>
-                </tr>`;
-            } else {
-              htmlTrabajos += `
-                <tr>
-                  <td><strong>${act.titulo}</strong></td>
-                  <td><small>${act.modulo_asociado || 'General'}</small></td>
-                  <td>-</td>
-                  <td>-</td>
-                  <td><span class="badge-estado badge-missing">Sin entregar</span></td>
-                </tr>`;
-            }
-          });
-        }
-
-        htmlTrabajos += '</tbody></table>';
-
-        const btnEmitirCertificado = `<button class="btn btn-success" style="font-size:12px; padding:6px 12px; margin-left:15px;" onclick="generarCertificadoPDF_v3('${encodeURIComponent(JSON.stringify(trayectoInfo))}', '${encodeURIComponent(nombreAlumno)}', '${i.estudiante_user}', '${i.id}')">📜 Emitir Certificado ISO A5 (pdf-lib)</button>`;
-
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.innerHTML = `
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-            <h3>🎓 ${nombreAlumno} <span style="font-size:14px; color:var(--text-muted); font-weight:normal;">(D.U. N° ${i.estudiante_user})</span></h3>
-            ${btnEmitirCertificado}
-          </div>
-          ${htmlTablaModulos}
-          ${avisoCondicion}
-          ${egresadoSection}
-          ${htmlTrabajos}`;
-        contenedor.appendChild(card);
-      });
-    }
-
-    async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, inscripcionId) {
-      try {
-        const trayecto = typeof trayectoJson === 'object' ? trayectoJson : JSON.parse(decodeURIComponent(trayectoJson));
-        const alumno = decodeURIComponent(alumnoNombre);
-
-        const inputNumEg = document.getElementById(`num-eg-${inscripcionId}`);
-        let numEgresadoDef = inputNumEg ? inputNumEg.value.trim() : '';
-
-        if (!numEgresadoDef) {
-          const { value: egVal } = await Swal.fire({
-            title: 'N° de Egresado',
-            input: 'text',
-            inputValue: '01',
-            inputLabel: 'Ingrese N° de Egresado asignado:',
-            showCancelButton: true
-          });
-          if (!egVal) return;
-          numEgresadoDef = egVal;
-        }
-
-        const { value: fEgreso } = await Swal.fire({
-          title: 'Fecha de Egreso',
-          input: 'text',
-          inputValue: '27 de Noviembre de 2026',
-          inputLabel: 'Ingrese Fecha de Egreso para el acta:',
-          showCancelButton: true
-        });
-        if (!fEgreso) return;
-
-        let dniFormateado = String(usuarioDni).replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-
-        if (!dniFormateado) {
-          const { value: dniManual } = await Swal.fire({
-            title: 'DNI / D.U.',
-            input: 'text',
-            inputValue: '12345678',
-            inputLabel: 'Ingrese el DNI/D.U. del alumno:',
-            showCancelButton: true
-          });
-          if (!dniManual) return;
-          dniFormateado = dniManual.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-        }
-
-        let cfpVal = '403';
-        let distritoVal = 'Luján';
-        if (trayecto.descripcion) {
-          const matchCfp = trayecto.descripcion.match(/CFP N° (.*?) -/);
-          const matchDist = trayecto.descripcion.match(/Distrito: (.*?) \|/);
-          if (matchCfp) cfpVal = matchCfp[1];
-          if (matchDist) distritoVal = matchDist[1];
-        }
-
-        let hsReloj = trayecto.horas || '60';
-        let fechaEmision = trayecto.fecha_entrega || '23 de Septiembre de 2026';
-
-        const resBytes = await fetch('./plantilla.pdf');
-        if (!resBytes.ok) throw new Error('No se encontró plantilla.pdf en el servidor.');
-        const plantillaBytes = await resBytes.arrayBuffer();
-
-        const pdfDoc = await PDFLib.PDFDocument.load(plantillaBytes);
-        const fuenteBold = await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
-        const fuenteRegular = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
-        const colorNegro = PDFLib.rgb(0, 0, 0);
-
-        const paginas = pdfDoc.getPages();
-        const frente = paginas[0];
-        const reverso = paginas.length > 1 ? paginas[1] : frente;
-
-        function dibujaRenglonPunteado(pagina, texto, xStart, yPos, xMax, font, size) {
-          pagina.drawText(texto, { x: xStart, y: yPos, size: size, font: font, color: colorNegro });
-          const textWidth = font.widthOfTextAtSize(texto, size);
-          let puntoX = xStart + textWidth + 5;
-          while (puntoX < xMax) {
-            pagina.drawText('.', { x: puntoX, y: yPos, size: size, font: font, color: colorNegro });
-            puntoX += 4;
-          }
-        }
-
-        let diaE = '23', mesE = 'Septiembre', anioE = '26';
-        if (fechaEmision) {
-          const partesF = fechaEmision.split('de');
-          if (partesF.length === 3) {
-            diaE = partesF[0].trim();
-            mesE = partesF[1].trim();
-            anioE = partesF[2].trim().slice(-2);
-          }
-        }
-
-        const tamanoNombre = 14;
-        const xInicioLineaNombre = 130;
-        const xFinLineaNombre = 532;
-        const centroLineaNombre = xInicioLineaNombre + (xFinLineaNombre - xInicioLineaNombre) / 2;
-        
-        const textoAlumno = alumno.toUpperCase();
-        const anchoTextoAlumno = fuenteBold.widthOfTextAtSize(textoAlumno, tamanoNombre);
-        const xNombreCentrado = centroLineaNombre - (anchoTextoAlumno / 2);
-
-        frente.drawText(textoAlumno, { x: xNombreCentrado, y: 232, size: tamanoNombre, font: fuenteBold, color: colorNegro });
-        frente.drawText(dniFormateado, { x: 115, y: 207, size: 12, font: fuenteRegular, color: colorNegro });
-        dibujaRenglonPunteado(frente, trayecto.nombre.toUpperCase(), 91, 182, 400, fuenteRegular, 12);
-        frente.drawText(String(hsReloj), { x: 425, y: 182, size: 12, font: fuenteRegular, color: colorNegro });
-
-        let baseNombreCert = (trayecto.certificacion || trayecto.nombre || '').toUpperCase().trim();
-        let resTextoLimpio = (trayecto.resolucion || '').toUpperCase().trim();
-
-        baseNombreCert = baseNombreCert.split(/SEGÚN\s+RESOLUCIÓN|SEGUN\s+RESOLUCION/i)[0].trim();
-
-        if (resTextoLimpio) {
-          if (baseNombreCert) resTextoLimpio = resTextoLimpio.replaceAll(baseNombreCert, '').trim();
-          if (resTextoLimpio.includes('RESFC')) {
-            resTextoLimpio = 'RESFC' + resTextoLimpio.split('RESFC').pop().trim();
-          } else {
-            resTextoLimpio = resTextoLimpio.replace(/^(RESOLUCIÓN|RESOLUCION)\s*/i, '').replace(/^(NRO\.|NRO|N°|NO\.)\s*/i, '').trim();
-          }
-        }
-
-        let textoCert = baseNombreCert;
-        if (resTextoLimpio) {
-          textoCert += resTextoLimpio.startsWith('RESFC') || resTextoLimpio.startsWith('NRO') ? ` SEGÚN RESOLUCIÓN ${resTextoLimpio}` : ` SEGÚN RESOLUCIÓN NRO. ${resTextoLimpio}`;
-        }
-
-        const tamanoCert = 10.5;
-        const xMaxGeneral = 520;
-        const configRenglones = [{ x: 320, y: 159 }, { x: 68, y: 135 }, { x: 68, y: 117 }];
-
-        const palabras = textoCert.split(' ').filter(Boolean);
-        const lineas = ['', '', ''];
-        let lineaActual = 0;
-
-        for (const palabra of palabras) {
-          let xInicio = configRenglones[lineaActual].x;
-          let anchoDisponible = xMaxGeneral - xInicio;
-          let prueba = lineas[lineaActual] ? `${lineas[lineaActual]} ${palabra}` : palabra;
-          if (fuenteRegular.widthOfTextAtSize(prueba, tamanoCert) <= anchoDisponible) {
-            lineas[lineaActual] = prueba;
-          } else {
-            lineaActual++;
-            if (lineaActual > 2) break;
-            lineas[lineaActual] = palabra;
-          }
-        }
-
-        let ultimaLineaIndice = -1;
-        for (let i = 2; i >= 0; i--) {
-          if (lineas[i].trim() !== '') { ultimaLineaIndice = i; break; }
-        }
-
-        configRenglones.forEach((r, idx) => {
-          let textoRenglon = lineas[idx];
-          if (textoRenglon && textoRenglon.trim() !== '') {
-            if (idx === ultimaLineaIndice) {
-              dibujaRenglonPunteado(frente, textoRenglon, r.x, r.y, xMaxGeneral, fuenteRegular, tamanoCert);
-            } else {
-              frente.drawText(textoRenglon, { x: r.x, y: r.y, size: tamanoCert, font: fuenteRegular, color: colorNegro });
-            }
-          }
-        });
-
-        frente.drawText(String(diaE),  { x: 250, y: 98, size: 12, font: fuenteRegular, color: colorNegro });
-        frente.drawText(String(mesE),  { x: 320, y: 98, size: 12, font: fuenteRegular, color: colorNegro });
-        frente.drawText(String(anioE), { x: 495, y: 98, size: 12, font: fuenteRegular, color: colorNegro });
-
-        let modulosArr = [];
-        try { modulosArr = typeof trayecto.modulos === 'string' ? JSON.parse(trayecto.modulos) : (trayecto.modulos || []); } catch (e) {}
-
-        const yInicial = 370;
-        const pasoEntreItems = 30.5; 
-        const altoRenglonSecundario = 12;
-        const tamanoFuenteMod = 9.0;
-        const maxAnchoCol = 235;
-
-        function dividirEnDosLineas(texto, font, size, maxAncho) {
-          const palabras = texto.split(' ').filter(Boolean);
-          let l1 = '', l2 = '';
-          for (let p of palabras) {
-            let prueba = l1 ? l1 + ' ' + p : p;
-            if (font.widthOfTextAtSize(prueba, size) <= maxAncho) { l1 = prueba; } else { l2 = l2 ? l2 + ' ' + p : p; }
-          }
-          return [l1, l2];
-        }
-
-        modulosArr.slice(0, 10).forEach((mod, index) => {
-          const nombreMod = typeof mod === 'string' ? mod : (mod.nombre || mod.titulo || mod.modulo || '');
-          const codigoMod = mod.codigo ? ` (${mod.codigo})` : '';
-          const modTextoCompleto = `${nombreMod}${codigoMod}`.toUpperCase();
-          const [linea1, linea2] = dividirEnDosLineas(modTextoCompleto, fuenteRegular, tamanoFuenteMod, maxAnchoCol);
-
-          const esColumnaDerecha = index >= 5;
-          const idxFila = esColumnaDerecha ? (index - 5) : index;
-          const xPos = esColumnaDerecha ? 318 : 42; 
-          const yBase = yInicial - (idxFila * pasoEntreItems);          
-
-          if (linea1) reverso.drawText(linea1, { x: xPos, y: yBase, size: tamanoFuenteMod, font: fuenteRegular, color: colorNegro });
-          if (linea2) reverso.drawText(linea2, { x: xPos, y: yBase - altoRenglonSecundario, size: tamanoFuenteMod, font: fuenteRegular, color: colorNegro });
-        });
-
-        if (fEgreso) reverso.drawText(fEgreso, { x: 140, y: 202, size: 12, font: fuenteRegular, color: colorNegro });
-        if (numEgresadoDef) reverso.drawText(String(numEgresadoDef), { x: 420, y: 202, size: 12, font: fuenteRegular, color: colorNegro });
-        if (cfpVal) reverso.drawText(String(cfpVal), { x: 150, y: 72, size: 12, font: fuenteRegular, color: colorNegro });
-        if (distritoVal) reverso.drawText(String(distritoVal), { x: 390, y: 72, size: 12, font: fuenteRegular, color: colorNegro });
-
-        const pdfBytesFinal = await pdfDoc.save();
-        const blob = new Blob([pdfBytesFinal], { type: 'application/pdf' });
-        const pdfUrl = URL.createObjectURL(blob);
-        window.open(pdfUrl, '_blank');
-        Toast.fire({ icon: 'success', title: 'Certificado PDF generado' });
-
-      } catch (err) {
-        Swal.fire({ icon: 'error', title: 'Error al generar PDF', text: err.message });
-      }
-    }
-
-    async function renderizarGraficos() {
-      const { data: inscripciones } = await db.from('inscripciones').select('*');
-      const { data: entregas } = await db.from('entregas').select('*');
-
-      let aprobados = 0;
-      let pendientes = 0;
-
-      if (inscripciones) {
-        inscripciones.forEach(i => {
-          let mapConcept = {};
-          try { mapConcept = JSON.parse(i.notas_conceptuales || '{}'); } catch(e){}
-          const notas = Object.values(mapConcept).map(v => typeof v === 'object' ? v.nota : v);
-          if (notas.length > 0 && notas.every(n => parseFloat(n) >= 70)) {
-            aprobados++;
-          } else {
-            pendientes++;
-          }
-        });
-      }
-
-      if (chartAlumnosObj) chartAlumnosObj.destroy();
-      if (chartEntregasObj) chartEntregasObj.destroy();
-
-      const ctxAlumnos = document.getElementById('chartAlumnos').getContext('2d');
-      chartAlumnosObj = new Chart(ctxAlumnos, {
-        type: 'doughnut',
-        data: {
-          labels: ['Aprobados', 'En Cursada / Pendientes'],
-          datasets: [{
-            data: [aprobados, pendientes],
-            backgroundColor: ['#10b981', '#f59e0b']
-          }]
-        },
-        options: { responsive: true, maintainAspectRatio: false }
-      });
-
-      let calificadas = 0;
-      let sinCalificar = 0;
-
-      if (entregas) {
-        entregas.forEach(e => {
-          if (e.nota !== null && e.nota !== undefined && e.nota !== "") calificadas++;
-          else sinCalificar++;
-        });
-      }
-
-      const ctxEntregas = document.getElementById('chartEntregas').getContext('2d');
-      chartEntregasObj = new Chart(ctxEntregas, {
-        type: 'bar',
-        data: {
-          labels: ['Calificados', 'Pendientes de Corrección'],
-          datasets: [{
-            label: 'Cantidad de TPs',
-            data: [calificadas, sinCalificar],
-            backgroundColor: ['#2563eb', '#dc2626']
-          }]
-        },
-        options: { responsive: true, maintainAspectRatio: false }
-      });
-    }
-
-    async function procesarCargaMasiva() {
-      const fileInput = document.getElementById('excel-file-input');
-      const file = fileInput.files[0];
-      if (!file) return Swal.fire({ icon: 'warning', title: 'Atención', text: 'Por favor seleccioná un archivo.' });
-
-      const reader = new FileReader();
-      reader.onload = async function(e) {
-        try {
-          const data = new Uint8Array(e.target.result);
-          const workbook = XLSX.read(data, { type: 'array' });
-          const rawRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
-
-          if (rawRows.length === 0) return Swal.fire({ icon: 'warning', title: 'Vacío', text: 'El archivo no contiene registros.' });
-
-          const { data: trayectosDB } = await db.from('trayectos').select('*');
-          const { data: usuariosDB } = await db.from('usuarios').select('*');
-          const { data: inscripcionesDB } = await db.from('inscripciones').select('*');
-
-          let creados = 0, inscriptosNuevos = 0, omitidos = 0;
-
-          for (const row of rawRows) {
-            const normalizedRow = {};
-            Object.keys(row).forEach(key => normalizedRow[key.trim().toLowerCase()] = String(row[key]).trim());
-
-            const apellido = normalizedRow['apellido'] || '';
-            const nombreSolo = normalizedRow['nombre'] || '';
-            const nombreCompletoRaw = normalizedRow['nombre completo'] || normalizedRow['alumnos'] || '';
-            let nombreFinal = ((apellido || nombreSolo) ? `${apellido} ${nombreSolo}` : nombreCompletoRaw).toUpperCase().trim();
-
-            const usuario = normalizedRow['usuario'] || normalizedRow['dni'] || normalizedRow['d.u.'] || '';
-            const pass = normalizedRow['contraseña'] || normalizedRow['pass'] || normalizedRow['clave'] || usuario;
-            const nombreTrayecto = normalizedRow['trayecto'] || normalizedRow['curso'] || '';
-
-            if (!nombreFinal || !usuario || !pass) continue;
-
-            let userExiste = usuariosDB ? usuariosDB.find(u => u.usuario.toLowerCase() === usuario.toLowerCase()) : null;
-
-            if (!userExiste) {
-              const { data: nuevoU, error } = await db.from('usuarios').insert([{ nombre: nombreFinal, usuario: usuario, pass: pass, rol: 'estudiante' }]).select();
-              if (!error && nuevoU && nuevoU.length > 0) {
-                userExiste = nuevoU[0];
-                creados++;
-              }
-            } else {
-              omitidos++;
-            }
-
-            if (nombreTrayecto && trayectosDB) {
-              const trayectoEncontrado = trayectosDB.find(t => t.nombre.toLowerCase().trim() === nombreTrayecto.toLowerCase().trim());
-              if (trayectoEncontrado) {
-                const yaInscripto = inscripcionesDB ? inscripcionesDB.some(i => i.estudiante_user.toLowerCase() === usuario.toLowerCase() && i.trayecto_id === trayectoEncontrado.id) : false;
-                if (!yaInscripto) {
-                  await db.from('inscripciones').insert([{ estudiante_user: usuario, trayecto_id: trayectoEncontrado.id }]);
-                  inscriptosNuevos++;
-                }
-              }
-            }
-          }
-
-          Swal.fire({
-            icon: 'success',
-            title: 'Importación Completada',
-            html: `<b>Alumnos creados:</b> ${creados}<br><b>Nuevas Inscripciones:</b> ${inscriptosNuevos}<br><b>Existentes/Omitidos:</b> ${omitidos}`
-          });
-          fileInput.value = '';
-          cargarDatosDashboard();
-        } catch (err) {
-          Swal.fire({ icon: 'error', title: 'Error', text: 'Falló el procesamiento del archivo.' });
-        }
-      };
-      reader.readAsArrayBuffer(file);
-    }
-
-    async function entregarTP(trayecto_id, actividad_id) {
-      const { value: link } = await Swal.fire({
-        title: 'Enviar Trabajo Práctico',
-        input: 'url',
-        inputLabel: 'Pegá el enlace público a tu archivo/documento:',
-        placeholder: 'https://...',
-        showCancelButton: true
-      });
-
-      if (!link) return;
-      const hoy = new Date().toISOString().split('T')[0];
-
-      await db.from('entregas').insert([{ trayecto_id, actividad_id, estudiante: currentUser.user, link, fecha: hoy }]);
-      Toast.fire({ icon: 'success', title: '¡Trabajo práctico enviado!' });
-      cargarDatosDashboard();
-    }
-
-    async function guardarClase() {
-      const trayecto_id = document.getElementById('select-trayecto-contenido').value;
-      const titulo = document.getElementById('clase-nombre').value.trim();
-      const fecha = document.getElementById('clase-fecha').value;
-      let desc = document.getElementById('material-titulo').value.trim();
-      const link = document.getElementById('material-link').value.trim();
-
-      if (!trayecto_id) return Swal.fire({ icon: 'warning', title: 'Atención', text: 'Seleccioná un trayecto.' });
-      desc += ` (Cargado por: ${currentUser.name})`;
-
-      await db.from('contenidos').insert([{ trayecto_id, tipo: 'clase', titulo, descripcion: desc, link, fecha }]);
-      Toast.fire({ icon: 'success', title: 'Clase publicada' });
-      cargarDatosDashboard();
-      showTab('trayectos');
-    }
-
-    async function guardarActividad() {
-      const trayecto_id = document.getElementById('select-trayecto-actividad').value;
-      const modulo_asociado = document.getElementById('select-modulo-actividad').value;
-      const titulo = document.getElementById('actividad-titulo').value.trim();
-      let desc = document.getElementById('actividad-desc').value.trim();
-      const fecha = document.getElementById('actividad-limite').value;
-
-      if (!trayecto_id) return Swal.fire({ icon: 'warning', title: 'Atención', text: 'Seleccioná un trayecto.' });
-
-      await db.from('contenidos').insert([{ 
-        trayecto_id, 
-        tipo: 'actividad', 
-        titulo, 
-        descripcion: desc, 
-        fecha, 
-        modulo_asociado: modulo_asociado || '' 
-      }]);
-
-      Toast.fire({ icon: 'success', title: 'Trabajo Práctico asignado' });
-      cargarDatosDashboard();
-      showTab('trayectos');
-    }
-
-    async function renderizarRevisiones() {
-      let { data: entregas } = await db.from('entregas').select('*');
-      let { data: trayectos } = await db.from('trayectos').select('*');
-      const { data: contenidos } = await db.from('contenidos').select('*');
-      const tabla = document.getElementById('tabla-revisiones');
-
-      if (currentUser.role === 'docente') {
-        const misTrayectosIds = trayectos ? trayectos.filter(t => t.docente_user && t.docente_user.split(',').map(s=>s.trim()).includes(currentUser.user)).map(t => t.id) : [];
-        entregas = entregas ? entregas.filter(e => misTrayectosIds.includes(e.trayecto_id)) : [];
-      }
-
-      if (!entregas || entregas.length === 0) {
-        tabla.innerHTML = '<tr><td colspan="5" class="empty-msg">Sin entregas para revisar.</td></tr>';
-        return;
-      }
-
-      tabla.innerHTML = entregas.map(e => {
-        const tp = contenidos ? contenidos.find(c => c.id === e.actividad_id) : null;
-        return `
-          <tr>
-            <td><strong>@${e.estudiante}</strong></td>
-            <td>${tp ? tp.titulo : '-'} ${tp && tp.modulo_asociado ? `<br><small style="color:var(--text-muted);">Módulo: ${tp.modulo_asociado}</small>` : ''}</td>
-            <td>${e.fecha}</td>
-            <td><a href="${e.link}" target="_blank" class="btn" style="padding:4px 8px; font-size:11px;">Abrir</a></td>
-            <td>
-              <input type="number" min="0" max="100" value="${e.nota || ''}" placeholder="Nota (0-100)" onchange="guardarNota('${e.id}', this.value)" style="padding:4px; font-size:12px; width:110px;">
-            </td>
-          </tr>`;
-      }).join('');
-    }
-
-    async function guardarNota(id, nota) {
-      const valorNum = parseInt(nota);
-      if (isNaN(valorNum) || valorNum < 0 || valorNum > 100) {
-        return Swal.fire({ icon: 'warning', title: 'Atención', text: 'Por favor ingresá un número de 0 a 100.' });
-      }
-      await db.from('entregas').update({ nota: valorNum }).eq('id', id);
-      Toast.fire({ icon: 'success', title: 'Calificación guardada' });
-    }
-
-    async function registrarUsuario() {
-      const nombre = document.getElementById('user-nombre').value.trim();
-      const usuario = document.getElementById('user-usuario').value.trim();
-      const pass = document.getElementById('user-pass').value.trim();
-      const rol = document.getElementById('user-rol').value;
-
-      if (!nombre || !usuario || !pass) {
-        return Swal.fire({ icon: 'warning', title: 'Atención', text: 'Completá todos los campos.' });
-      }
-
-      const emailSintetico = usuario.includes('@') ? usuario : `${usuario}@cfp403.app`;
-
-      const { data: authData, error: authError } = await db.auth.signUp({
-        email: emailSintetico,
-        password: pass
-      });
-
-      if (authError) {
-        return Swal.fire({ icon: 'error', title: 'Error al registrar', text: authError.message });
-      }
-
-      const userId = authData.user.id;
-
-      const { error: profileError } = await db.from('usuarios').insert([{
-        id: userId,
-        usuario: usuario,
-        nombre: nombre,
-        pass: pass,
-        rol: rol,
-        estado: 'aprobado'
-      }]);
-
-      if (profileError) {
-        return Swal.fire({ icon: 'error', title: 'Error en base de datos', text: profileError.message });
-      }
-
-      const seleccionados = Array.from(document.querySelectorAll('.chk-trayecto:checked')).map(cb => cb.value);
-
-      if (rol === 'estudiante') {
-        for (const tId of seleccionados) {
-          await db.from('inscripciones').insert([{ estudiante_user: usuario, trayecto_id: tId }]);
-        }
-      } else if (rol === 'docente' && seleccionados.length > 0) {
-        const { data: todosTrayectos } = await db.from('trayectos').select('*');
-        if (todosTrayectos) {
-          for (const tId of seleccionados) {
-            const tray = todosTrayectos.find(t => t.id == tId);
-            if (tray) {
-              let docentesUsers = tray.docente_user ? tray.docente_user.split(',').map(s => s.trim()).filter(Boolean) : [];
-              let docentesNombres = tray.docente_nombre ? tray.docente_nombre.split(',').map(s => s.trim()).filter(Boolean) : [];
-
-              if (!docentesUsers.includes(usuario)) {
-                docentesUsers.push(usuario);
-                docentesNombres.push(nombre);
-                await db.from('trayectos').update({
-                  docente_user: docentesUsers.join(', '),
-                  docente_nombre: docentesNombres.join(', ')
-                }).eq('id', tId);
-              }
-            }
-          }
-        }
-      }
-
-      Toast.fire({ icon: 'success', title: `Usuario @${usuario} creado` });
-      cargarDatosDashboard();
-    }
-
-    async function renderizarUsuarios() {
-      const { data: usuarios } = await db.from('usuarios').select('*');
-      const { data: inscripciones } = await db.from('inscripciones').select('*');
-      const { data: trayectos } = await db.from('trayectos').select('*');
-      const tabla = document.getElementById('tabla-usuarios');
-
-      if (usuarios) {
-        tabla.innerHTML = usuarios.map(u => {
-          let listaInscripciones = '-';
-          if (u.rol === 'estudiante' && inscripciones && trayectos) {
-            const misInsc = inscripciones.filter(i => i.estudiante_user === u.usuario);
-            const misNombres = misInsc.map(i => {
-              const t = trayectos.find(tr => tr.id === i.trayecto_id);
-              return t ? t.nombre : null;
-            }).filter(Boolean);
-            listaInscripciones = misNombres.length > 0 ? misNombres.join(', ') : 'Ninguno';
-          } else if (u.rol === 'docente' && trayectos) {
-            const misTrayectos = trayectos.filter(t => t.docente_user && t.docente_user.split(',').map(s => s.trim()).includes(u.usuario));
-            listaInscripciones = misTrayectos.map(t => t.nombre).join(', ') || 'Ninguno';
-          }
-
-          return `
-            <tr class="user-row">
-              <td class="col-nombre">${u.nombre}</td>
-              <td class="col-usuario">@${u.usuario}</td>
-              <td class="col-rol"><strong>${u.rol.toUpperCase()}</strong></td>
-              <td><span style="font-size:12px; color:var(--text-muted);">${listaInscripciones}</span></td>
-              <td>
-                <button class="btn btn-secondary" style="padding:4px 8px; font-size:12px;" onclick="cambiarClaveUsuario('${u.id}', '${u.usuario}')">🔑 Clave</button>
-                <button class="btn btn-danger" style="padding:4px 8px; font-size:12px;" onclick="eliminarUsuario('${u.id}', '${u.usuario}', '${u.nombre}', '${u.rol}')">🗑️ Eliminar</button>
-              </td>
-            </tr>`;
-        }).join('');
-      }
-    }
-
-    function filtrarUsuarios() {
-      const busqueda = document.getElementById('buscar-usuario').value.toLowerCase().trim();
-      const filas = document.querySelectorAll('.user-row');
-
-      filas.forEach(fila => {
-        const textoFila = fila.innerText.toLowerCase();
-        if (textoFila.includes(busqueda)) {
-          fila.style.display = '';
-        } else {
-          fila.style.display = 'none';
-        }
-      });
-    }
-
-    async function cambiarClaveUsuario(id, usuario) {
-      const { value: nuevaPass } = await Swal.fire({
-        title: 'Modificar Contraseña',
-        input: 'password',
-        inputLabel: `Nueva contraseña para @${usuario}:`,
-        showCancelButton: true
-      });
-
-      if (!nuevaPass) return;
-      await db.from('usuarios').update({ pass: nuevaPass }).eq('id', id);
-      Toast.fire({ icon: 'success', title: 'Contraseña actualizada' });
-    }
-
-    async function eliminarUsuario(id, usuario, nombre, rol) {
-      const confirm = await Swal.fire({
-        title: `¿Eliminar a @${usuario}?`,
-        text: 'Se eliminará al usuario y sus relaciones en el sistema.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#dc2626',
-        confirmButtonText: 'Sí, eliminar',
-        cancelButtonText: 'Cancelar'
-      });
-
-      if (!confirm.isConfirmed) return;
-
-      if (rol === 'estudiante') {
-        await db.from('inscripciones').delete().eq('estudiante_user', usuario);
-      } else if (rol === 'docente') {
-        const { data: trayectos } = await db.from('trayectos').select('*');
-        if (trayectos) {
-          for (const t of trayectos) {
-            if (t.docente_user && t.docente_user.includes(usuario)) {
-              let usersList = t.docente_user.split(',').map(s => s.trim()).filter(u => u !== usuario);
-              let namesList = t.docente_nombre ? t.docente_nombre.split(',').map(s => s.trim()).filter(n => n !== nombre) : [];
-
-              await db.from('trayectos').update({
-                docente_user: usersList.join(', '),
-                docente_nombre: namesList.join(', ')
-              }).eq('id', t.id);
-            }
-          }
-        }
-      }
-
-      const { error } = await db.from('usuarios').delete().eq('id', id);
-
-      if (error) {
-        return Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo eliminar el usuario.' });
-      }
-
-      Toast.fire({ icon: 'success', title: 'Usuario eliminado correctamente' });
-      cargarDatosDashboard();
-    }
-    async function cargarOfertaPublica() {
-  const container = document.getElementById('public-courses-grid');
-  if (!container) return;
-
-  // Consultamos los trayectos activos en la base de datos
-  const { data: trayectos, error } = await db.from('trayectos').select('*');
-
-  if (error || !trayectos || trayectos.length === 0) {
-    container.innerHTML = '<div class="card empty-msg">Próximamente se publicará la oferta académica 2027.</div>';
-    return;
-  }
-
-  // Generamos las tarjetas id
-  container.innerHTML = trayectos.map(t => `
-    <div class="course-card">
-      <div>
-        <span class="tag-2027">CICLO LECTIVO 2027</span>
-        <h3>${t.nombre}</h3>
-        <p style="color:var(--text-muted); font-size:0.85rem; margin-top:8px;">
-          ${t.descripcion ? t.descripcion.split('|')[0] : 'Certificación Oficial DGCyE PBA'}
-        </p>
-      </div>
-      <div style="margin-top:20px; font-size:0.8rem; color:var(--text-muted);">
-        <i class="fa-regular fa-clock"></i> Carga Horaria: ${t.horas || 'Consultar'} Hs Reloj
-      </div>
-    </div>
-  `).join('');
-}
-
-// Ejecutar la carga automática al abrir la web
-document.addEventListener('DOMContentLoaded', cargarOfertaPublica);
-  </script>
+  <!-- SCRIPTS MODULARES -->
+  <script src="js/supabase-config.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/trayectos.js"></script>
+  <script src="js/contenidos.js"></script>
+  <script src="js/entregas.js"></script>
+  <script src="js/seguimiento.js"></script>
+  <script src="js/certificados.js"></script>
+  <script src="js/usuarios.js"></script>
+  <script src="js/estadisticas.js"></script>
+  <script src="js/app.js"></script>
 </body>
 </html>
