@@ -4,9 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Plataforma Educativa - FP (DGCyE PBA) v11.0</title>
+  
+  <!-- LIBRERÍAS DE BASE Y DOCUMENTOS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+  
+  <!-- LIBRERÍAS UI/UX: ALERTAS MODERNAS Y GRÁFICOS -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <style>
     * { box-sizing: border-box; font-family: Arial, Helvetica, sans-serif; }
     body { margin: 0; padding: 0; background-color: #f3f4f6; color: #1f2937; min-height: 100vh; }
@@ -50,7 +57,7 @@
     .dashboard { display: flex; min-height: 100vh; }
     .sidebar { width: 260px; background: #111827; color: white; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; flex-shrink: 0; }
     .sidebar-header { font-size: 18px; font-weight: bold; padding-bottom: 15px; border-bottom: 1px solid #374151; margin-bottom: 20px; }
-    .sidebar button { background: none; border: none; color: #9ca3af; padding: 12px 15px; text-align: left; width: 100%; cursor: pointer; font-size: 15px; border-radius: 6px; margin-bottom: 8px; }
+    .sidebar button { background: none; border: none; color: #9ca3af; padding: 12px 15px; text-align: left; width: 100%; cursor: pointer; font-size: 15px; border-radius: 6px; margin-bottom: 8px; transition: all 0.2s; }
     .sidebar button:hover, .sidebar button.active { background: #1f2937; color: white; font-weight: bold; }
     .user-info { font-size: 13px; color: #9ca3af; border-top: 1px solid #374151; padding-top: 15px; margin-top: 15px; }
     
@@ -64,7 +71,9 @@
     .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
     label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 5px; }
     input, select, textarea { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; }
-    .btn { background: #2563eb; color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    
+    .btn { background: #2563eb; color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: background 0.2s; }
+    .btn:hover { opacity: 0.9; }
     .btn-secondary { background: #4b5563; }
     .btn-success { background: #10b981; }
     .btn-warning { background: #f59e0b; color: white; }
@@ -95,6 +104,9 @@
 
     .tabla-modulos-eval { border-left: 4px solid #10b981; margin-bottom: 20px; }
     .egresado-box { background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px 15px; border-radius: 6px; display: flex; align-items: center; gap: 10px; margin-top: 15px; margin-bottom: 15px; }
+
+    /* ESTILOS DEL DASHBOARD ESTADÍSTICO */
+    .chart-container { position: relative; height: 280px; width: 100%; }
 
     /* REGLAS RESPONSIVE PARA CELULARES (< 768px) */
     @media (max-width: 768px) {
@@ -170,6 +182,7 @@
         <div>
           <div class="sidebar-header">Plataforma Educativa - FP</div>
           <button id="btn-trayectos" class="active" onclick="showTab('trayectos')">📚 Trayectos Formativos</button>
+          <button id="btn-estadisticas" class="docente-or-admin" onclick="showTab('estadisticas')">📊 Estadísticas</button>
           <button id="btn-estudiantes" class="docente-or-admin" onclick="showTab('estudiantes')">🎓 Seguimiento Alumnos</button>
           <button id="btn-contenidos" class="docente-only" onclick="showTab('contenidos')">📂 Cargar Contenidos y TPs</button>
           <button id="btn-revisiones" class="docente-only" onclick="showTab('revisiones')">📝 Corregir Entregas</button>
@@ -240,6 +253,25 @@
 
           <h3>Mis Trayectos</h3>
           <div id="lista-trayectos"><div class="card empty-msg">Cargando trayectos...</div></div>
+        </div>
+
+        <!-- PESTAÑA DE ESTADÍSTICAS (GRÁFICOS) -->
+        <div id="estadisticas" class="section docente-or-admin">
+          <h2>Panel de Estadísticas Académicas</h2>
+          <div class="grid-2">
+            <div class="card">
+              <h3>🎓 Estado Global de Alumnos</h3>
+              <div class="chart-container">
+                <canvas id="chartAlumnos"></canvas>
+              </div>
+            </div>
+            <div class="card">
+              <h3>📝 Trabajos Prácticos y Revisiones</h3>
+              <div class="chart-container">
+                <canvas id="chartEntregas"></canvas>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- SEGUIMIENTO DE ESTUDIANTES -->
@@ -331,7 +363,11 @@
           </div>
 
           <div class="card">
-            <h3>Usuarios Registrados</h3>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+              <h3 style="margin:0;">Usuarios Registrados</h3>
+              <!-- BUSCADOR RÁPIDO EN TIEMPO REAL -->
+              <input type="text" id="buscar-usuario" placeholder="🔍 Buscar por nombre, DNI o rol..." onkeyup="filtrarUsuarios()" style="max-width:300px; padding:8px 12px; font-size:13px;">
+            </div>
             <table>
               <thead>
                 <tr><th>Nombre</th><th>Usuario / DNI</th><th>Rol</th><th>Trayectos Asignados</th><th>Acciones</th></tr>
@@ -351,18 +387,31 @@
 
     let currentUser = { id: '', name: '', user: '', role: '' };
     let listaDocentesGlobal = [];
+    let chartAlumnosObj = null;
+    let chartEntregasObj = null;
+
+    // Helper para notificaciones tipo Toast
+    const Toast = Swal.mixin({
+      toast: true,
+      position: 'top-end',
+      showConfirmButton: false,
+      timer: 3000,
+      timerProgressBar: true
+    });
 
     async function iniciarSesion() {
       const u = document.getElementById('login-user').value.trim();
       const p = document.getElementById('login-pass').value.trim();
       const r = document.getElementById('role-select').value;
 
-      if (!u || !p) return alert('Ingresá usuario y contraseña.');
+      if (!u || !p) {
+        return Swal.fire({ icon: 'warning', title: 'Campos incompletos', text: 'Por favor ingresá usuario y contraseña.' });
+      }
 
       const { data, error } = await db.from('usuarios').select('*').eq('usuario', u).eq('pass', p).eq('rol', r);
 
       if (error || !data || data.length === 0) {
-        return alert('Credenciales incorrectas o rol no coincidente.');
+        return Swal.fire({ icon: 'error', title: 'Acceso Denegado', text: 'Credenciales incorrectas o rol no coincidente.' });
       }
 
       const userMatch = data[0];
@@ -383,11 +432,13 @@
 
       cargarDatosDashboard();
       showTab('trayectos');
+      Toast.fire({ icon: 'success', title: `¡Bienvenido/a, ${currentUser.name}!` });
     }
 
     function cerrarSesion() {
       document.getElementById('app-screen').style.display = 'none';
       document.getElementById('login-screen').style.display = 'flex';
+      Toast.fire({ icon: 'info', title: 'Sesión cerrada correctamente' });
     }
 
     function showTab(id) {
@@ -399,6 +450,7 @@
       if (btn) btn.classList.add('active');
 
       if (id === 'estudiantes') renderizarSeguimientoEstudiantes();
+      if (id === 'estadisticas') renderizarGraficos();
     }
 
     function toggleInscripcionesBox() {
@@ -530,7 +582,7 @@
       const fecha_entrega = document.getElementById('fecha-entrega-trayecto').value.trim();
       const desc = document.getElementById('desc-trayecto').value.trim();
 
-      if (!nombre) return alert('Por favor, ingresá el nombre del trayecto o curso.');
+      if (!nombre) return Swal.fire({ icon: 'warning', title: 'Atención', text: 'Por favor ingresá el nombre del trayecto o curso.' });
 
       const chksSelected = Array.from(document.querySelectorAll('.chk-docente-trayecto:checked'));
       const docentesUsers = chksSelected.map(cb => cb.value).join(', ');
@@ -561,27 +613,47 @@
         modulos: JSON.stringify(modulosArray)
       }]);
 
-      if (error) return alert('Error de Supabase: ' + error.message);
+      if (error) return Swal.fire({ icon: 'error', title: 'Error', text: error.message });
 
-      alert('¡Trayecto Formativo guardado con éxito!');
+      Swal.fire({ icon: 'success', title: '¡Guardado!', text: 'Trayecto Formativo registrado con éxito.' });
       cargarDatosDashboard();
     }
 
     async function eliminarTrayecto(id, nombreEnc) {
       const nombre = decodeURIComponent(nombreEnc);
-      if (!confirm(`¿Estás seguro de que querés eliminar el trayecto "${nombre}"? Esta acción borrará el curso permanentemente.`)) return;
+      
+      const confirm = await Swal.fire({
+        title: `¿Eliminar "${nombre}"?`,
+        text: 'Esta acción borrará el curso permanentemente.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+      });
+
+      if (!confirm.isConfirmed) return;
 
       const { error } = await db.from('trayectos').delete().eq('id', id);
       if (error) {
-        alert('Error al eliminar el trayecto: ' + error.message);
+        Swal.fire({ icon: 'error', title: 'Error', text: error.message });
       } else {
-        alert('Trayecto eliminado con éxito.');
+        Toast.fire({ icon: 'success', title: 'Trayecto eliminado.' });
         cargarDatosDashboard();
       }
     }
 
     async function eliminarModuloDeTrayecto(trayectoId, moduloIndex) {
-      if (!confirm('¿Eliminar este módulo del trayecto?')) return;
+      const confirm = await Swal.fire({
+        title: '¿Eliminar módulo?',
+        text: 'Se quitará este módulo del trayecto.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        confirmButtonText: 'Eliminar'
+      });
+
+      if (!confirm.isConfirmed) return;
 
       const { data: trayecto } = await db.from('trayectos').select('modulos').eq('id', trayectoId).single();
       let modArr = [];
@@ -591,9 +663,9 @@
 
       const { error } = await db.from('trayectos').update({ modulos: JSON.stringify(modArr) }).eq('id', trayectoId);
       if (error) {
-        alert('Error al eliminar módulo: ' + error.message);
+        Swal.fire({ icon: 'error', title: 'Error', text: error.message });
       } else {
-        alert('Módulo eliminado del trayecto.');
+        Toast.fire({ icon: 'success', title: 'Módulo eliminado.' });
         cargarDatosDashboard();
       }
     }
@@ -705,16 +777,16 @@
     async function guardarEgresado(inscripcionId, numEgresado) {
       const { error } = await db.from('inscripciones').update({ num_egresado: numEgresado.trim() }).eq('id', inscripcionId);
       if (error) {
-        alert('Error al guardar N° de Egresado: ' + error.message);
+        Swal.fire({ icon: 'error', title: 'Error', text: error.message });
       } else {
-        alert('N° de Egresado asignado correctamente.');
+        Toast.fire({ icon: 'success', title: 'N° de Egresado asignado' });
       }
     }
 
     async function guardarNotaConceptual(inscripcionId, moduloNombre, nota, fundamentacion) {
       const val = parseInt(nota);
       if (isNaN(val) || val < 0 || val > 100) {
-        return alert('Ingresá una nota válida del 0 al 100.');
+        return Swal.fire({ icon: 'warning', title: 'Valor inválido', text: 'Ingresá una nota del 0 al 100.' });
       }
       
       const { data: insc } = await db.from('inscripciones').select('notas_conceptuales').eq('id', inscripcionId).single();
@@ -728,9 +800,9 @@
 
       const { error } = await db.from('inscripciones').update({ notas_conceptuales: JSON.stringify(mapConcept) }).eq('id', inscripcionId);
       if (error) {
-        alert('Error al guardar la nota conceptual: ' + error.message);
+        Swal.fire({ icon: 'error', title: 'Error', text: error.message });
       } else {
-        alert('Nota conceptual guardada.');
+        Toast.fire({ icon: 'success', title: 'Nota conceptual guardada' });
         renderizarSeguimientoEstudiantes();
       }
     }
@@ -930,283 +1002,286 @@
       });
     }
 
-   /* GENERADOR ESTAMPADOR VÍA PDF-LIB SOBRE plantilla.pdf */
-async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, inscripcionId) {
-  try {
-    const trayecto = typeof trayectoJson === 'object' ? trayectoJson : JSON.parse(decodeURIComponent(trayectoJson));
-    const alumno = decodeURIComponent(alumnoNombre);
+    /* GENERADOR DE CERTIFICADOS CON SWEETALERT2 */
+    async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, inscripcionId) {
+      try {
+        const trayecto = typeof trayectoJson === 'object' ? trayectoJson : JSON.parse(decodeURIComponent(trayectoJson));
+        const alumno = decodeURIComponent(alumnoNombre);
 
-    const inputNumEg = document.getElementById(`num-eg-${inscripcionId}`);
-    let numEgresadoDef = inputNumEg ? inputNumEg.value.trim() : '';
+        const inputNumEg = document.getElementById(`num-eg-${inscripcionId}`);
+        let numEgresadoDef = inputNumEg ? inputNumEg.value.trim() : '';
 
-    if (!numEgresadoDef) {
-      numEgresadoDef = prompt('Ingrese N° de Egresado asignado:', '01');
-      if (!numEgresadoDef) return;
-    }
-
-    const fEgreso = prompt('Ingrese Fecha de Egreso:', '27 de Noviembre de 2026');
-    if (!fEgreso) return;
-
-    let dniFormateado = String(usuarioDni).replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-
-    if (!dniFormateado) {
-      const dniManual = prompt('Ingrese el DNI/D.U. del alumno:', '12345678');
-      if (!dniManual) return;
-      dniFormateado = dniManual.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-    }
-
-    let resVal = trayecto.resolucion ? `según Resolución Nro. ${trayecto.resolucion}` : '';
-    let cfpVal = '403';
-    let distritoVal = 'Luján';
-    let cursoNumVal = '395/26';
-
-    if (trayecto.descripcion) {
-      const matchCfp = trayecto.descripcion.match(/CFP N° (.*?) -/);
-      const matchDist = trayecto.descripcion.match(/Distrito: (.*?) \|/);
-      const matchCurso = trayecto.descripcion.match(/Curso N° (.*?) \|/);
-      if (matchCfp) cfpVal = matchCfp[1];
-      if (matchDist) distritoVal = matchDist[1];
-      if (matchCurso) cursoNumVal = matchCurso[1];
-    }
-
-    let hsReloj = trayecto.horas || '60';
-    let fechaEmision = trayecto.fecha_entrega || '23 de Septiembre de 2026';
-
-    const resBytes = await fetch('./plantilla.pdf');
-    if (!resBytes.ok) throw new Error('No se encontró el archivo plantilla.pdf en la raíz del servidor/repositorio.');
-    const plantillaBytes = await resBytes.arrayBuffer();
-
-    const pdfDoc = await PDFLib.PDFDocument.load(plantillaBytes);
-    const fuenteBold = await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
-    const fuenteRegular = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
-    const colorNegro = PDFLib.rgb(0, 0, 0);
-
-    const paginas = pdfDoc.getPages();
-    const frente = paginas[0];
-    const reverso = paginas.length > 1 ? paginas[1] : frente;
-
-    function dibujaRenglonPunteado(pagina, texto, xStart, yPos, xMax, font, size) {
-      pagina.drawText(texto, { x: xStart, y: yPos, size: size, font: font, color: colorNegro });
-      const textWidth = font.widthOfTextAtSize(texto, size);
-      let puntoX = xStart + textWidth + 5;
-      while (puntoX < xMax) {
-        pagina.drawText('.', { x: puntoX, y: yPos, size: size, font: font, color: colorNegro });
-        puntoX += 4;
-      }
-    }
-
-    let diaE = '23', mesE = 'Septiembre', anioE = '26';
-    if (fechaEmision) {
-      const partesF = fechaEmision.split('de');
-      if (partesF.length === 3) {
-        diaE = partesF[0].trim();
-        mesE = partesF[1].trim();
-        anioE = partesF[2].trim().slice(-2);
-      }
-    }
-
-    const tamanoNombre = 14;
-    const xInicioLineaNombre = 130;
-    const xFinLineaNombre = 532;
-    const centroLineaNombre = xInicioLineaNombre + (xFinLineaNombre - xInicioLineaNombre) / 2;
-    
-    const textoAlumno = alumno.toUpperCase();
-    const anchoTextoAlumno = fuenteBold.widthOfTextAtSize(textoAlumno, tamanoNombre);
-    const xNombreCentrado = centroLineaNombre - (anchoTextoAlumno / 2);
-
-    frente.drawText(textoAlumno, { 
-      x: xNombreCentrado, 
-      y: 232, 
-      size: tamanoNombre, 
-      font: fuenteBold, 
-      color: colorNegro 
-    });
-
-    frente.drawText(dniFormateado, { x: 115, y: 207, size: 12, font: fuenteRegular, color: colorNegro });
-    
-    dibujaRenglonPunteado(frente, trayecto.nombre.toUpperCase(), 91, 182, 400, fuenteRegular, 12);
-
-    frente.drawText(String(hsReloj), { x: 425, y: 182, size: 12, font: fuenteRegular, color: colorNegro });
-
-    let baseNombreCert = (trayecto.certificacion || trayecto.nombre || '').toUpperCase().trim();
-    let resTextoLimpio = (trayecto.resolucion || '').toUpperCase().trim();
-
-    baseNombreCert = baseNombreCert.split(/SEGÚN\s+RESOLUCIÓN|SEGUN\s+RESOLUCION/i)[0].trim();
-
-    if (resTextoLimpio) {
-      if (baseNombreCert) {
-        resTextoLimpio = resTextoLimpio.replaceAll(baseNombreCert, '').trim();
-      }
-
-      if (resTextoLimpio.includes('RESFC')) {
-        resTextoLimpio = 'RESFC' + resTextoLimpio.split('RESFC').pop().trim();
-      } else {
-        resTextoLimpio = resTextoLimpio
-          .replace(/^(RESOLUCIÓN|RESOLUCION)\s*/i, '')
-          .replace(/^(NRO\.|NRO|N°|NO\.)\s*/i, '')
-          .trim();
-      }
-    }
-
-    let textoCert = baseNombreCert;
-
-    if (resTextoLimpio) {
-      if (resTextoLimpio.startsWith('RESFC') || resTextoLimpio.startsWith('NRO')) {
-        textoCert += ` SEGÚN RESOLUCIÓN ${resTextoLimpio}`;
-      } else {
-        textoCert += ` SEGÚN RESOLUCIÓN NRO. ${resTextoLimpio}`;
-      }
-    }
-
-    const tamanoCert = 10.5;
-    const xMaxGeneral = 520;
-
-    const configRenglones = [
-      { x: 320, y: 159 },
-      { x: 68,  y: 135 },
-      { x: 68,  y: 117 }
-    ];
-
-    const palabras = textoCert.split(' ').filter(Boolean);
-    const lineas = ['', '', ''];
-    let lineaActual = 0;
-
-    for (const palabra of palabras) {
-      let xInicio = configRenglones[lineaActual].x;
-      let anchoDisponible = xMaxGeneral - xInicio;
-      
-      let prueba = lineas[lineaActual] ? `${lineas[lineaActual]} ${palabra}` : palabra;
-      let anchoPrueba = fuenteRegular.widthOfTextAtSize(prueba, tamanoCert);
-
-      if (anchoPrueba <= anchoDisponible) {
-        lineas[lineaActual] = prueba;
-      } else {
-        lineaActual++;
-        if (lineaActual > 2) break;
-        lineas[lineaActual] = palabra;
-      }
-    }
-
-    let ultimaLineaIndice = -1;
-    for (let i = 2; i >= 0; i--) {
-      if (lineas[i].trim() !== '') {
-        ultimaLineaIndice = i;
-        break;
-      }
-    }
-
-    configRenglones.forEach((r, idx) => {
-      let textoRenglon = lineas[idx];
-      if (textoRenglon && textoRenglon.trim() !== '') {
-        if (idx === ultimaLineaIndice) {
-          dibujaRenglonPunteado(frente, textoRenglon, r.x, r.y, xMaxGeneral, fuenteRegular, tamanoCert);
-        } else {
-          frente.drawText(textoRenglon, { 
-            x: r.x, 
-            y: r.y, 
-            size: tamanoCert, 
-            font: fuenteRegular, 
-            color: colorNegro 
+        if (!numEgresadoDef) {
+          const { value: egVal } = await Swal.fire({
+            title: 'N° de Egresado',
+            input: 'text',
+            inputValue: '01',
+            inputLabel: 'Ingrese N° de Egresado asignado:',
+            showCancelButton: true
           });
+          if (!egVal) return;
+          numEgresadoDef = egVal;
         }
+
+        const { value: fEgreso } = await Swal.fire({
+          title: 'Fecha de Egreso',
+          input: 'text',
+          inputValue: '27 de Noviembre de 2026',
+          inputLabel: 'Ingrese Fecha de Egreso para el acta:',
+          showCancelButton: true
+        });
+        if (!fEgreso) return;
+
+        let dniFormateado = String(usuarioDni).replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+        if (!dniFormateado) {
+          const { value: dniManual } = await Swal.fire({
+            title: 'DNI / D.U.',
+            input: 'text',
+            inputValue: '12345678',
+            inputLabel: 'Ingrese el DNI/D.U. del alumno:',
+            showCancelButton: true
+          });
+          if (!dniManual) return;
+          dniFormateado = dniManual.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
+
+        let cfpVal = '403';
+        let distritoVal = 'Luján';
+        if (trayecto.descripcion) {
+          const matchCfp = trayecto.descripcion.match(/CFP N° (.*?) -/);
+          const matchDist = trayecto.descripcion.match(/Distrito: (.*?) \|/);
+          if (matchCfp) cfpVal = matchCfp[1];
+          if (matchDist) distritoVal = matchDist[1];
+        }
+
+        let hsReloj = trayecto.horas || '60';
+        let fechaEmision = trayecto.fecha_entrega || '23 de Septiembre de 2026';
+
+        const resBytes = await fetch('./plantilla.pdf');
+        if (!resBytes.ok) throw new Error('No se encontró plantilla.pdf en el servidor.');
+        const plantillaBytes = await resBytes.arrayBuffer();
+
+        const pdfDoc = await PDFLib.PDFDocument.load(plantillaBytes);
+        const fuenteBold = await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
+        const fuenteRegular = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+        const colorNegro = PDFLib.rgb(0, 0, 0);
+
+        const paginas = pdfDoc.getPages();
+        const frente = paginas[0];
+        const reverso = paginas.length > 1 ? paginas[1] : frente;
+
+        function dibujaRenglonPunteado(pagina, texto, xStart, yPos, xMax, font, size) {
+          pagina.drawText(texto, { x: xStart, y: yPos, size: size, font: font, color: colorNegro });
+          const textWidth = font.widthOfTextAtSize(texto, size);
+          let puntoX = xStart + textWidth + 5;
+          while (puntoX < xMax) {
+            pagina.drawText('.', { x: puntoX, y: yPos, size: size, font: font, color: colorNegro });
+            puntoX += 4;
+          }
+        }
+
+        let diaE = '23', mesE = 'Septiembre', anioE = '26';
+        if (fechaEmision) {
+          const partesF = fechaEmision.split('de');
+          if (partesF.length === 3) {
+            diaE = partesF[0].trim();
+            mesE = partesF[1].trim();
+            anioE = partesF[2].trim().slice(-2);
+          }
+        }
+
+        const tamanoNombre = 14;
+        const xInicioLineaNombre = 130;
+        const xFinLineaNombre = 532;
+        const centroLineaNombre = xInicioLineaNombre + (xFinLineaNombre - xInicioLineaNombre) / 2;
+        
+        const textoAlumno = alumno.toUpperCase();
+        const anchoTextoAlumno = fuenteBold.widthOfTextAtSize(textoAlumno, tamanoNombre);
+        const xNombreCentrado = centroLineaNombre - (anchoTextoAlumno / 2);
+
+        frente.drawText(textoAlumno, { x: xNombreCentrado, y: 232, size: tamanoNombre, font: fuenteBold, color: colorNegro });
+        frente.drawText(dniFormateado, { x: 115, y: 207, size: 12, font: fuenteRegular, color: colorNegro });
+        dibujaRenglonPunteado(frente, trayecto.nombre.toUpperCase(), 91, 182, 400, fuenteRegular, 12);
+        frente.drawText(String(hsReloj), { x: 425, y: 182, size: 12, font: fuenteRegular, color: colorNegro });
+
+        let baseNombreCert = (trayecto.certificacion || trayecto.nombre || '').toUpperCase().trim();
+        let resTextoLimpio = (trayecto.resolucion || '').toUpperCase().trim();
+
+        baseNombreCert = baseNombreCert.split(/SEGÚN\s+RESOLUCIÓN|SEGUN\s+RESOLUCION/i)[0].trim();
+
+        if (resTextoLimpio) {
+          if (baseNombreCert) resTextoLimpio = resTextoLimpio.replaceAll(baseNombreCert, '').trim();
+          if (resTextoLimpio.includes('RESFC')) {
+            resTextoLimpio = 'RESFC' + resTextoLimpio.split('RESFC').pop().trim();
+          } else {
+            resTextoLimpio = resTextoLimpio.replace(/^(RESOLUCIÓN|RESOLUCION)\s*/i, '').replace(/^(NRO\.|NRO|N°|NO\.)\s*/i, '').trim();
+          }
+        }
+
+        let textoCert = baseNombreCert;
+        if (resTextoLimpio) {
+          textoCert += resTextoLimpio.startsWith('RESFC') || resTextoLimpio.startsWith('NRO') ? ` SEGÚN RESOLUCIÓN ${resTextoLimpio}` : ` SEGÚN RESOLUCIÓN NRO. ${resTextoLimpio}`;
+        }
+
+        const tamanoCert = 10.5;
+        const xMaxGeneral = 520;
+        const configRenglones = [{ x: 320, y: 159 }, { x: 68, y: 135 }, { x: 68, y: 117 }];
+
+        const palabras = textoCert.split(' ').filter(Boolean);
+        const lineas = ['', '', ''];
+        let lineaActual = 0;
+
+        for (const palabra of palabras) {
+          let xInicio = configRenglones[lineaActual].x;
+          let anchoDisponible = xMaxGeneral - xInicio;
+          let prueba = lineas[lineaActual] ? `${lineas[lineaActual]} ${palabra}` : palabra;
+          if (fuenteRegular.widthOfTextAtSize(prueba, tamanoCert) <= anchoDisponible) {
+            lineas[lineaActual] = prueba;
+          } else {
+            lineaActual++;
+            if (lineaActual > 2) break;
+            lineas[lineaActual] = palabra;
+          }
+        }
+
+        let ultimaLineaIndice = -1;
+        for (let i = 2; i >= 0; i--) {
+          if (lineas[i].trim() !== '') { ultimaLineaIndice = i; break; }
+        }
+
+        configRenglones.forEach((r, idx) => {
+          let textoRenglon = lineas[idx];
+          if (textoRenglon && textoRenglon.trim() !== '') {
+            if (idx === ultimaLineaIndice) {
+              dibujaRenglonPunteado(frente, textoRenglon, r.x, r.y, xMaxGeneral, fuenteRegular, tamanoCert);
+            } else {
+              frente.drawText(textoRenglon, { x: r.x, y: r.y, size: tamanoCert, font: fuenteRegular, color: colorNegro });
+            }
+          }
+        });
+
+        frente.drawText(String(diaE),  { x: 250, y: 98, size: 12, font: fuenteRegular, color: colorNegro });
+        frente.drawText(String(mesE),  { x: 320, y: 98, size: 12, font: fuenteRegular, color: colorNegro });
+        frente.drawText(String(anioE), { x: 495, y: 98, size: 12, font: fuenteRegular, color: colorNegro });
+
+        let modulosArr = [];
+        try { modulosArr = typeof trayecto.modulos === 'string' ? JSON.parse(trayecto.modulos) : (trayecto.modulos || []); } catch (e) {}
+
+        const yInicial = 370;
+        const pasoEntreItems = 30.5; 
+        const altoRenglonSecundario = 12;
+        const tamanoFuenteMod = 9.0;
+        const maxAnchoCol = 235;
+
+        function dividirEnDosLineas(texto, font, size, maxAncho) {
+          const palabras = texto.split(' ').filter(Boolean);
+          let l1 = '', l2 = '';
+          for (let p of palabras) {
+            let prueba = l1 ? l1 + ' ' + p : p;
+            if (font.widthOfTextAtSize(prueba, size) <= maxAncho) { l1 = prueba; } else { l2 = l2 ? l2 + ' ' + p : p; }
+          }
+          return [l1, l2];
+        }
+
+        modulosArr.slice(0, 10).forEach((mod, index) => {
+          const nombreMod = typeof mod === 'string' ? mod : (mod.nombre || mod.titulo || mod.modulo || '');
+          const codigoMod = mod.codigo ? ` (${mod.codigo})` : '';
+          const modTextoCompleto = `${nombreMod}${codigoMod}`.toUpperCase();
+          const [linea1, linea2] = dividirEnDosLineas(modTextoCompleto, fuenteRegular, tamanoFuenteMod, maxAnchoCol);
+
+          const esColumnaDerecha = index >= 5;
+          const idxFila = esColumnaDerecha ? (index - 5) : index;
+          const xPos = esColumnaDerecha ? 318 : 42; 
+          const yBase = yInicial - (idxFila * pasoEntreItems);          
+
+          if (linea1) reverso.drawText(linea1, { x: xPos, y: yBase, size: tamanoFuenteMod, font: fuenteRegular, color: colorNegro });
+          if (linea2) reverso.drawText(linea2, { x: xPos, y: yBase - altoRenglonSecundario, size: tamanoFuenteMod, font: fuenteRegular, color: colorNegro });
+        });
+
+        if (fEgreso) reverso.drawText(fEgreso, { x: 140, y: 202, size: 12, font: fuenteRegular, color: colorNegro });
+        if (numEgresadoDef) reverso.drawText(String(numEgresadoDef), { x: 420, y: 202, size: 12, font: fuenteRegular, color: colorNegro });
+        if (cfpVal) reverso.drawText(String(cfpVal), { x: 150, y: 72, size: 12, font: fuenteRegular, color: colorNegro });
+        if (distritoVal) reverso.drawText(String(distritoVal), { x: 390, y: 72, size: 12, font: fuenteRegular, color: colorNegro });
+
+        const pdfBytesFinal = await pdfDoc.save();
+        const blob = new Blob([pdfBytesFinal], { type: 'application/pdf' });
+        const pdfUrl = URL.createObjectURL(blob);
+        window.open(pdfUrl, '_blank');
+        Toast.fire({ icon: 'success', title: 'Certificado PDF generado' });
+
+      } catch (err) {
+        Swal.fire({ icon: 'error', title: 'Error al generar PDF', text: err.message });
       }
-    });
-
-    frente.drawText(String(diaE),  { x: 250, y: 98, size: 12, font: fuenteRegular, color: colorNegro });
-    frente.drawText(String(mesE),  { x: 320, y: 98, size: 12, font: fuenteRegular, color: colorNegro });
-    frente.drawText(String(anioE), { x: 495, y: 98, size: 12, font: fuenteRegular, color: colorNegro });
-
-    let modulosArr = [];
-    try {
-      modulosArr = typeof trayecto.modulos === 'string' ? JSON.parse(trayecto.modulos) : (trayecto.modulos || []);
-    } catch (e) {
-      console.error("Error al parsear módulos:", e);
     }
 
-    const yInicial = 370;
-    const pasoEntreItems = 30.5; 
-    const altoRenglonSecundario = 12;
+    /* RENDERIZADO DE GRÁFICOS (CHART.JS) */
+    async function renderizarGraficos() {
+      const { data: inscripciones } = await db.from('inscripciones').select('*');
+      const { data: entregas } = await db.from('entregas').select('*');
 
-    const tamanoFuenteMod = 9.0;
-    const maxAnchoCol = 235;
+      let aprobados = 0;
+      let pendientes = 0;
 
-    function dividirEnDosLineas(texto, font, size, maxAncho) {
-      const palabras = texto.split(' ').filter(Boolean);
-      let l1 = '', l2 = '';
-      
-      for (let p of palabras) {
-        let prueba = l1 ? l1 + ' ' + p : p;
-        if (font.widthOfTextAtSize(prueba, size) <= maxAncho) {
-          l1 = prueba;
-        } else {
-          l2 = l2 ? l2 + ' ' + p : p;
-        }
-      }
-      return [l1, l2];
-    }
-
-    modulosArr.slice(0, 10).forEach((mod, index) => {
-      const nombreMod = typeof mod === 'string' ? mod : (mod.nombre || mod.titulo || mod.modulo || '');
-      const codigoMod = mod.codigo ? ` (${mod.codigo})` : '';
-      const modTextoCompleto = `${nombreMod}${codigoMod}`.toUpperCase();
-
-      const [linea1, linea2] = dividirEnDosLineas(modTextoCompleto, fuenteRegular, tamanoFuenteMod, maxAnchoCol);
-
-      const esColumnaDerecha = index >= 5;
-      const idxFila = esColumnaDerecha ? (index - 5) : index;
-
-      const xPos = esColumnaDerecha ? 318 : 42; 
-      const yBase = yInicial - (idxFila * pasoEntreItems);          
-
-      if (linea1) {
-        reverso.drawText(linea1, {
-          x: xPos,
-          y: yBase,
-          size: tamanoFuenteMod,
-          font: fuenteRegular,
-          color: colorNegro
+      if (inscripciones) {
+        inscripciones.forEach(i => {
+          let mapConcept = {};
+          try { mapConcept = JSON.parse(i.notas_conceptuales || '{}'); } catch(e){}
+          const notas = Object.values(mapConcept).map(v => typeof v === 'object' ? v.nota : v);
+          if (notas.length > 0 && notas.every(n => parseFloat(n) >= 70)) {
+            aprobados++;
+          } else {
+            pendientes++;
+          }
         });
       }
 
-      if (linea2) {
-        reverso.drawText(linea2, {
-          x: xPos,
-          y: yBase - altoRenglonSecundario,
-          size: tamanoFuenteMod,
-          font: fuenteRegular,
-          color: colorNegro
+      // Destruir gráficos anteriores para no superponer
+      if (chartAlumnosObj) chartAlumnosObj.destroy();
+      if (chartEntregasObj) chartEntregasObj.destroy();
+
+      const ctxAlumnos = document.getElementById('chartAlumnos').getContext('2d');
+      chartAlumnosObj = new Chart(ctxAlumnos, {
+        type: 'doughnut',
+        data: {
+          labels: ['Aprobados', 'En Cursada / Pendientes'],
+          datasets: [{
+            data: [aprobados, pendientes],
+            backgroundColor: ['#10b981', '#f59e0b']
+          }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+
+      let calificadas = 0;
+      let sinCalificar = 0;
+
+      if (entregas) {
+        entregas.forEach(e => {
+          if (e.nota !== null && e.nota !== undefined && e.nota !== "") calificadas++;
+          else sinCalificar++;
         });
       }
-    });
 
-    if (fEgreso) {
-      reverso.drawText(fEgreso, { x: 140, y: 202, size: 12, font: fuenteRegular, color: colorNegro });
+      const ctxEntregas = document.getElementById('chartEntregas').getContext('2d');
+      chartEntregasObj = new Chart(ctxEntregas, {
+        type: 'bar',
+        data: {
+          labels: ['Calificados', 'Pendientes de Corrección'],
+          datasets: [{
+            label: 'Cantidad de TPs',
+            data: [calificadas, sinCalificar],
+            backgroundColor: ['#2563eb', '#dc2626']
+          }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
     }
-    if (numEgresadoDef) {
-      reverso.drawText(String(numEgresadoDef), { x: 420, y: 202, size: 12, font: fuenteRegular, color: colorNegro });
-    }
-
-    if (cfpVal) {
-      reverso.drawText(String(cfpVal), { x: 150, y: 72, size: 12, font: fuenteRegular, color: colorNegro });
-    }
-    if (distritoVal) {
-      reverso.drawText(String(distritoVal), { x: 390, y: 72, size: 12, font: fuenteRegular, color: colorNegro });
-    }
-
-    const pdfBytesFinal = await pdfDoc.save();
-    const blob = new Blob([pdfBytesFinal], { type: 'application/pdf' });
-    const pdfUrl = URL.createObjectURL(blob);
-    window.open(pdfUrl, '_blank');
-
-  } catch (err) {
-    alert('Error al generar el certificado sobre la plantilla: ' + err.message);
-  }
-}
 
     async function procesarCargaMasiva() {
       const fileInput = document.getElementById('excel-file-input');
       const file = fileInput.files[0];
-      if (!file) return alert('Por favor seleccioná un archivo.');
+      if (!file) return Swal.fire({ icon: 'warning', title: 'Atención', text: 'Por favor seleccioná un archivo.' });
 
       const reader = new FileReader();
       reader.onload = async function(e) {
@@ -1215,7 +1290,7 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
           const workbook = XLSX.read(data, { type: 'array' });
           const rawRows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
 
-          if (rawRows.length === 0) return alert('El archivo está vacío.');
+          if (rawRows.length === 0) return Swal.fire({ icon: 'warning', title: 'Vacío', text: 'El archivo no contiene registros.' });
 
           const { data: trayectosDB } = await db.from('trayectos').select('*');
           const { data: usuariosDB } = await db.from('usuarios').select('*');
@@ -1262,23 +1337,34 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
             }
           }
 
-          alert(`Carga masiva completada:\n- Creados: ${creados}\n- Inscripciones: ${inscriptosNuevos}\n- Existentes: ${omitidos}`);
+          Swal.fire({
+            icon: 'success',
+            title: 'Importación Completada',
+            html: `<b>Alumnos creados:</b> ${creados}<br><b>Nuevas Inscripciones:</b> ${inscriptosNuevos}<br><b>Existentes/Omitidos:</b> ${omitidos}`
+          });
           fileInput.value = '';
           cargarDatosDashboard();
         } catch (err) {
-          alert('Error al procesar el archivo.');
+          Swal.fire({ icon: 'error', title: 'Error', text: 'Falló el procesamiento del archivo.' });
         }
       };
       reader.readAsArrayBuffer(file);
     }
 
     async function entregarTP(trayecto_id, actividad_id) {
-      const link = prompt('Pegá el enlace a tu trabajo:');
+      const { value: link } = await Swal.fire({
+        title: 'Enviar Trabajo Práctico',
+        input: 'url',
+        inputLabel: 'Pegá el enlace público a tu archivo/documento:',
+        placeholder: 'https://...',
+        showCancelButton: true
+      });
+
       if (!link) return;
       const hoy = new Date().toISOString().split('T')[0];
 
       await db.from('entregas').insert([{ trayecto_id, actividad_id, estudiante: currentUser.user, link, fecha: hoy }]);
-      alert('¡Trabajo enviado!');
+      Toast.fire({ icon: 'success', title: '¡Trabajo práctico enviado!' });
       cargarDatosDashboard();
     }
 
@@ -1289,11 +1375,11 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
       let desc = document.getElementById('material-titulo').value.trim();
       const link = document.getElementById('material-link').value.trim();
 
-      if (!trayecto_id) return alert('Seleccioná un trayecto.');
+      if (!trayecto_id) return Swal.fire({ icon: 'warning', title: 'Atención', text: 'Seleccioná un trayecto.' });
       desc += ` (Cargado por: ${currentUser.name})`;
 
       await db.from('contenidos').insert([{ trayecto_id, tipo: 'clase', titulo, descripcion: desc, link, fecha }]);
-      alert('Clase publicada.');
+      Toast.fire({ icon: 'success', title: 'Clase publicada' });
       cargarDatosDashboard();
       showTab('trayectos');
     }
@@ -1305,7 +1391,7 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
       let desc = document.getElementById('actividad-desc').value.trim();
       const fecha = document.getElementById('actividad-limite').value;
 
-      if (!trayecto_id) return alert('Seleccioná un trayecto.');
+      if (!trayecto_id) return Swal.fire({ icon: 'warning', title: 'Atención', text: 'Seleccioná un trayecto.' });
 
       await db.from('contenidos').insert([{ 
         trayecto_id, 
@@ -1316,7 +1402,7 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
         modulo_asociado: modulo_asociado || '' 
       }]);
 
-      alert('Trabajo Práctico asignado al módulo.');
+      Toast.fire({ icon: 'success', title: 'Trabajo Práctico asignado' });
       cargarDatosDashboard();
       showTab('trayectos');
     }
@@ -1355,10 +1441,10 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
     async function guardarNota(id, nota) {
       const valorNum = parseInt(nota);
       if (isNaN(valorNum) || valorNum < 0 || valorNum > 100) {
-        return alert('Por favor ingresá un valor numérico entre 0 y 100.');
+        return Swal.fire({ icon: 'warning', title: 'Atención', text: 'Por favor ingresá un número de 0 a 100.' });
       }
       await db.from('entregas').update({ nota: valorNum }).eq('id', id);
-      alert('Calificación de 0 a 100 guardada correctamente.');
+      Toast.fire({ icon: 'success', title: 'Calificación guardada' });
     }
 
     async function registrarUsuario() {
@@ -1367,10 +1453,10 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
       const pass = document.getElementById('user-pass').value.trim();
       const rol = document.getElementById('user-rol').value;
 
-      if (!nombre || !usuario || !pass) return alert('Completá todos los campos.');
+      if (!nombre || !usuario || !pass) return Swal.fire({ icon: 'warning', title: 'Atención', text: 'Completá todos los campos.' });
 
       const { error } = await db.from('usuarios').insert([{ nombre, usuario, pass, rol }]);
-      if (error) return alert('El usuario ya existe o hubo un error.');
+      if (error) return Swal.fire({ icon: 'error', title: 'Error', text: 'El usuario ya existe o hubo un problema.' });
 
       const seleccionados = Array.from(document.querySelectorAll('.chk-trayecto:checked')).map(cb => cb.value);
 
@@ -1400,7 +1486,7 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
         }
       }
 
-      alert(`Usuario @${usuario} creado exitosamente.`);
+      Toast.fire({ icon: 'success', title: `Usuario @${usuario} creado` });
       cargarDatosDashboard();
     }
 
@@ -1426,10 +1512,10 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
           }
 
           return `
-            <tr>
-              <td>${u.nombre}</td>
-              <td>@${u.usuario}</td>
-              <td><strong>${u.rol.toUpperCase()}</strong></td>
+            <tr class="user-row">
+              <td class="col-nombre">${u.nombre}</td>
+              <td class="col-usuario">@${u.usuario}</td>
+              <td class="col-rol"><strong>${u.rol.toUpperCase()}</strong></td>
               <td><span style="font-size:12px; color:#4b5563;">${listaInscripciones}</span></td>
               <td>
                 <button class="btn btn-secondary" style="padding:4px 8px; font-size:12px;" onclick="cambiarClaveUsuario('${u.id}', '${u.usuario}')">🔑 Clave</button>
@@ -1440,18 +1526,49 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
       }
     }
 
+    /* FILTRO DE BUSQUEDA EN TIEMPO REAL */
+    function filtrarUsuarios() {
+      const busqueda = document.getElementById('buscar-usuario').value.toLowerCase().trim();
+      const filas = document.querySelectorAll('.user-row');
+
+      filas.forEach(fila => {
+        const textoFila = fila.innerText.toLowerCase();
+        if (textoFila.includes(busqueda)) {
+          fila.style.display = '';
+        } else {
+          fila.style.display = 'none';
+        }
+      });
+    }
+
     async function cambiarClaveUsuario(id, usuario) {
-      const nuevaPass = prompt(`Nueva contraseña para @${usuario}:`);
+      const { value: nuevaPass } = await Swal.fire({
+        title: 'Modificar Contraseña',
+        input: 'password',
+        inputLabel: `Nueva contraseña para @${usuario}:`,
+        showCancelButton: true
+      });
+
       if (!nuevaPass) return;
       await db.from('usuarios').update({ pass: nuevaPass }).eq('id', id);
-      alert('Contraseña actualizada.');
+      Toast.fire({ icon: 'success', title: 'Contraseña actualizada' });
     }
 
     async function eliminarUsuario(id, usuario, nombre, rol) {
-      if (!confirm(`¿Eliminar al usuario @${usuario}?`)) return;
+      const confirm = await Swal.fire({
+        title: `¿Eliminar a @${usuario}?`,
+        text: 'Se eliminará al usuario y sus inscripciones.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        confirmButtonText: 'Sí, eliminar'
+      });
+
+      if (!confirm.isConfirmed) return;
+
       if (rol === 'estudiante') await db.from('inscripciones').delete().eq('estudiante_user', usuario);
       await db.from('usuarios').delete().eq('id', id);
-      alert('Usuario eliminado.');
+      Toast.fire({ icon: 'success', title: 'Usuario eliminado' });
       cargarDatosDashboard();
     }
   </script>
