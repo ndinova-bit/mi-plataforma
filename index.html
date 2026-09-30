@@ -7,63 +7,52 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-<style>
+  <style>
     * { box-sizing: border-box; font-family: Arial, Helvetica, sans-serif; }
-    body { margin: 0; padding: 0; background-color: #f3f4f6; color: #1f2937; height: 100vh; }
+    body { margin: 0; padding: 0; background-color: #f3f4f6; color: #1f2937; min-height: 100vh; }
     
+    /* LOGIN SCREEN */
     #login-screen { 
-  display: flex; 
-  justify-content: center; 
-  align-items: center; 
-  height: 100vh; 
-  width: 100vw;
-  background-color: #0b1329 !important; /* El azul oscuro de fondo */
-  
-  /* Carga la misma imagen dos veces */
-  background-image: 
-    url('PRUEBA%20CFP%20SIN%20FONDO.png'), 
-    url('PRUEBA%20CFP%20SIN%20FONDO.png') !important; 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      min-height: 100vh; 
+      width: 100vw;
+      background-color: #0b1329 !important;
+      background-image: 
+        url('PRUEBA%20CFP%20SIN%20FONDO.png'), 
+        url('PRUEBA%20CFP%20SIN%20FONDO.png') !important; 
+      background-position: 
+        left 8% center, 
+        right 8% center !important; 
+      background-size: 320px auto, 320px auto !important; 
+      background-repeat: no-repeat !important; 
+      background-attachment: fixed !important; 
+      padding: 20px;
+    }
 
-  /* Ubica una a la izquierda (10% del borde) y otra a la derecha (90%) */
-  background-position: 
-    left 8% center, 
-    right 8% center !important; 
+    .login-box { 
+      background: #ffffff !important; 
+      padding: 40px; 
+      border-radius: 10px; 
+      width: 100%;
+      max-width: 380px; 
+      text-align: center; 
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4); 
+      position: relative;
+      z-index: 10;
+    }
+    .login-box h2 { margin-bottom: 20px; color: #111827; font-size: 22px; }
+    .login-box input, .login-box select { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 15px; }
 
-  /* Define el tamaño exacto de cada logo (320px de ancho) */
-  background-size: 320px auto, 320px auto !important; 
-
-  background-repeat: no-repeat !important; 
-  background-attachment: fixed !important; 
-}
-
-.login-box { 
-  background: #ffffff !important; 
-  padding: 40px; 
-  border-radius: 10px; 
-  width: 360px; 
-  text-align: center; 
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4); 
-  position: relative;
-  z-index: 10;
-}
-    .login-box h2 { margin-bottom: 20px; color: #111827; }
-    .login-box input, .login-box select { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #d1d5db; border-radius: 6px; }
-
-  
-    body { margin: 0; background: #f3f4f6; color: #1f2937; height: 100vh; }
-    
-   #login-screen { display: flex; justify-content: center; align-items: center; height: 100vh; background: #111827; }
-    .login-box { background: white; padding: 40px; border-radius: 10px; width: 360px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
-    .login-box h2 { margin-bottom: 20px; color: #111827; }
-    .login-box input, .login-box select { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #d1d5db; border-radius: 6px; }
-    
-    #app-screen { display: none; height: 100vh; }
-    .dashboard { display: flex; height: 100%; }
-    .sidebar { width: 260px; background: #111827; color: white; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; }
+    /* DASHBOARD */
+    #app-screen { display: none; min-height: 100vh; }
+    .dashboard { display: flex; min-height: 100vh; }
+    .sidebar { width: 260px; background: #111827; color: white; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; flex-shrink: 0; }
     .sidebar-header { font-size: 18px; font-weight: bold; padding-bottom: 15px; border-bottom: 1px solid #374151; margin-bottom: 20px; }
     .sidebar button { background: none; border: none; color: #9ca3af; padding: 12px 15px; text-align: left; width: 100%; cursor: pointer; font-size: 15px; border-radius: 6px; margin-bottom: 8px; }
     .sidebar button:hover, .sidebar button.active { background: #1f2937; color: white; font-weight: bold; }
-    .user-info { font-size: 13px; color: #9ca3af; border-top: 1px solid #374151; padding-top: 15px; }
+    .user-info { font-size: 13px; color: #9ca3af; border-top: 1px solid #374151; padding-top: 15px; margin-top: 15px; }
     
     .main-content { flex: 1; padding: 35px; overflow-y: auto; }
     .section { display: none; }
@@ -106,6 +95,52 @@
 
     .tabla-modulos-eval { border-left: 4px solid #10b981; margin-bottom: 20px; }
     .egresado-box { background: #f0fdf4; border: 1px solid #bbf7d0; padding: 12px 15px; border-radius: 6px; display: flex; align-items: center; gap: 10px; margin-top: 15px; margin-bottom: 15px; }
+
+    /* REGLAS RESPONSIVE PARA CELULARES (< 768px) */
+    @media (max-width: 768px) {
+      #login-screen {
+        background-image: none !important;
+        padding: 15px;
+      }
+
+      .login-box {
+        padding: 25px 20px;
+        width: 100%;
+      }
+
+      .dashboard {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        width: 100%;
+        padding: 15px;
+      }
+
+      .sidebar-header {
+        font-size: 16px;
+        margin-bottom: 10px;
+        padding-bottom: 10px;
+      }
+
+      .main-content {
+        padding: 15px;
+      }
+
+      .grid-2, .grid-3 {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .card {
+        padding: 15px;
+        overflow-x: auto;
+      }
+      
+      table {
+        min-width: 500px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -914,7 +949,6 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
 
     let dniFormateado = String(usuarioDni).replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 
-    // Validación: Si el usuario no era un DNI numérico, lo solicita
     if (!dniFormateado) {
       const dniManual = prompt('Ingrese el DNI/D.U. del alumno:', '12345678');
       if (!dniManual) return;
@@ -938,12 +972,10 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
     let hsReloj = trayecto.horas || '60';
     let fechaEmision = trayecto.fecha_entrega || '23 de Septiembre de 2026';
 
-    // 1. Cargar el archivo plantilla.pdf subido
     const resBytes = await fetch('./plantilla.pdf');
     if (!resBytes.ok) throw new Error('No se encontró el archivo plantilla.pdf en la raíz del servidor/repositorio.');
     const plantillaBytes = await resBytes.arrayBuffer();
 
-    // 2. Procesar con pdf-lib
     const pdfDoc = await PDFLib.PDFDocument.load(plantillaBytes);
     const fuenteBold = await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
     const fuenteRegular = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
@@ -953,7 +985,6 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
     const frente = paginas[0];
     const reverso = paginas.length > 1 ? paginas[1] : frente;
 
-    // Función para rellenar línea con puntos dinámicos
     function dibujaRenglonPunteado(pagina, texto, xStart, yPos, xMax, font, size) {
       pagina.drawText(texto, { x: xStart, y: yPos, size: size, font: font, color: colorNegro });
       const textWidth = font.widthOfTextAtSize(texto, size);
@@ -964,7 +995,6 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
       }
     }
 
-    // Parsear fecha de emisión
     let diaE = '23', mesE = 'Septiembre', anioE = '26';
     if (fechaEmision) {
       const partesF = fechaEmision.split('de');
@@ -975,10 +1005,6 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
       }
     }
 
-// ==========================================
-    // 3. ESTAMPADO ANVERSO (PÁGINA 1)
-    // ==========================================
-    // 1. Nombre del Alumno (Centrado sobre la línea punteada)
     const tamanoNombre = 14;
     const xInicioLineaNombre = 130;
     const xFinLineaNombre = 532;
@@ -996,25 +1022,17 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
       color: colorNegro 
     });
 
-    // 2. D.U. N° (Sin relleno punteado)
     frente.drawText(dniFormateado, { x: 115, y: 207, size: 12, font: fuenteRegular, color: colorNegro });
     
-    // 3. Nombre del Trayecto / Curso
     dibujaRenglonPunteado(frente, trayecto.nombre.toUpperCase(), 91, 182, 400, fuenteRegular, 12);
 
-    // 4. Horas de duración
     frente.drawText(String(hsReloj), { x: 425, y: 182, size: 12, font: fuenteRegular, color: colorNegro });
 
-// ==========================================
-    // 5. DENOMINACIÓN CERTIFICADO DE... (Nombre + Resolución)
-    // ==========================================
     let baseNombreCert = (trayecto.certificacion || trayecto.nombre || '').toUpperCase().trim();
     let resTextoLimpio = (trayecto.resolucion || '').toUpperCase().trim();
 
-    // 1. Limpiamos baseNombreCert si ya traía pegado "SEGÚN RESOLUCIÓN..." (con o sin tilde)
     baseNombreCert = baseNombreCert.split(/SEGÚN\s+RESOLUCIÓN|SEGUN\s+RESOLUCION/i)[0].trim();
 
-    // 2. Extraemos y limpiamos la resolución para eliminar textos repetidos del nombre
     if (resTextoLimpio) {
       if (baseNombreCert) {
         resTextoLimpio = resTextoLimpio.replaceAll(baseNombreCert, '').trim();
@@ -1030,7 +1048,6 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
       }
     }
 
-    // 3. Armamos el texto final sin duplicar prefijos
     let textoCert = baseNombreCert;
 
     if (resTextoLimpio) {
@@ -1041,16 +1058,15 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
       }
     }
 
-    const tamanoCert = 10.5; // Bajamos medio punto para que queden cómodas las resoluciones largas
+    const tamanoCert = 10.5;
     const xMaxGeneral = 520;
 
     const configRenglones = [
-      { x: 320, y: 159 }, // Renglón 1 (deja espacio a "CERTIFICADO DE")
-      { x: 68,  y: 135 }, // Renglón 2
-      { x: 68,  y: 117 }  // Renglón 3
+      { x: 320, y: 159 },
+      { x: 68,  y: 135 },
+      { x: 68,  y: 117 }
     ];
 
-    // Algoritmo de distribución por renglones (Word-Wrap)
     const palabras = textoCert.split(' ').filter(Boolean);
     const lineas = ['', '', ''];
     let lineaActual = 0;
@@ -1066,12 +1082,11 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
         lineas[lineaActual] = prueba;
       } else {
         lineaActual++;
-        if (lineaActual > 2) break; // Máximo 3 renglones
+        if (lineaActual > 2) break;
         lineas[lineaActual] = palabra;
       }
     }
 
-    // Dibujar los renglones
     let ultimaLineaIndice = -1;
     for (let i = 2; i >= 0; i--) {
       if (lineas[i].trim() !== '') {
@@ -1097,16 +1112,10 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
       }
     });
 
-    // ==========================================
-    // 6. FECHA DE EMISIÓN EN ANVERSO (Día, Mes, Año)
-    // ==========================================
     frente.drawText(String(diaE),  { x: 250, y: 98, size: 12, font: fuenteRegular, color: colorNegro });
     frente.drawText(String(mesE),  { x: 320, y: 98, size: 12, font: fuenteRegular, color: colorNegro });
     frente.drawText(String(anioE), { x: 495, y: 98, size: 12, font: fuenteRegular, color: colorNegro });
 
-   // ==========================================
-    // 4. ESTAMPADO REVERSO (AJUSTADO A LO ANCHO)
-    // ==========================================
     let modulosArr = [];
     try {
       modulosArr = typeof trayecto.modulos === 'string' ? JSON.parse(trayecto.modulos) : (trayecto.modulos || []);
@@ -1116,10 +1125,10 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
 
     const yInicial = 370;
     const pasoEntreItems = 30.5; 
-    const altoRenglonSecundario = 12; // Mantiene buen espacio vertical entre renglones
+    const altoRenglonSecundario = 12;
 
     const tamanoFuenteMod = 9.0;
-    const maxAnchoCol = 235; // Aumentado de 205 a 235 para aprovechar todo el ancho
+    const maxAnchoCol = 235;
 
     function dividirEnDosLineas(texto, font, size, maxAncho) {
       const palabras = texto.split(' ').filter(Boolean);
@@ -1127,11 +1136,9 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
       
       for (let p of palabras) {
         let prueba = l1 ? l1 + ' ' + p : p;
-        // Si entra en la primera línea, lo suma ahí
         if (font.widthOfTextAtSize(prueba, size) <= maxAncho) {
           l1 = prueba;
         } else {
-          // Si no entra, pasa directo al segundo renglón sin recortar con "..."
           l2 = l2 ? l2 + ' ' + p : p;
         }
       }
@@ -1151,7 +1158,6 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
       const xPos = esColumnaDerecha ? 318 : 42; 
       const yBase = yInicial - (idxFila * pasoEntreItems);          
 
-      // Dibujar Renglón 1
       if (linea1) {
         reverso.drawText(linea1, {
           x: xPos,
@@ -1162,7 +1168,6 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
         });
       }
 
-      // Dibujar Renglón 2
       if (linea2) {
         reverso.drawText(linea2, {
           x: xPos,
@@ -1173,12 +1178,7 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
         });
       }
     });
-    
-    // ==========================================
-    // PIE DEL REVERSO (Alineación fina de posiciones)
-    // ==========================================
 
-    // 1. Fecha de Egreso y N° de Egresado (Arial 12, sin negrita)
     if (fEgreso) {
       reverso.drawText(fEgreso, { x: 140, y: 202, size: 12, font: fuenteRegular, color: colorNegro });
     }
@@ -1186,7 +1186,6 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
       reverso.drawText(String(numEgresadoDef), { x: 420, y: 202, size: 12, font: fuenteRegular, color: colorNegro });
     }
 
-    // 2. C.F.P N° y Distrito de (Arial 12, sin negrita)
     if (cfpVal) {
       reverso.drawText(String(cfpVal), { x: 150, y: 72, size: 12, font: fuenteRegular, color: colorNegro });
     }
@@ -1194,7 +1193,6 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
       reverso.drawText(String(distritoVal), { x: 390, y: 72, size: 12, font: fuenteRegular, color: colorNegro });
     }
 
-    // 5. Salida y apertura del documento final
     const pdfBytesFinal = await pdfDoc.save();
     const blob = new Blob([pdfBytesFinal], { type: 'application/pdf' });
     const pdfUrl = URL.createObjectURL(blob);
@@ -1204,6 +1202,7 @@ async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, 
     alert('Error al generar el certificado sobre la plantilla: ' + err.message);
   }
 }
+
     async function procesarCargaMasiva() {
       const fileInput = document.getElementById('excel-file-input');
       const file = fileInput.files[0];
