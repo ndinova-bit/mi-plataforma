@@ -399,9 +399,10 @@
       timerProgressBar: true
     });
 
-    async function iniciarSesion() {
+    asasync function iniciarSesion() {
   const u = document.getElementById('login-user').value.trim();
   const p = document.getElementById('login-pass').value.trim();
+  const roleSelected = document.getElementById('role-select').value;
 
   if (!u || !p) {
     return Swal.fire({ 
@@ -411,68 +412,99 @@
     });
   }
 
-  // LÓGICA INTELIGENTE DE EMAIL:
-  // Si ingresaste con '@' (ej: ndinova@abc.gob.ar), usa el correo tal cual.
-  // Si ingresaste con DNI (ej: 92828993), le concatena '@cfp403.app'.
+  // Lógica de formateo de email
   let emailIngresado = u;
   if (!emailIngresado.includes('@')) {
     emailIngresado = emailIngresado + '@cfp403.app';
   }
 
-  // 1. Autenticar con Supabase Auth
-  const { data: authData, error: authError } = await db.auth.signInWithPassword({
-    email: emailIngresado,
-    password: p
+  // Muestra un indicador de carga mientras procesa
+  Swal.fire({
+    title: 'Iniciando sesión...',
+    text: 'Validando credenciales en el servidor',
+    allowOutsideClick: false,
+    didOpen: () => { Swal.showLoading(); }
   });
 
-  if (authError || !authData.user) {
-    return Swal.fire({ 
-      icon: 'error', 
-      title: 'Acceso Denegado', 
-      text: 'Credenciales incorrectas o usuario no registrado.' 
+  try {
+    // 1. Autenticar con Supabase Auth
+    const { data: authData, error: authError } = await db.auth.signInWithPassword({
+      email: emailIngresado,
+      password: p
+    });
+
+    if (authError || !authData.user) {
+      return Swal.fire({ 
+        icon: 'error', 
+        title: 'Acceso Denegado', 
+        text: authError?.message || 'Credenciales incorrectas o usuario no registrado.' 
+      });
+    }
+
+    // 2. Obtener el perfil del usuario desde la tabla public.profiles
+    const { data: profile, error: profileError } = await db
+      .from('profiles')
+      .select('*')
+      .eq('id', authData.user.id)
+      .maybeSingle();
+
+    if (profileError || !profile) {
+      console.error('Error al traer perfil:', profileError);
+      return Swal.fire({ 
+        icon: 'error', 
+        title: 'Error de Perfil', 
+        text: 'No se encontraron los datos del perfil asociado en la base de datos.' 
+      });
+    }
+
+    // 3. Validar si el rol seleccionado coincide con el de la base de datos (Opcional)
+    if (profile.rol !== roleSelected) {
+      await db.auth.signOut(); // Cierra la sesión si el rol no coincide
+      return Swal.fire({
+        icon: 'warning',
+        title: 'Rol Incorrecto',
+        text: `Tu usuario no posee el rol de "${roleSelected.toUpperCase()}". Seleccioná el perfil correcto.`
+      });
+    }
+
+    // 4. Guardar sesión actual
+    currentUser = { 
+      id: profile.id, 
+      name: profile.nombre || 'Usuario', 
+      user: profile.dni || profile.email, 
+      role: profile.rol 
+    };
+
+    // Ajustes de UI
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app-screen').style.display = 'block';
+    document.getElementById('display-username').textContent = currentUser.name;
+    
+    let tagRol = 'Estudiante';
+    if (currentUser.role === 'admin') tagRol = 'Administrador';
+    if (currentUser.role === 'docente') tagRol = 'Docente';
+    document.getElementById('display-role').textContent = tagRol;
+
+    // Ajustar visibilidad por rol
+    document.querySelectorAll('.admin-only').forEach(el => el.style.display = (currentUser.role === 'admin') ? 'block' : 'none');
+    document.querySelectorAll('.docente-only').forEach(el => el.style.display = (currentUser.role === 'docente') ? 'block' : 'none');
+    document.querySelectorAll('.docente-or-admin').forEach(el => el.style.display = (currentUser.role === 'admin' || currentUser.role === 'docente') ? 'block' : 'none');
+
+    // Cargar datos y notificar
+    await cargarDatosDashboard();
+    showTab('trayectos');
+    
+    Swal.close();
+    Toast.fire({ icon: 'success', title: `¡Bienvenido/a, ${currentUser.name}!` });
+
+  } catch (err) {
+    console.error('Error no controlado en login:', err);
+    Swal.fire({
+      icon: 'error',
+      title: 'Error Inesperado',
+      text: 'Ocurrió un error en el sistema: ' + (err.message || 'Error de conexión.')
     });
   }
-
-  // 2. Obtener el perfil del usuario desde la tabla public.profiles
-  const { data: profile, error: profileError } = await db
-    .from('profiles')
-    .select('*')
-    .eq('id', authData.user.id)
-    .single();
-
-  if (profileError || !profile) {
-    return Swal.fire({ 
-      icon: 'error', 
-      title: 'Error de Perfil', 
-      text: 'No se encontraron los datos del usuario en la base de datos.' 
-    });
-  }
-
-  // 3. Guardar sesión actual
-  currentUser = { 
-    id: profile.id, 
-    name: profile.nombre, 
-    user: profile.dni, 
-    role: profile.rol 
-  };
-
-  document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('app-screen').style.display = 'block';
-  document.getElementById('display-username').textContent = currentUser.name;
-  
-  let tagRol = 'Estudiante';
-  if (currentUser.role === 'admin') tagRol = 'Administrador';
-  if (currentUser.role === 'docente') tagRol = 'Docente';
-  document.getElementById('display-role').textContent = tagRol;
-
-  // Ajustar la visibilidad según el rol asignado
-  document.querySelectorAll('.admin-only').forEach(el => el.style.display = (currentUser.role === 'admin') ? 'block' : 'none');
-  document.querySelectorAll('.docente-only').forEach(el => el.style.display = (currentUser.role === 'docente') ? 'block' : 'none');
-  document.querySelectorAll('.docente-or-admin').forEach(el => el.style.display = (currentUser.role === 'admin' || currentUser.role === 'docente') ? 'block' : 'none');
-
-  cargarDatosDashboard();
-  showTab('trayectos');
-  Toast.fire({ icon: 'success', title: `¡Bienvenido/a, ${currentUser.name}!` });
 }
 
     async function cerrarSesion() {
