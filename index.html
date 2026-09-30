@@ -1626,23 +1626,51 @@
       Toast.fire({ icon: 'success', title: 'Contraseña actualizada' });
     }
 
-    async function eliminarUsuario(id, usuario, nombre, rol) {
-      const confirm = await Swal.fire({
-        title: `¿Eliminar a @${usuario}?`,
-        text: 'Se eliminará al usuario y sus inscripciones.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#dc2626',
-        confirmButtonText: 'Sí, eliminar'
-      });
+   async function eliminarUsuario(id, usuario, nombre, rol) {
+  const confirm = await Swal.fire({
+    title: `¿Eliminar a @${usuario}?`,
+    text: 'Se eliminará al usuario y sus relaciones en el sistema.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#dc2626',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+  });
 
-      if (!confirm.isConfirmed) return;
+  if (!confirm.isConfirmed) return;
 
-      if (rol === 'estudiante') await db.from('inscripciones').delete().eq('estudiante_user', usuario);
-      await db.from('usuarios').delete().eq('id', id);
-      Toast.fire({ icon: 'success', title: 'Usuario eliminado' });
-      cargarDatosDashboard();
+  // 1. Si es estudiante, limpiamos sus inscripciones
+  if (rol === 'estudiante') {
+    await db.from('inscripciones').delete().eq('estudiante_user', usuario);
+  } 
+  // 2. Si es docente, lo desvinculamos de los trayectos asignados
+  else if (rol === 'docente') {
+    const { data: trayectos } = await db.from('trayectos').select('*');
+    if (trayectos) {
+      for (const t of trayectos) {
+        if (t.docente_user && t.docente_user.includes(usuario)) {
+          let usersList = t.docente_user.split(',').map(s => s.trim()).filter(u => u !== usuario);
+          let namesList = t.docente_nombre ? t.docente_nombre.split(',').map(s => s.trim()).filter(n => n !== nombre) : [];
+
+          await db.from('trayectos').update({
+            docente_user: usersList.join(', '),
+            docente_nombre: namesList.join(', ')
+          }).eq('id', t.id);
+        }
+      }
     }
+  }
+
+  // 3. Borramos el perfil de la tabla profiles
+  const { error } = await db.from('profiles').delete().eq('id', id);
+
+  if (error) {
+    return Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo eliminar el usuario.' });
+  }
+
+  Toast.fire({ icon: 'success', title: 'Usuario eliminado correctamente' });
+  cargarDatosDashboard();
+}
   </script>
 </body>
 </html>
