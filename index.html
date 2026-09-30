@@ -400,40 +400,80 @@
     });
 
     async function iniciarSesion() {
-      const u = document.getElementById('login-user').value.trim();
-      const p = document.getElementById('login-pass').value.trim();
-      const r = document.getElementById('role-select').value;
+  const u = document.getElementById('login-user').value.trim();
+  const p = document.getElementById('login-pass').value.trim();
 
-      if (!u || !p) {
-        return Swal.fire({ icon: 'warning', title: 'Campos incompletos', text: 'Por favor ingresá usuario y contraseña.' });
-      }
+  if (!u || !p) {
+    return Swal.fire({ 
+      icon: 'warning', 
+      title: 'Campos incompletos', 
+      text: 'Por favor ingresá usuario/email y contraseña.' 
+    });
+  }
 
-      const { data, error } = await db.from('usuarios').select('*').eq('usuario', u).eq('pass', p).eq('rol', r);
+  // LÓGICA INTELIGENTE DE EMAIL:
+  // Si ingresaste con '@' (ej: ndinova@abc.gob.ar), usa el correo tal cual.
+  // Si ingresaste con DNI (ej: 92828993), le concatena '@cfp403.app'.
+  let emailIngresado = u;
+  if (!emailIngresado.includes('@')) {
+    emailIngresado = emailIngresado + '@cfp403.app';
+  }
 
-      if (error || !data || data.length === 0) {
-        return Swal.fire({ icon: 'error', title: 'Acceso Denegado', text: 'Credenciales incorrectas o rol no coincidente.' });
-      }
+  // 1. Autenticar con Supabase Auth
+  const { data: authData, error: authError } = await db.auth.signInWithPassword({
+    email: emailIngresado,
+    password: p
+  });
 
-      const userMatch = data[0];
-      currentUser = { id: userMatch.id, name: userMatch.nombre, user: userMatch.usuario, role: userMatch.rol };
+  if (authError || !authData.user) {
+    return Swal.fire({ 
+      icon: 'error', 
+      title: 'Acceso Denegado', 
+      text: 'Credenciales incorrectas o usuario no registrado.' 
+    });
+  }
 
-      document.getElementById('login-screen').style.display = 'none';
-      document.getElementById('app-screen').style.display = 'block';
-      document.getElementById('display-username').textContent = currentUser.name;
-      
-      let tagRol = 'Estudiante';
-      if (currentUser.role === 'admin') tagRol = 'Administrador';
-      if (currentUser.role === 'docente') tagRol = 'Docente';
-      document.getElementById('display-role').textContent = tagRol;
+  // 2. Obtener el perfil del usuario desde la tabla public.profiles
+  const { data: profile, error: profileError } = await db
+    .from('profiles')
+    .select('*')
+    .eq('id', authData.user.id)
+    .single();
 
-      document.querySelectorAll('.admin-only').forEach(el => el.style.display = (currentUser.role === 'admin') ? 'block' : 'none');
-      document.querySelectorAll('.docente-only').forEach(el => el.style.display = (currentUser.role === 'docente') ? 'block' : 'none');
-      document.querySelectorAll('.docente-or-admin').forEach(el => el.style.display = (currentUser.role === 'admin' || currentUser.role === 'docente') ? 'block' : 'none');
+  if (profileError || !profile) {
+    return Swal.fire({ 
+      icon: 'error', 
+      title: 'Error de Perfil', 
+      text: 'No se encontraron los datos del usuario en la base de datos.' 
+    });
+  }
 
-      cargarDatosDashboard();
-      showTab('trayectos');
-      Toast.fire({ icon: 'success', title: `¡Bienvenido/a, ${currentUser.name}!` });
-    }
+  // 3. Guardar sesión actual
+  currentUser = { 
+    id: profile.id, 
+    name: profile.nombre, 
+    user: profile.dni, 
+    role: profile.rol 
+  };
+
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display = 'block';
+  document.getElementById('display-username').textContent = currentUser.name;
+  
+  let tagRol = 'Estudiante';
+  if (currentUser.role === 'admin') tagRol = 'Administrador';
+  if (currentUser.role === 'docente') tagRol = 'Docente';
+  document.getElementById('display-role').textContent = tagRol;
+
+  // Ajustar la visibilidad según el rol asignado
+  document.querySelectorAll('.admin-only').forEach(el => el.style.display = (currentUser.role === 'admin') ? 'block' : 'none');
+  document.querySelectorAll('.docente-only').forEach(el => el.style.display = (currentUser.role === 'docente') ? 'block' : 'none');
+  document.querySelectorAll('.docente-or-admin').forEach(el => el.style.display = (currentUser.role === 'admin' || currentUser.role === 'docente') ? 'block' : 'none');
+
+  cargarDatosDashboard();
+  showTab('trayectos');
+  Toast.fire({ icon: 'success', title: `¡Bienvenido/a, ${currentUser.name}!` });
+}
 
     function cerrarSesion() {
       document.getElementById('app-screen').style.display = 'none';
