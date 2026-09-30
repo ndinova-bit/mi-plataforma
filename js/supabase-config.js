@@ -1,6 +1,6 @@
 // CONFIGURACIÓN E INICIALIZACIÓN DE SUPABASE
-const SUPABASE_URL = 'https://TU_SUPABASE_PROJECT_URL.supabase.co'; // Reemplazar con tu URL
-const SUPABASE_ANON_KEY = 'TU_SUPABASE_ANON_KEY';                 // Reemplazar con tu API Key
+const SUPABASE_URL = 'https://dxgqtdaexlegsaohdywx.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_q3iliYP60gR5bP6vtTwoHA_8FWqg7iz';
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
