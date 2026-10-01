@@ -16,27 +16,80 @@
 <body>
 
   <!-- 1. VISTA PÚBLICA / LANDING -->
-  <div id="public-landing">
-<header class="main-header">
-  <div></div>
-  <div class="header-brand-center">
-    <img src="PRUEBA CFP SIN FONDO.png" alt="CFP 403 Logo" class="header-logo-lg">
-    <h2 class="header-title-lg">CFP N° 403 "OSCAR SMITH" - LUJAN BUENOS AIRES</h2>
-  </div>
-  <div class="header-action-right">
-    <button class="btn btn-primary" onclick="UI.showLoginScreen()">Ingresar / Registrarse</button>
-  </div>
-</header>
-    <main style="max-width: 1000px; margin: 3rem auto; padding: 0 1rem;">
-      <div class="card" style="text-align: center; padding: 3rem 1.5rem;">
-        <h1>Oferta Académica y Trayectos Formativos</h1>
-        <p style="color: var(--text-muted); margin-top: 0.5rem;">Consultá los cursos disponibles y sus respectivos módulos.</p>
-      </div>
+  <div id="public-landing" class="fade-in">
 
-      <div id="lista-trayectos-cards" style="margin-top: 2rem;">
-        <!-- Carga dinámica vía JS -->
+    <!-- HEADER INSTITUCIONAL -->
+    <header class="main-header">
+      <div></div>
+      <div class="header-brand-center">
+        <img src="PRUEBA CFP SIN FONDO.png" alt="CFP 403 Logo" class="header-logo-lg">
+        <h2 class="header-title-lg">CFP N° 403 "OSCAR SMITH" - LUJÁN</h2>
       </div>
+      <div class="header-action-right">
+        <button class="btn btn-primary" onclick="UI.showLoginScreen()">
+          <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+          Ingresar / Registrarse
+        </button>
+      </div>
+    </header>
+
+    <!-- CONTENIDO PRINCIPAL DE LA LANDING -->
+    <main class="public-container">
+      
+      <!-- HERO BANNER CON AVISO E INFORMACIÓN DE IMPACTO -->
+      <section class="hero-banner">
+        <span class="hero-badge">Formación Profesional Gratuita</span>
+        <h1 class="hero-title">Oferta Académica y Trayectos Formativos</h1>
+        <p class="hero-subtitle">
+          Capacitate con certificados oficiales. Explorá nuestros cursos, horarios y planes de estudio pensados para impulsar tu futuro laboral.
+        </p>
+      </section>
+
+      <!-- SECCIÓN DINÁMICA DE TRAYECTOS -->
+      <!-- Mantenemos el ID original para que JavaScript inserte las tarjetas aquí -->
+      <section id="lista-trayectos-cards">
+        
+        <!-- ESTADO VACÍO (Se muestra si Supabase aún no tiene trayectos cargados) -->
+        <div class="empty-state-card">
+          <div class="empty-state-icon">
+            <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+          </div>
+          <h3 class="empty-state-title">No hay trayectos publicados aún</h3>
+          <p class="empty-state-text">
+            Estamos preparando la nueva oferta académica. Volvé a consultar pronto para conocer los próximos cursos e inscripciones.
+          </p>
+        </div>
+
+      </section>
+
     </main>
+
+    <!-- FOOTER INSTITUCIONAL DE CIERRE -->
+    <footer class="main-footer">
+      <div class="footer-content">
+        <div class="footer-brand">
+          <h3>CFP N° 403 "Oscar Smith"</h3>
+          <p>Centro de Formación Profesional de Luján, Buenos Aires. Brindando educación técnica pública, gratuita y de calidad para toda la comunidad.</p>
+        </div>
+        <div class="footer-section">
+          <h4>Contacto</h4>
+          <ul class="footer-links">
+            <li>📍 Luján, Buenos Aires</li>
+            <li>✉️ contacto@cfp403lujan.edu.ar</li>
+          </ul>
+        </div>
+        <div class="footer-section">
+          <h4>Plataforma</h4>
+          <ul class="footer-links">
+            <li><a href="#" onclick="UI.showLoginScreen()" style="color: inherit; text-decoration: none;">Acceso Alumnos / Docentes</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        &copy; 2026 CFP N° 403. Todos los derechos reservados.
+      </div>
+    </footer>
+
   </div>
 
   <!-- 2. VISTA AUTH / LOGIN & REGISTRO -->
