@@ -14,7 +14,7 @@ const Trayectos = {
       if (error) throw error;
 
       this.listaTrayectos = data || [];
-      this.renderizerTrayectos();
+      this.renderizarTrayectos();
     } catch (err) {
       console.error('Error al cargar trayectos:', err);
       if (typeof alertError === 'function') {
