@@ -8,6 +8,8 @@
   --border: #cbd5e1;
   --radius: 8px;
   --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  --danger-bg: #fee2e2;
+  --danger-text: #b91c1c;
 }
 
 * {
@@ -21,38 +23,32 @@ body {
   background-color: var(--bg-main);
   color: var(--text-main);
   min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
-/* Tarjeta contenedora de Login */
-.card {
+/* Tarjetas y Contenedores */
+.card, .modulo-card {
   background: var(--surface);
   border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  padding: 2.5rem 2rem;
+  border-radius: 12px;
+  padding: 1.5rem;
   box-shadow: var(--shadow);
-  width: 100%;
-  max-width: 440px;
 }
 
-/* Formularios, Inputs y Selects */
-form, .form-group {
+/* Formularios y Grupos */
+.form-group {
   display: flex;
   flex-direction: column;
-  gap: 1.2rem;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
 }
 
 label {
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--text-main);
-  margin-bottom: 0.35rem;
-  display: block;
 }
 
-input, select, .input-field {
+.form-control, input, select, textarea {
   width: 100%;
   padding: 0.75rem 1rem;
   font-size: 0.95rem;
@@ -61,17 +57,16 @@ input, select, .input-field {
   background-color: #fff;
   color: var(--text-main);
   outline: none;
-  transition: all 0.2s ease;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-input:focus, select:focus {
+.form-control:focus, input:focus, select:focus, textarea:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.15);
 }
 
-/* Estilos de Botones */
-button, .btn {
-  width: 100%;
+/* Botones Estilizados */
+.btn {
   padding: 0.75rem 1.25rem;
   font-size: 0.95rem;
   font-weight: 600;
@@ -82,26 +77,25 @@ button, .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  text-decoration: none;
 }
 
-/* Botón Principal (Azul Institucional) */
-.btn-primary, button[type="submit"], #login-form button:not(.btn-secondary) {
+.btn-primary {
   background-color: var(--primary);
   color: #ffffff;
 }
 
-.btn-primary:hover, button[type="submit"]:hover {
+.btn-primary:hover {
   background-color: var(--primary-hover);
 }
 
-/* Botones Secundarios / Tabs */
-.btn-secondary, button:not([type="submit"]):not(.btn-primary) {
+.btn-secondary {
   background-color: #f1f5f9;
   color: var(--text-main);
   border: 1px solid #e2e8f0;
 }
 
-.btn-secondary:hover, button:not([type="submit"]):not(.btn-primary):hover {
+.btn-secondary:hover {
   background-color: #e2e8f0;
 }
 
@@ -110,4 +104,53 @@ button, .btn {
   border-color: var(--primary);
   color: var(--primary);
   font-weight: 700;
+}
+
+.btn-danger {
+  background-color: var(--danger-bg);
+  color: var(--danger-text);
+  border: 1px solid #fca5a5;
+}
+
+/* Modulos */
+.modulo-card {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: #f8fafc;
+}
+
+.modulo-row-header, .modulo-row-dates {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  align-items: center;
+}
+
+/* Dashboard Layout Responsive */
+#app-screen {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  min-height: 100vh;
+}
+
+.sidebar {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  padding: 2rem;
+}
+
+@media (max-width: 768px) {
+  #app-screen {
+    grid-template-columns: 1fr;
+  }
+  .sidebar {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
 }
