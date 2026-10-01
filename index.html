@@ -30,106 +30,184 @@
   <!-- 1. VISTA PÚBLICA / LANDING -->
   <div id="public-landing" class="fade-in">
 
-    <!-- HEADER INSTITUCIONAL -->
     <header class="main-header">
-      <div></div>
-      <div class="header-brand-center">
-        <img src="PRUEBA CFP SIN FONDO.png" alt="CFP 403 Logo" class="header-logo-lg">
-        <h2 class="header-title-lg">CFP N° 403 "OSCAR SMITH" - LUJÁN</h2>
+  <div class="header-brand-center">
+    <div class="header-top-brand">
+      <img src="logo.png" alt="Logo CFP 403" class="header-logo-xl">
+      <div>
+        <h1 class="header-title-lg">CFP N° 403 "OSCAR SMITH"</h1>
+        <span style="font-size: 0.85rem; color: var(--text-muted);">LUJÁN, BUENOS AIRES</span>
       </div>
-      <div class="header-action-right">
-        <button class="btn btn-primary" onclick="UI.showLoginScreen()">
-          <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
-          Ingresar / Registrarse
-        </button>
-      </div>
-    </header>
+    </div>
+    
+    <!-- Barra de Navegación -->
+    <nav class="main-nav">
+      <a href="#inicio" class="nav-link">Inicio</a>
+      <a href="#cursos" class="nav-link">Cursos</a>
+      <a href="#por-que" class="nav-link">¿Por qué el 403?</a>
+      <a href="#inscripcion" class="nav-link">¿Cómo inscribirse?</a>
+      <a href="#noticias" class="nav-link">Noticias</a>
+      <a href="#contacto" class="nav-link">Contacto</a>
+    </nav>
+  </div>
 
-    <!-- CONTENIDO PRINCIPAL DE LA LANDING -->
+  <div class="header-action-right">
+    <a href="#" onclick="UI.showLoginScreen(); return false;" class="btn-header-login">
+      🔓 Ingresar / Registrarse
+    </a>
+  </div>
+<!-- CONTENIDO PRINCIPAL DE LA LANDING -->
     <main class="public-container">
-      
-      <main class="public-container">
-  <!-- HERO BANNER -->
-  <section class="hero-banner">
-    <span class="hero-badge">Formación Profesional Gratuita</span>
-    <h1 class="hero-title">Oferta Académica y Trayectos Formativos</h1>
-    <p class="hero-subtitle">
-      Capacitate con certificados oficiales. Explorá nuestros cursos, horarios y planes de estudio pensados para impulsar tu futuro laboral.
-    </p>
-  </section>
 
-  <!-- PROPUESTA DE VALOR / PILARES -->
-  <section class="value-props-grid">
-    <div class="prop-card">
-      <div class="prop-icon">📜</div>
-      <div>
-        <h3 class="prop-title">Títulos Oficiales</h3>
-        <p class="prop-desc">Certificación avalada por DGCyE de Buenos Aires.</p>
-      </div>
-    </div>
-    <div class="prop-card">
-      <div class="prop-icon">🎓</div>
-      <div>
-        <h3 class="prop-title">100% Gratuito</h3>
-        <p class="prop-desc">Educación técnica pública y accesible para todos.</p>
-      </div>
-    </div>
-    <div class="prop-card">
-      <div class="prop-icon">🛠️</div>
-      <div>
-        <h3 class="prop-title">Salida Laboral</h3>
-        <p class="prop-desc">Capacitación práctica adaptada al mercado actual.</p>
-      </div>
-    </div>
-  </section>
+      <!-- 1. HERO BANNER -->
+      <section id="inicio" class="hero-banner">
+        <span class="hero-badge">Formación Profesional Gratuita</span>
+        <h1 class="hero-title">Encontrá tu próxima formación profesional</h1>
+        <p class="hero-subtitle">
+          Capacitate con certificados oficiales avalados por la DGCyE de la Provincia de Buenos Aires.
+        </p>
+        <div style="margin-top: 1.5rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+          <a href="#cursos" class="btn btn-gold">Ver Cursos</a>
+          <a href="#inscripcion" class="btn btn-outline">¿Cómo inscribirme?</a>
+        </div>
+      </section>
 
-  <!-- CONTENEDOR DINÁMICO DE CURSOS (Mantiene la integración con tu JS) -->
-  <section id="coursesContainer">
-    <!-- El script insertará la grilla o el empty-state-card aquí -->
-  </section>
-</main>
+      <!-- 2. CATÁLOGO Y BÚSQUEDA DE CURSOS -->
+      <section id="cursos" style="margin-bottom: 3.5rem;">
+        <div class="section-heading">
+          <h2 class="section-title">Oferta Académica</h2>
+        </div>
+        <div id="coursesContainer">
+          <!-- El script ui.js insertará la grilla de cursos aquí -->
+        </div>
+      </section>
 
+      <!-- 3. ¿POR QUÉ ELEGIR EL CFP 403? -->
+      <section id="por-que" class="value-props-grid">
+        <div class="prop-card">
+          <div class="prop-icon">📜</div>
+          <div>
+            <h3 class="prop-title">Títulos Oficiales</h3>
+            <p class="prop-desc">Certificación avalada por DGCyE de Buenos Aires.</p>
+          </div>
+        </div>
+        <div class="prop-card">
+          <div class="prop-icon">🎓</div>
+          <div>
+            <h3 class="prop-title">100% Gratuito</h3>
+            <p class="prop-desc">Educación técnica pública y accesible para todos.</p>
+          </div>
+        </div>
+        <div class="prop-card">
+          <div class="prop-icon">🛠️</div>
+          <div>
+            <h3 class="prop-title">Salida Laboral</h3>
+            <p class="prop-desc">Capacitación práctica adaptada al mercado actual.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. ¿CÓMO INSCRIBIRSE? (Pasos 01 al 04) -->
+      <section id="inscripcion" class="steps-section">
+        <h2 class="section-title-center">¿Cómo inscribirse?</h2>
+        <div class="steps-grid">
+          <div class="step-card">
+            <span class="step-number">01</span>
+            <h3 class="step-title">Elegí tu curso</h3>
+            <p class="step-desc">Explorá nuestra oferta académica y elegí tu especialidad.</p>
+          </div>
+          <div class="step-card">
+            <span class="step-number">02</span>
+            <h3 class="step-title">Requisitos</h3>
+            <p class="step-desc">Conocé los horarios, vacantes y documentación necesaria.</p>
+          </div>
+          <div class="step-card">
+            <span class="step-number">03</span>
+            <h3 class="step-title">Inscripción</h3>
+            <p class="step-desc">Completá el formulario de preinscripción digital o presencial.</p>
+          </div>
+          <div class="step-card">
+            <span class="step-number">04</span>
+            <h3 class="step-title">¡Comenzá!</h3>
+            <p class="step-desc">Presentá tu documentación y empezá a capacitarte.</p>
+          </div>
+        </div>
+        <button onclick="UI.showLoginScreen()" class="btn btn-gold">🟡 Iniciar inscripción</button>
+      </section>
+
+      <!-- 5. NOVEDADES Y NOTICIAS -->
+      <section id="noticias" class="news-section">
+        <div class="section-heading">
+          <h2 class="section-title">Noticias y Novedades</h2>
+        </div>
+        <div class="news-grid">
+          <div class="news-card">
+            <div class="news-icon">📰</div>
+            <div>
+              <h3 class="news-title">Inscripciones abiertas</h3>
+              <p class="news-desc">Nueva etapa de inscripción para el próximo ciclo lectivo.</p>
+            </div>
+          </div>
+          <div class="news-card">
+            <div class="news-icon">📢</div>
+            <div>
+              <h3 class="news-title">Inicio de clases</h3>
+              <p class="news-desc">Consultá las comisiones y los horarios de cursada.</p>
+            </div>
+          </div>
+          <div class="news-card">
+            <div class="news-icon">🎓</div>
+            <div>
+              <h3 class="news-title">Entrega de certificados</h3>
+              <p class="news-desc">Fechas de acto de egresados para trayectos finalizados.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- FOOTER INSTITUCIONAL -->
     <footer class="main-footer">
-  <div class="footer-container">
-    <!-- Columna 1: Info Institucional -->
-    <div>
-      <h3 class="footer-title-gold">CFP N° 403 "Oscar Smith"</h3>
-      <p class="footer-description">
-        Centro de Formación Profesional de Luján, Buenos Aires. Brindando educación técnica pública, gratuita y de calidad para toda la comunidad.
-      </p>
-    </div>
+      <div class="footer-container">
+        <!-- Columna 1: Info Institucional -->
+        <div>
+          <h3 class="footer-title-gold">CFP N° 403 "Oscar Smith"</h3>
+          <p class="footer-description">
+            Centro de Formación Profesional de Luján, Buenos Aires. Brindando educación técnica pública, gratuita y de calidad para toda la comunidad.
+          </p>
+        </div>
 
-    <!-- Columna 2: Contacto y Ubicación -->
-    <div class="footer-contact-group">
-      <h4 class="footer-title">Contacto y Ubicación</h4>
-      <a href="https://maps.google.com/?q=Lavalle+740+Lujan+Buenos+Aires" target="_blank" rel="noopener" class="contact-link-location">
-        📍 Lavalle 740, Luján, Buenos Aires
-      </a>
-      <a href="mailto:cfp403lujan@abc.gob.ar" class="btn-contact btn-email">
-        ✉️ cfp403lujan@abc.gob.ar
-      </a>
-      <a href="https://wa.me/5492323000000" target="_blank" rel="noopener" class="btn-contact btn-whatsapp">
-        🟢 Enviar WhatsApp
-      </a>
-    </div>
+        <!-- Columna 2: Contacto y Ubicación -->
+        <div class="footer-contact-group">
+          <h4 class="footer-title">Contacto y Ubicación</h4>
+          <a href="https://maps.google.com/?q=Lavalle+740+Lujan+Buenos+Aires" target="_blank" rel="noopener" class="contact-link-location">
+            📍 Lavalle 740, Luján, Buenos Aires
+          </a>
+          <a href="mailto:cfp403lujan@abc.gob.ar" class="btn-contact btn-email">
+            ✉️ cfp403lujan@abc.gob.ar
+          </a>
+          <a href="https://wa.me/5492323000000" target="_blank" rel="noopener" class="btn-contact btn-whatsapp">
+            🟢 Enviar WhatsApp
+          </a>
+        </div>
 
-    <!-- Columna 3: Redes Sociales -->
-    <div class="footer-community-group">
-      <h4 class="footer-title">Comunidad</h4>
-      <a href="https://instagram.com/cfp403lujan" target="_blank" rel="noopener" class="btn-instagram">
-        📷 @cfp403lujan en Instagram
-      </a>
-    </div>
+        <!-- Columna 3: Redes Sociales -->
+        <div class="footer-community-group">
+          <h4 class="footer-title">Comunidad</h4>
+          <a href="https://instagram.com/cfp403lujan" target="_blank" rel="noopener" class="btn-instagram">
+            📷 @cfp403lujan en Instagram
+          </a>
+        </div>
+      </div>
+
+      <!-- Copyright -->
+      <div class="footer-copyright">
+        © 2026 CFP N° 403. Todos los derechos reservados.
+      </div>
+    </footer>
+
   </div>
-
-  <!-- Copyright -->
-  <div class="footer-copyright">
-    © 2026 CFP N° 403. Todos los derechos reservados.
-  </div>
-</footer>
-
-  </div>
-
   <!-- 2. VISTA AUTH / LOGIN & REGISTRO -->
   <div id="login-screen" style="display: none; min-height: 100vh; align-items: center; justify-content: center; padding: 1rem;">
     <div class="card" style="width: 100%; max-width: 420px;">
