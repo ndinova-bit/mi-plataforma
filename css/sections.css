@@ -1,20 +1,22 @@
 /* ==========================================
-   HEADER AMPLIADO Y NAVEGACIÓN
+   HEADER Y LOGO INSTITUCIONAL
    ========================================== */
 .header-top-brand {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 1.25rem;
 }
 
 .header-logo-xl {
-  height: 95px;
+  height: 85px;
   width: auto;
-  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.6));
+  object-fit: contain;
 }
 
 .main-nav {
   display: flex;
+  justify-content: center;
   gap: 1.5rem;
   margin-top: 0.75rem;
   padding-top: 0.75rem;
@@ -34,25 +36,38 @@
 }
 
 /* ==========================================
-   SECCIÓN: ¿CÓMO INSCRIBIRSE? (PASOS 01-04)
+   ESTRUCTURA GENERAL DEL CONTENEDOR
+   ========================================== */
+.public-container {
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+/* ==========================================
+   PASOS: ¿CÓMO INSCRIBIRSE?
    ========================================== */
 .steps-section {
   padding: 3rem 0;
   text-align: center;
+  width: 100%;
 }
 
 .section-title-center {
-  font-size: 1.6rem;
+  font-size: 1.75rem;
   font-weight: 800;
   color: var(--text-main, #f8fafc);
   margin-bottom: 2rem;
+  text-align: center;
 }
 
 .steps-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 1.5rem;
   margin-bottom: 2rem;
+  width: 100%;
 }
 
 .step-card {
@@ -61,7 +76,6 @@
   border-radius: var(--radius-card, 16px);
   padding: 1.75rem 1.25rem;
   text-align: left;
-  position: relative;
   transition: transform 0.25s ease, border-color 0.25s ease;
 }
 
@@ -92,10 +106,11 @@
 }
 
 /* ==========================================
-   SECCIÓN: NOVEDADES Y NOTICIAS
+   NOVEDADES Y NOTICIAS
    ========================================== */
 .news-section {
   padding: 2.5rem 0;
+  width: 100%;
 }
 
 .news-grid {
@@ -103,6 +118,7 @@
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 1.25rem;
   margin-top: 1.5rem;
+  width: 100%;
 }
 
 .news-card {
