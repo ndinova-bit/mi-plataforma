@@ -174,4 +174,58 @@ label {
   flex: 1;
   min-width: 130px;
 }
+  /* ==========================================
+   HEADER INSTITUCIONAL Y RESPONSIVE
+   ========================================== */
+.main-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 1.25rem 2.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.header-logo {
+  height: 70px; /* Tamaño aumentado para mayor presencia visual */
+  width: auto;
+  object-fit: contain;
+}
+
+.header-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--primary);
+  line-height: 1.2;
+}
+
+/* Adaptación Responsive para Móviles */
+@media (max-width: 768px) {
+  .main-header {
+    flex-direction: column;
+    padding: 1rem;
+    text-align: center;
+  }
+
+  .header-brand {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .header-logo {
+    height: 60px;
+  }
+
+  .header-title {
+    font-size: 1.05rem;
+  }
+}
 }
