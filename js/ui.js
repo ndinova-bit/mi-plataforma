@@ -110,5 +110,78 @@ const UI = {
       box.style.display = 'block';
       lbl.innerText = rol === 'estudiante' ? 'Asignar a Trayectos:' : 'Asignar como Docente en:';
     }
+    /* ==========================================
+   INTERFAZ DE USUARIO Y MODALES (UI)
+   ========================================== */
+
+const UI = {
+  // Inicialización de componentes de UI
+  init() {
+    this.createLoginModal();
+    this.registerServiceWorker();
+  },
+
+  // Modal de Login Dinámico
+  createLoginModal() {
+    if (document.getElementById('loginModal')) return;
+
+    const modalHTML = `
+      <div id="loginModal" class="modal-overlay" onclick="if(event.target === this) UI.hideLoginScreen()">
+        <div class="modal-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h3 style="color: var(--text-main, #f8fafc); font-size: 1.2rem; font-weight: 700;">Acceso Institucional</h3>
+            <button onclick="UI.hideLoginScreen()" style="background: none; border: none; color: var(--text-muted, #94a3b8); font-size: 1.5rem; cursor: pointer;">&times;</button>
+          </div>
+          
+          <form onsubmit="UI.handleLogin(event)" style="display: flex; flex-direction: column; gap: 1rem;">
+            <div>
+              <label style="display: block; font-size: 0.85rem; color: var(--text-muted, #94a3b8); margin-bottom: 0.4rem;">DNI o Correo electrónico</label>
+              <input type="text" required placeholder="Ej: 38123456" style="width: 100%; padding: 0.75rem; border-radius: 8px; background: #0f172a; border: 1px solid var(--border, #2b3b55); color: #fff; font-size: 0.95rem;">
+            </div>
+
+            <div>
+              <label style="display: block; font-size: 0.85rem; color: var(--text-muted, #94a3b8); margin-bottom: 0.4rem;">Contraseña</label>
+              <input type="password" required placeholder="••••••••" style="width: 100%; padding: 0.75rem; border-radius: 8px; background: #0f172a; border: 1px solid var(--border, #2b3b55); color: #fff; font-size: 0.95rem;">
+            </div>
+
+            <button type="submit" class="btn btn-gold" style="width: 100%; justify-content: center; margin-top: 0.5rem; padding: 0.8rem;">
+              Ingresar a la Plataforma
+            </button>
+          </form>
+        </div>
+      </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+  },
+
+  showLoginScreen() {
+    const modal = document.getElementById('loginModal');
+    if (modal) modal.classList.add('active');
+  },
+
+  hideLoginScreen() {
+    const modal = document.getElementById('loginModal');
+    if (modal) modal.classList.remove('active');
+  },
+
+  handleLogin(event) {
+    event.preventDefault();
+    alert('Acceso en proceso de vinculación con la base de datos institucional.');
+    this.hideLoginScreen();
+  },
+
+  // Registro del Service Worker para soporte PWA
+  registerServiceWorker() {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js')
+        .then(() => console.log('SW registrado con éxito'))
+        .catch(err => console.log('Error al registrar SW:', err));
+    }
+  }
+};
+
+// Carga automática al iniciar la página
+document.addEventListener('DOMContentLoaded', () => UI.init());
   }
 };
