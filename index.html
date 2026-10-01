@@ -17,12 +17,20 @@
 
   <!-- 1. VISTA PÚBLICA / LANDING -->
   <div id="public-landing">
- <header class="main-header">
-  <div class="header-brand">
-    <img src="PRUEBA CFP SIN FONDO.png" alt="CFP 403 Logo" class="header-logo" style="height: 50px !important; width: auto !important; max-height: 50px !important;">
-    <h2 class="header-title">CFP N° 403 "OSCAR SMITH" - LUJAN BUENOS AIRES</h2>
+<header class="main-header">
+  <!-- Espacio compensatorio vacio para mantener balance visual -->
+  <div></div>
+
+  <!-- Centro: Logo amplio + Nombre Institucional -->
+  <div class="header-brand-center">
+    <img src="PRUEBA CFP SIN FONDO.png" alt="CFP 403 Logo" class="header-logo-lg">
+    <h2 class="header-title-lg">CFP N° 403 "OSCAR SMITH" - LUJAN BUENOS AIRES</h2>
   </div>
-  <button class="btn btn-primary" onclick="UI.showLoginScreen()">Ingresar / Registrarse</button>
+
+  <!-- Lateral Derecho: Botón de Ingreso -->
+  <div class="header-action-right">
+    <button class="btn btn-primary" onclick="UI.showLoginScreen()">Ingresar / Registrarse</button>
+  </div>
 </header>
     <main style="max-width: 1000px; margin: 3rem auto; padding: 0 1rem;">
       <div class="card" style="text-align: center; padding: 3rem 1.5rem;">
