@@ -3,12 +3,12 @@
   "name": "CFP N° 403 Oscar Smith - Luján",
   "icons": [
     {
-      "src": "PRUEBA%20CFP%20SIN%20FONDO.PNG",
+      "src": "logo.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "PRUEBA%20CFP%20SIN%20FONDO.PNG",
+      "src": "logo.png",
       "type": "image/png",
       "sizes": "512x512"
     }
