@@ -1,0 +1,89 @@
+/* ==========================================
+   HEADER INSTITUCIONAL STICKY
+   ========================================== */
+.main-header {
+  background: rgba(21, 31, 50, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 2rem;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-brand-center {
+  grid-column: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.header-logo-lg {
+  height: 85px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5));
+}
+
+.header-title-lg {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: 0.5px;
+  text-align: center;
+}
+
+.header-action-right {
+  grid-column: 3;
+  justify-self: end;
+}
+
+/* Botón Iniciar Sesión / Registrarse */
+.btn-header-login {
+  padding: 0.65rem 1.4rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+}
+
+.btn-header-login:hover {
+  border-color: var(--accent-gold);
+  color: var(--text-gold);
+  background: rgba(234, 179, 8, 0.1);
+}
+
+@media (max-width: 768px) {
+  .main-header {
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .header-logo-lg {
+    height: 65px;
+  }
+
+  .header-action-right {
+    width: 100%;
+  }
+
+  .header-action-right button,
+  .btn-header-login {
+    width: 100%;
+    justify-content: center;
+  }
+}
