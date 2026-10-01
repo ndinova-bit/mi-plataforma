@@ -734,27 +734,7 @@ body {
   .instagram-widget {
     max-width: none;
   }
-  /* ==========================================
-   GRILLAS PARA SECCIONES (Oferta, Pasos, Noticias)
-   ========================================== */
-
-/* Contenedores de secciones principales */
-section, .section-container {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto 3rem auto;
-  padding: 0 1.5rem;
-}
-
-/* Títulos de Secciones */
-section h2, .section-title {
-  font-size: 1.75rem;
-  font-weight: 800;
-  color: var(--text-main);
-  margin-bottom: 1.5rem;
-}
-
-/* Grilla para Oferta Académica, Pasos de Inscripción y Noticias */
+  /* Grilla para Oferta Académica, Pasos de Inscripción y Noticias */
 .features-grid,
 .steps-grid,
 .news-grid,
@@ -803,7 +783,6 @@ section h2, .section-title {
   cursor: pointer;
   margin-top: 1.5rem;
   box-shadow: 0 4px 14px rgba(234, 179, 8, 0.25);
-}
 }
  
 
