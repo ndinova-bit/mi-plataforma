@@ -260,14 +260,26 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  transition: var(--transition);
   position: relative;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent; /* Quita el destello azul por defecto en celulares */
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), 
+              border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1), 
+              box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Efecto Flotante al pasar el mouse (PC) */
 .course-card:hover {
-  transform: translateY(-5px);
+  transform: translateY(-7px) scale(1.01);
   border-color: var(--accent-gold);
-  box-shadow: var(--shadow-glow), var(--shadow-card);
+  box-shadow: 0 12px 28px rgba(234, 179, 8, 0.15), var(--shadow-card);
+}
+
+/* Efecto al tocar con el dedo (Celulares y Tablets) */
+.course-card:active {
+  transform: translateY(-2px) scale(0.98);
+  border-color: var(--accent-gold);
+  box-shadow: 0 6px 16px rgba(234, 179, 8, 0.2);
 }
 
 .course-header {
@@ -286,6 +298,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .course-title {
@@ -315,6 +328,16 @@ body {
   margin-top: auto;
   display: flex;
   justify-content: flex-end;
+}
+
+/* Efecto hover suave también para las cajitas de los módulos internos */
+.modulo-card {
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.modulo-card:hover {
+  border-color: var(--accent-gold) !important;
+  transform: translateX(3px);
 }
 
 /* ==========================================
