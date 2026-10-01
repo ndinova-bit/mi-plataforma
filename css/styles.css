@@ -438,4 +438,123 @@ body {
     grid-template-columns: 1fr;
     gap: 1.5rem;
   }
+  /* ==========================================
+   ESTILOS DE CONTACTO Y BOTONES ATRACTIVOS
+   ========================================== */
+.footer-contact-list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.contact-link {
+  color: var(--text-muted);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  transition: color 0.2s ease;
+}
+
+.contact-link:hover {
+  color: var(--accent-gold);
+}
+
+/* Botón Correo Electrónico */
+.contact-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.25s ease;
+}
+
+.btn-email {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-main);
+  border: 1px solid var(--border);
+}
+
+.btn-email:hover {
+  background: rgba(234, 179, 8, 0.15);
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+  transform: translateY(-2px);
+}
+
+/* Botón WhatsApp */
+.btn-whatsapp {
+  background: #25D366;
+  color: #000;
+  border: none;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(37, 211, 102, 0.25);
+}
+
+.btn-whatsapp:hover {
+  background: #20ba5a;
+  box-shadow: 0 6px 18px rgba(37, 211, 102, 0.4);
+  transform: translateY(-2px);
+}
+
+/* Widget Tarjeta Instagram */
+.instagram-widget {
+  display: block;
+  background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);
+  padding: 2px; /* Borde degradado Instagram */
+  border-radius: 12px;
+  text-decoration: none;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.instagram-widget:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(253, 29, 29, 0.3);
+}
+
+.ig-header {
+  background: var(--surface);
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.ig-icon {
+  color: #fd1d1d;
+  display: flex;
+  align-items: center;
+}
+
+.ig-username {
+  display: block;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--text-main);
+}
+
+.ig-sub {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.footer-link-subtle {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.85rem;
+  transition: color 0.2s ease;
+}
+
+.footer-link-subtle:hover {
+  color: var(--text-main);
+}
 }
