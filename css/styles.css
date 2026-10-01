@@ -7,6 +7,7 @@
   --text-muted: #64748b;
   --border: #cbd5e1;
   --radius: 8px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
   --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
   --danger-bg: #fee2e2;
   --danger-text: #b91c1c;
@@ -126,6 +127,46 @@ label {
   align-items: center;
 }
 
+/* ==========================================
+   HEADER INSTITUCIONAL (CENTRADO EN PC)
+   ========================================== */
+.main-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 1.25rem 2rem;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.header-brand-center {
+  grid-column: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.5rem;
+}
+
+.header-logo-lg {
+  height: 90px;
+  width: auto;
+  object-fit: contain;
+}
+
+.header-title-lg {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin: 0;
+}
+
+.header-action-right {
+  grid-column: 3;
+  justify-self: end;
+}
+
 /* Dashboard Layout Responsive */
 #app-screen {
   display: grid;
@@ -145,78 +186,39 @@ label {
   padding: 2rem;
 }
 
+/* ==========================================
+   MEDIA QUERIES (MÓVILES Y TABLETS)
+   ========================================== */
 @media (max-width: 768px) {
   #app-screen {
     grid-template-columns: 1fr;
   }
+  
   .sidebar {
     border-right: none;
     border-bottom: 1px solid var(--border);
   }
-  /* Ajustes de Módulos para Pantallas Chicas */
-.modulo-row-header, .modulo-row-dates {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
 
-.modulo-row-header .mod-nombre {
-  flex: 2;
-  min-width: 200px;
-}
+  .modulo-row-header, .modulo-row-dates {
+    flex-wrap: wrap;
+  }
 
-.modulo-row-header .mod-codigo {
-  flex: 1;
-  min-width: 120px;
-}
+  .modulo-row-header .mod-nombre {
+    flex: 2;
+    min-width: 200px;
+  }
 
-.modulo-row-dates input[type="date"] {
-  flex: 1;
-  min-width: 130px;
-}
-  /* ==========================================
-   HEADER INSTITUCIONAL CENTRADO Y BALANCEADO
-   ========================================== */
-.main-header {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  padding: 1rem 2rem;
-  display: grid;
-  grid-template-columns: 1fr auto 1fr; /* Columna izquierda libre, centro para el logo, derecha para botón */
-  align-items: center;
-  box-shadow: var(--shadow-sm);
-}
+  .modulo-row-header .mod-codigo {
+    flex: 1;
+    min-width: 120px;
+  }
 
-.header-brand-center {
-  grid-column: 2; /* Centrado en el eje medio */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 0.4rem;
-}
+  .modulo-row-dates input[type="date"] {
+    flex: 1;
+    min-width: 130px;
+  }
 
-.header-logo-lg {
-  height: 95px !important; /* Tamaño ampliado para destacar */
-  width: auto !important;
-  object-fit: contain;
-}
-
-.header-title-lg {
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: var(--primary);
-  margin: 0;
-  letter-spacing: 0.3px;
-}
-
-.header-action-right {
-  grid-column: 3;
-  justify-self: end; /* Alineación al margen lateral derecho */
-}
-
-/* Adaptación Responsive en Pantallas Chicas */
-@media (max-width: 768px) {
+  /* Header en Móviles */
   .main-header {
     display: flex;
     flex-direction: column;
@@ -225,7 +227,7 @@ label {
   }
 
   .header-logo-lg {
-    height: 75px !important;
+    height: 70px;
   }
 
   .header-title-lg {
@@ -239,5 +241,4 @@ label {
   .header-action-right button {
     width: 100%;
   }
-}
 }
