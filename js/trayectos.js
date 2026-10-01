@@ -14,7 +14,7 @@ const Trayectos = {
       if (error) throw error;
 
       this.listaTrayectos = data || [];
-      this.renderizarTrayectos();
+      this.renderizarTrayectos(); // <-- Corregido con "a" y "s"
     } catch (err) {
       console.error('Error al cargar trayectos:', err);
       if (typeof alertError === 'function') {
@@ -24,6 +24,7 @@ const Trayectos = {
   },
 
   renderizarTrayectos() {
+    // ... resto del código
     const contenedor = document.getElementById('lista-trayectos-cards');
     if (!contenedor) return;
 
