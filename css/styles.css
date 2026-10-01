@@ -153,4 +153,25 @@ label {
     border-right: none;
     border-bottom: 1px solid var(--border);
   }
+  /* Ajustes de Módulos para Pantallas Chicas */
+.modulo-row-header, .modulo-row-dates {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.modulo-row-header .mod-nombre {
+  flex: 2;
+  min-width: 200px;
+}
+
+.modulo-row-header .mod-codigo {
+  flex: 1;
+  min-width: 120px;
+}
+
+.modulo-row-dates input[type="date"] {
+  flex: 1;
+  min-width: 130px;
+}
 }
