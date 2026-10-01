@@ -44,33 +44,46 @@
     <!-- CONTENIDO PRINCIPAL DE LA LANDING -->
     <main class="public-container">
       
-      <!-- HERO BANNER CON AVISO E INFORMACIÓN DE IMPACTO -->
-      <section class="hero-banner">
-        <span class="hero-badge">Formación Profesional Gratuita</span>
-        <h1 class="hero-title">Oferta Académica y Trayectos Formativos</h1>
-        <p class="hero-subtitle">
-          Capacitate con certificados oficiales. Explorá nuestros cursos, horarios y planes de estudio pensados para impulsar tu futuro laboral.
-        </p>
-      </section>
+      <main class="public-container">
+  <!-- HERO BANNER -->
+  <section class="hero-banner">
+    <span class="hero-badge">Formación Profesional Gratuita</span>
+    <h1 class="hero-title">Oferta Académica y Trayectos Formativos</h1>
+    <p class="hero-subtitle">
+      Capacitate con certificados oficiales. Explorá nuestros cursos, horarios y planes de estudio pensados para impulsar tu futuro laboral.
+    </p>
+  </section>
 
-      <!-- SECCIÓN DINÁMICA DE TRAYECTOS -->
-      <!-- Mantenemos el ID original para que JavaScript inserte las tarjetas aquí -->
-      <section id="lista-trayectos-cards">
-        
-        <!-- ESTADO VACÍO (Se muestra si Supabase aún no tiene trayectos cargados) -->
-        <div class="empty-state-card">
-          <div class="empty-state-icon">
-            <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-          </div>
-          <h3 class="empty-state-title">No hay trayectos publicados aún</h3>
-          <p class="empty-state-text">
-            Estamos preparando la nueva oferta académica. Volvé a consultar pronto para conocer los próximos cursos e inscripciones.
-          </p>
-        </div>
+  <!-- PROPUESTA DE VALOR / PILARES -->
+  <section class="value-props-grid">
+    <div class="prop-card">
+      <div class="prop-icon">📜</div>
+      <div>
+        <h3 class="prop-title">Títulos Oficiales</h3>
+        <p class="prop-desc">Certificación avalada por DGCyE de Buenos Aires.</p>
+      </div>
+    </div>
+    <div class="prop-card">
+      <div class="prop-icon">🎓</div>
+      <div>
+        <h3 class="prop-title">100% Gratuito</h3>
+        <p class="prop-desc">Educación técnica pública y accesible para todos.</p>
+      </div>
+    </div>
+    <div class="prop-card">
+      <div class="prop-icon">🛠️</div>
+      <div>
+        <h3 class="prop-title">Salida Laboral</h3>
+        <p class="prop-desc">Capacitación práctica adaptada al mercado actual.</p>
+      </div>
+    </div>
+  </section>
 
-      </section>
-
-    </main>
+  <!-- CONTENEDOR DINÁMICO DE CURSOS (Mantiene la integración con tu JS) -->
+  <section id="coursesContainer">
+    <!-- El script insertará la grilla o el empty-state-card aquí -->
+  </section>
+</main>
 
     <!-- FOOTER INSTITUCIONAL DE CIERRE -->
     <footer class="main-footer">
