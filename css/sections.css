@@ -1,0 +1,141 @@
+/* ==========================================
+   HEADER AMPLIADO Y NAVEGACIÓN
+   ========================================== */
+.header-top-brand {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.header-logo-xl {
+  height: 95px;
+  width: auto;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.6));
+}
+
+.main-nav {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.nav-link {
+  color: var(--text-muted, #94a3b8);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.nav-link:hover {
+  color: var(--accent-gold, #eab308);
+}
+
+/* ==========================================
+   SECCIÓN: ¿CÓMO INSCRIBIRSE? (PASOS 01-04)
+   ========================================== */
+.steps-section {
+  padding: 3rem 0;
+  text-align: center;
+}
+
+.section-title-center {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text-main, #f8fafc);
+  margin-bottom: 2rem;
+}
+
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.step-card {
+  background: var(--surface, #151f32);
+  border: 1px solid var(--border, #2b3b55);
+  border-radius: var(--radius-card, 16px);
+  padding: 1.75rem 1.25rem;
+  text-align: left;
+  position: relative;
+  transition: transform 0.25s ease, border-color 0.25s ease;
+}
+
+.step-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--accent-gold, #eab308);
+}
+
+.step-number {
+  font-size: 1.75rem;
+  font-weight: 900;
+  color: var(--accent-gold, #eab308);
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.step-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-main, #f8fafc);
+  margin-bottom: 0.4rem;
+}
+
+.step-desc {
+  font-size: 0.85rem;
+  color: var(--text-muted, #94a3b8);
+  line-height: 1.4;
+}
+
+/* ==========================================
+   SECCIÓN: NOVEDADES Y NOTICIAS
+   ========================================== */
+.news-section {
+  padding: 2.5rem 0;
+}
+
+.news-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.25rem;
+  margin-top: 1.5rem;
+}
+
+.news-card {
+  background: var(--surface, #151f32);
+  border: 1px solid var(--border, #2b3b55);
+  border-radius: var(--radius-card, 16px);
+  padding: 1.25rem;
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  transition: border-color 0.2s ease;
+}
+
+.news-card:hover {
+  border-color: var(--accent-gold, #eab308);
+}
+
+.news-icon {
+  font-size: 1.5rem;
+  background: rgba(37, 99, 235, 0.15);
+  padding: 0.6rem;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.news-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-main, #f8fafc);
+  margin-bottom: 0.25rem;
+}
+
+.news-desc {
+  font-size: 0.825rem;
+  color: var(--text-muted, #94a3b8);
+}
