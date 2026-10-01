@@ -12,10 +12,6 @@
 
   <!-- Hoja de Estilo Principal Unificada -->
   <link rel="stylesheet" href="css/styles.css">
-  
-  <!-- Librerías Externas (CDNs) -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
 
@@ -24,7 +20,7 @@
     <header style="background: var(--surface); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center;">
       <div style="display: flex; align-items: center; gap: 1rem;">
         <img src="PRUEBA CFP SIN FONDO.png" alt="CFP 403 Logo" style="height: 45px;">
-        <h2 style="font-size: 1.25rem;">CFP N° 403 - San Martin</h2>
+        <h2 style="font-size: 1.25rem;">CFP N° 403 - San Martín</h2>
       </div>
       <button class="btn btn-primary" onclick="UI.showLoginScreen()">Ingresar / Registrarse</button>
     </header>
@@ -35,18 +31,18 @@
         <p style="color: var(--text-muted); margin-top: 0.5rem;">Consultá los cursos disponibles y sus respectivos módulos.</p>
       </div>
 
-      <div id="lista-trayectos-cards">
+      <div id="lista-trayectos-cards" style="margin-top: 2rem;">
         <!-- Carga dinámica vía JS -->
       </div>
     </main>
   </div>
 
   <!-- 2. VISTA AUTH / LOGIN & REGISTRO -->
-  <div id="login-screen" style="display: none; min-height: 100vh; align-items: center; justify-content: center; background: var(--background); padding: 1rem;">
+  <div id="login-screen" style="display: none; min-height: 100vh; align-items: center; justify-content: center; padding: 1rem;">
     <div class="card" style="width: 100%; max-width: 420px;">
       <div style="text-align: center; margin-bottom: 1.5rem;">
         <img src="PRUEBA CFP SIN FONDO.png" alt="CFP Logo" style="height: 60px; margin-bottom: 0.5rem;">
-        <h3>Acceso al Sistema</h3>
+        <h3 style="font-size: 1.25rem;">Acceso al Sistema</h3>
       </div>
 
       <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">
@@ -154,22 +150,22 @@
 
           <hr style="margin: 1.5rem 0; border: none; border-top: 1px solid var(--border);">
           
-          <div style="display: flex; justify-content: space-between; align-align-items: center; margin-bottom: 1rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
             <h4>Módulos del Trayecto</h4>
-            <button type="button" class="btn btn-secondary btn-xs" onclick="UI.agregarFilaModulo()">+ Agregar Módulo</button>
+            <button type="button" class="btn btn-secondary" onclick="UI.agregarFilaModulo()">+ Agregar Módulo</button>
           </div>
 
           <div id="contenedor-modulos">
             <div class="modulo-card">
               <div class="modulo-row-header">
-                <input type="text" class="mod-nombre" placeholder="Nombre del Módulo" style="width: 65%;">
-                <input type="text" class="mod-codigo" placeholder="Código (Ej: GH 0050)" style="width: 25%;">
+                <input type="text" class="mod-nombre form-control" placeholder="Nombre del Módulo" style="width: 65%;">
+                <input type="text" class="mod-codigo form-control" placeholder="Código (Ej: GH 0050)" style="width: 33%;">
               </div>
               <div class="modulo-row-dates">
                 <label>Inicio:</label>
-                <input type="date" class="mod-inicio">
+                <input type="date" class="mod-inicio form-control">
                 <label>Fin:</label>
-                <input type="date" class="mod-fin">
+                <input type="date" class="mod-fin form-control">
               </div>
             </div>
           </div>
@@ -191,9 +187,10 @@
   <script src="js/trayectos.js"></script>
 
   <script>
-    // Inicialización al cargar la página
     document.addEventListener('DOMContentLoaded', () => {
-      Trayectos.cargarTrayectos();
+      if (typeof Trayectos !== 'undefined' && Trayectos.cargarTrayectos) {
+        Trayectos.cargarTrayectos();
+      }
     });
   </script>
 </body>
