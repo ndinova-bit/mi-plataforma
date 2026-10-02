@@ -402,16 +402,18 @@
       </section>
     </main>
 
-  <!-- Librerías Externas (CDNs) -->
+<!-- Librerías Externas -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 
-  <!-- Lógica Interna JS -->
+ <!-- Lógica Interna (Cargar UNA SOLA VEZ en este orden preciso) -->
   <script src="js/supabase-config.js"></script>
+  <script src="js/pdf-lab.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/trayectos.js"></script>
-
+  
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       if (typeof Trayectos !== 'undefined' && Trayectos.cargarTrayectos) {
@@ -424,13 +426,3 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <!-- AGREGAR PDF-LIB -->
   <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-
-  <!-- Lógica Interna JS -->
-  <script src="js/supabase-config.js"></script>
-  <!-- AGREGAR MÓDULO PDF-LAB -->
-  <script src="js/pdf-lab.js"></script>
-  <script src="js/ui.js"></script>
-  <script src="js/auth.js"></script>
-  <script src="js/trayectos.js"></script>
-</body>
-</html>
