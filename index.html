@@ -214,65 +214,67 @@
     </footer>
 
   </div>
-<!-- PANTALLA DE ACCESO (Oculta por defecto para no aparecer abajo) -->
+<!-- PANTALLA DE ACCESO / LOGIN -->
 <div id="login-screen" class="auth-screen" style="display: none;">
   <div class="auth-card">
+    
     <div class="auth-header">
       <img src="logo.png" alt="CFP N° 403 Logo" class="auth-logo">
       <h2>Acceso al Sistema</h2>
       <p>CFP N° 403 "Oscar Smith"</p>
     </div>
 
-    <!-- PESTAÑAS (Ingresar / Solicitar Cuenta) -->
+    <!-- Pestañas -->
     <div class="auth-tabs">
       <button id="tab-btn-login" class="auth-tab active" onclick="UI.toggleAuthTab('login')">Ingresar</button>
       <button id="tab-btn-register" class="auth-tab" onclick="UI.toggleAuthTab('register')">Solicitar Cuenta</button>
     </div>
 
-    <!-- FORMULARIO DE INGRESO -->
-    <form id="form-login" onsubmit="event.preventDefault(); Auth.login();">
+    <!-- Formulario de Login -->
+    <form id="form-login" onsubmit="event.preventDefault(); UI.mostrarDashboard({usuario: 'invitado', rol: 'estudiante'});">
       <div class="form-group">
-        <label for="login-rol">Rol de Ingreso</label>
+        <label>Rol de Ingreso</label>
         <div class="select-wrapper">
-          <select id="login-rol" class="form-control custom-select" required>
+          <select id="login-role" class="form-control custom-select">
             <option value="estudiante">Estudiante</option>
-            <option value="docente">Docente / Instructor</option>
+            <option value="docente">Docente</option>
             <option value="admin">Administrador</option>
           </select>
         </div>
       </div>
 
       <div class="form-group">
-        <label for="login-usuario">Usuario / DNI / Email</label>
-        <input type="text" id="login-usuario" class="form-control" required placeholder="Ej: 38123456">
+        <label>Usuario / DNI / Email</label>
+        <input type="text" class="form-control" placeholder="Ej: 38123456" required>
       </div>
 
       <div class="form-group">
-        <label for="login-password">Contraseña</label>
-        <input type="password" id="login-password" class="form-control" required placeholder="••••••••">
+        <label>Contraseña</label>
+        <input type="password" class="form-control" placeholder="••••••••" required>
       </div>
 
-      <button type="submit" class="btn btn-gold btn-block">Iniciar Sesión</button>
-      <button type="button" class="btn btn-outline btn-block" onclick="UI.showLanding()" style="margin-top: 0.75rem;">← Volver al inicio</button>
+      <button type="submit" class="btn-block btn-gold">Iniciar Sesión</button>
+      <button type="button" class="btn-block btn-outline" style="margin-top: 0.5rem;" onclick="UI.showLanding()">← Volver al Inicio</button>
     </form>
 
-    <!-- FORMULARIO DE REGISTRO / SOLICITUD -->
-    <form id="form-register" style="display: none;" onsubmit="event.preventDefault(); Auth.registro();">
+    <!-- Formulario de Registro (Oculto) -->
+    <form id="form-register" style="display: none;" onsubmit="event.preventDefault(); alert('Solicitud enviada.');">
       <div class="form-group">
-        <label for="reg-nombre">Nombre y Apellido</label>
-        <input type="text" id="reg-nombre" class="form-control" required placeholder="Juan Pérez">
+        <label>Nombre y Apellido</label>
+        <input type="text" class="form-control" placeholder="Nombre completo" required>
       </div>
       <div class="form-group">
-        <label for="reg-dni">DNI</label>
-        <input type="text" id="reg-dni" class="form-control" required placeholder="Sin puntos ni espacios">
+        <label>DNI</label>
+        <input type="text" class="form-control" placeholder="Sin puntos" required>
       </div>
       <div class="form-group">
-        <label for="reg-email">Correo Electrónico</label>
-        <input type="email" id="reg-email" class="form-control" required placeholder="correo@ejemplo.com">
+        <label>Correo Electrónico</label>
+        <input type="email" class="form-control" placeholder="correo@ejemplo.com" required>
       </div>
-      <button type="submit" class="btn btn-gold btn-block">Solicitar Registro</button>
-      <button type="button" class="btn btn-outline btn-block" onclick="UI.showLanding()" style="margin-top: 0.75rem;">← Volver al inicio</button>
+      <button type="submit" class="btn-block btn-gold">Enviar Solicitud</button>
+      <button type="button" class="btn-block btn-outline" style="margin-top: 0.5rem;" onclick="UI.showLanding()">← Volver al Inicio</button>
     </form>
+
   </div>
 </div>
   
