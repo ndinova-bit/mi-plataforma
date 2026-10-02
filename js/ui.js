@@ -12,14 +12,14 @@ const UI = {
 
   // Muestra la pantalla de Login centrada
   showLoginScreen() {
-  const landing = document.getElementById('landing-screen') || document.getElementById('public-landing');
-  const login = document.getElementById('login-screen');
-  const app = document.getElementById('app-screen');
+    const landing = document.getElementById('landing-screen') || document.getElementById('public-landing');
+    const login = document.getElementById('login-screen');
+    const app = document.getElementById('app-screen');
 
-  if (landing) landing.style.display = 'none';
-  if (login) login.style.display = 'flex';
-  if (app) app.style.display = 'none';
-},
+    if (landing) landing.style.display = 'none';
+    if (login) login.style.display = 'flex';
+    if (app) app.style.display = 'none';
+  },
 
   // Muestra el Panel de Control / Dashboard según rol
   mostrarDashboard(perfil) {
@@ -29,7 +29,7 @@ const UI = {
 
     if (landing) landing.style.display = 'none';
     if (login) login.style.display = 'none';
-    if (app) app.style.display = 'block';
+    if (app) app.style.display = 'flex'; // Usar flex para el layout sidebar + wrapper
 
     const displayUsername = document.getElementById('display-username');
     const displayRole = document.getElementById('display-role');
@@ -37,19 +37,27 @@ const UI = {
     if (displayUsername) displayUsername.innerText = perfil.nombre || perfil.usuario;
     if (displayRole) displayRole.innerText = (perfil.rol || '').toUpperCase();
 
+    // Gestión de permisos según ROL (Soporta flex y block según el elemento)
+    const isAdmin = perfil.rol === 'admin';
+    const isDocente = perfil.rol === 'docente';
+
     document.querySelectorAll('.admin-only').forEach(el => {
-      el.style.display = (perfil.rol === 'admin') ? 'block' : 'none';
+      el.style.display = isAdmin ? (el.tagName === 'BUTTON' ? 'flex' : 'block') : 'none';
     });
 
     document.querySelectorAll('.docente-only').forEach(el => {
-      el.style.display = (perfil.rol === 'docente') ? 'block' : 'none';
+      el.style.display = isDocente ? (el.tagName === 'BUTTON' ? 'flex' : 'block') : 'none';
     });
 
     document.querySelectorAll('.docente-or-admin').forEach(el => {
-      el.style.display = (perfil.rol === 'docente' || perfil.rol === 'admin') ? 'block' : 'none';
+      el.style.display = (isDocente || isAdmin) ? (el.tagName === 'BUTTON' ? 'flex' : 'block') : 'none';
     });
 
-    this.showTab('trayectos');
+    // Cargar estadísticas breves si existen datos en memoria
+    this.actualizarContadoresDashboard();
+
+    // Ir al Dashboard de inicio por defecto
+    this.showTab('dashboard');
   },
 
   // Alterna entre la pestaña Ingresar y Solicitar Cuenta
@@ -72,16 +80,55 @@ const UI = {
     }
   },
 
-  // Manejo de solapas dentro del Dashboard
+  // Manejo de solapas dentro del Dashboard (Actualizado para el nuevo diseño)
   showTab(tabId) {
-    document.querySelectorAll('.sidebar button').forEach(btn => btn.classList.remove('active'));
-    document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+    // Quitar 'active' de todos los botones de la barra lateral
+    document.querySelectorAll('.sidebar .nav-item-btn, .sidebar button').forEach(btn => {
+      btn.classList.remove('active');
+    });
 
+    // Ocultar todas las secciones
+    document.querySelectorAll('.section-tab, .section').forEach(sec => {
+      sec.style.display = 'none';
+      sec.classList.remove('active');
+    });
+
+    // Determinar ID real de la sección
+    const sectionId = tabId === 'dashboard' ? 'sec-dashboard' : tabId;
     const btn = document.getElementById(`btn-${tabId}`);
-    const sec = document.getElementById(tabId);
+    const sec = document.getElementById(sectionId);
 
     if (btn) btn.classList.add('active');
-    if (sec) sec.classList.add('active');
+    if (sec) {
+      sec.style.display = 'block';
+      sec.classList.add('active');
+    }
+
+    // Actualizar título en el Header Superior
+    const titleMap = {
+      'dashboard': 'Dashboard General',
+      'trayectos': 'Trayectos Formativos',
+      'nuevo-trayecto': 'Cargar Nuevo Trayecto',
+      'certificados': 'Emisión de Certificados'
+    };
+    const headerTitle = document.getElementById('current-section-title');
+    if (headerTitle) {
+      headerTitle.textContent = titleMap[tabId] || 'Panel Administrativo';
+    }
+  },
+
+  // Actualiza contadores numéricos del Dashboard con datos reales
+  actualizarContadoresDashboard() {
+    const elTrayectos = document.getElementById('stat-count-trayectos');
+    const elModulos = document.getElementById('stat-count-modulos');
+
+    if (typeof Trayectos !== 'undefined' && Array.isArray(Trayectos.lista)) {
+      if (elTrayectos) elTrayectos.textContent = Trayectos.lista.length;
+      if (elModulos) {
+        const totalModulos = Trayectos.lista.reduce((acc, t) => acc + (t.modulos ? t.modulos.length : 0), 0);
+        elModulos.textContent = totalModulos;
+      }
+    }
   },
 
   // Utilidades de formularios
@@ -98,29 +145,45 @@ const UI = {
     if (!contenedor) return;
 
     const div = document.createElement('div');
-    div.className = 'modulo-card';
+    div.className = 'modulo-item-card';
     div.innerHTML = `
-      <div class="modulo-row-header">
-        <input type="text" class="mod-nombre" placeholder="Nombre del Módulo" style="width: 65%;">
-        <input type="text" class="mod-codigo" placeholder="Código (Ej: GH 0050)" style="width: 25%;">
-        <button class="btn btn-danger btn-xs" onclick="UI.eliminarFilaModulo(this)">X</button>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+        <span style="font-size: 0.8rem; font-weight: 600; color: #94a3b8;">Módulo Adicional</span>
+        <button type="button" class="btn btn-danger btn-xs" onclick="UI.eliminarFilaModulo(this)" style="padding: 0.2rem 0.5rem;">✕ Eliminar</button>
       </div>
-      <div class="modulo-row-dates">
-        <label>Inicio:</label>
-        <input type="date" class="mod-inicio">
-        <label>Fin:</label>
-        <input type="date" class="mod-fin">
+      <div class="form-grid-2">
+        <input type="text" class="mod-nombre form-control" placeholder="Nombre del Módulo">
+        <input type="text" class="mod-codigo form-control" placeholder="Código (Ej: GH 0050)">
+      </div>
+      <div class="form-grid-2" style="margin-top: 0.75rem;">
+        <div>
+          <label style="font-size: 0.75rem; color: #94a3b8;">Inicio</label>
+          <input type="date" class="mod-inicio form-control">
+        </div>
+        <div>
+          <label style="font-size: 0.75rem; color: #94a3b8;">Fin</label>
+          <input type="date" class="mod-fin form-control">
+        </div>
       </div>
     `;
     contenedor.appendChild(div);
   },
 
   eliminarFilaModulo(btn) {
-    const card = btn.closest('.modulo-card');
-    if (document.querySelectorAll('.modulo-card').length > 1) {
+    const card = btn.closest('.modulo-item-card') || btn.closest('.modulo-card');
+    const totalCards = document.querySelectorAll('.modulo-item-card, .modulo-card').length;
+    
+    if (totalCards > 1) {
       if (card) card.remove();
     } else {
-      if (typeof notify === 'function') notify('info', 'Debe haber al menos un módulo por trayecto.');
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          icon: 'info',
+          title: 'Atención',
+          text: 'Debe haber al menos un módulo por trayecto.',
+          confirmButtonColor: '#2563eb'
+        });
+      }
     }
   },
 
