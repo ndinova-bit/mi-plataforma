@@ -155,3 +155,30 @@
   font-size: 0.825rem;
   color: var(--text-muted, #94a3b8);
 }
+/* Unificar clases del HTML con el sistema de Grillas */
+.value-props-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)) !important;
+  gap: 1.5rem !important;
+  width: 100% !important;
+  margin-bottom: 3rem;
+}
+
+/* Estilos para las tarjetas de ¿Por qué el 403? */
+.prop-card {
+  background: var(--surface, #1e293b);
+  border: 1px solid var(--border, #334155);
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+/* Estirar el contenedor principal de la landing */
+.public-container {
+  width: 100% !important;
+  max-width: 1200px !important;
+  margin: 0 auto !important;
+  padding: 2rem 1.5rem !important;
+}
