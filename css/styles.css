@@ -784,6 +784,30 @@ body {
   margin-top: 1.5rem;
   box-shadow: 0 4px 14px rgba(234, 179, 8, 0.25);
 }
- 
+ /* FORZAR ANCHO COMPLETO Y DESBLOQUEAR CONTENEDORES */
+.public-container {
+  width: 100% !important;
+  max-width: 1200px !important;
+  margin: 0 auto !important;
+  padding: 2.5rem 1.5rem !important;
+  box-sizing: border-box !important;
+}
+
+.hero-banner,
+.value-props-grid,
+.steps-grid,
+.news-grid,
+#coursesContainer {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.value-props-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)) !important;
+  gap: 1.25rem !important;
+  margin-bottom: 3rem !important;
+}
 
 
