@@ -848,21 +848,19 @@ main,
   max-width: 100% !important;
   box-sizing: border-box !important;
 }
-  /* ==========================================
-   CENTRADO Y ESTILOS DE LA PANTALLA DE LOGIN
+ /* ==========================================
+   PANTALLA Y TARJETA DE LOGIN
    ========================================== */
-
-/* Contenedor principal centrado vertical y horizontalmente */
 .auth-screen {
   min-height: 100vh;
+  width: 100%;
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   padding: 2rem 1rem;
   background-color: #0b0f17;
 }
 
-/* Tarjeta contenedora con bordes suavizados y sombra */
 .auth-card {
   background: #131b2e;
   border: 1px solid #2b3b55;
@@ -870,17 +868,16 @@ main,
   padding: 2.5rem 2rem;
   width: 100%;
   max-width: 420px;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
   text-align: center;
 }
 
-.auth-header {
-  margin-bottom: 1.5rem;
-}
-
+/* CONTROL DE TAMAÑO DEL LOGO */
 .auth-logo {
-  max-width: 120px;
-  height: auto;
+  width: 90px !important;
+  height: 90px !important;
+  max-width: 90px !important;
+  object-fit: contain;
   margin: 0 auto 1rem auto;
   display: block;
 }
