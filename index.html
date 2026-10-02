@@ -4,26 +4,28 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CFP N° 403 - Plataforma</title>
-  
+
   <!-- Soporte App Móvil PWA -->
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0b111e">
 
-  <!-- Fuente tipográfica moderna Inter -->
+  <!-- Fuente tipográfica Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-  <!-- Hojas de estilo modulares -->
+  <!-- 1. Variables globales PRIMERO -->
   <link rel="stylesheet" href="css/variables.css">
+
+  <!-- 2. Hojas de estilo modulares -->
   <link rel="stylesheet" href="css/header.css">
   <link rel="stylesheet" href="css/hero.css">
   <link rel="stylesheet" href="css/courses.css">
   <link rel="stylesheet" href="css/footer.css">
   <link rel="stylesheet" href="css/animations.css">
   <link rel="stylesheet" href="css/sections.css">
-  
-  <!-- CSS Principal con estilos de Login (Cargado al final para máxima prioridad) -->
+
+  <!-- 3. CSS principal/login AL FINAL (Usa las variables de variables.css) -->
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
