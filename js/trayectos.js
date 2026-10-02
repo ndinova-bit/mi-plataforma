@@ -117,7 +117,7 @@ const Trayectos = {
     contenedor.appendChild(grid);
   },
 
-  async guardarTrayecto() {
+ async guardarTrayecto() {
     const nombre = document.getElementById('trayecto-nombre').value.trim();
     const sector = document.getElementById('trayecto-sector').value.trim();
     const descripcion = document.getElementById('trayecto-descripcion').value.trim();
@@ -139,14 +139,14 @@ const Trayectos = {
 
       if (errTrayecto) throw errTrayecto;
 
-      const modulosCards = document.querySelectorAll('#contenedor-modulos .modulo-card');
+      const modulosCards = document.querySelectorAll('#contenedor-modulos .modulo-card, #contenedor-modulos .modulo-item-card');
       const modulosAInsertar = [];
 
       modulosCards.forEach(card => {
-        const modNombre = card.querySelector('.mod-nombre').value.trim();
-        const modCodigo = card.querySelector('.mod-codigo').value.trim();
-        const modInicio = card.querySelector('.mod-inicio').value;
-        const modFin = card.querySelector('.mod-fin').value;
+        const modNombre = card.querySelector('.mod-nombre') ? card.querySelector('.mod-nombre').value.trim() : '';
+        const modCodigo = card.querySelector('.mod-codigo') ? card.querySelector('.mod-codigo').value.trim() : '';
+        const modInicio = card.querySelector('.mod-inicio') ? card.querySelector('.mod-inicio').value : null;
+        const modFin = card.querySelector('.mod-fin') ? card.querySelector('.mod-fin').value : null;
 
         if (modNombre) {
           modulosAInsertar.push({
@@ -170,14 +170,29 @@ const Trayectos = {
       if (typeof alertSuccess === 'function') {
         alertSuccess('¡Éxito!', 'El trayecto y sus módulos fueron registrados correctamente.');
       }
-      document.getElementById('form-trayecto').reset();
+      
+      // Limpiar formulario y módulos agregados
+      const form = document.getElementById('form-trayecto');
+      if (form) form.reset();
 
-      document.getElementById('contenedor-modulos').innerHTML = '';
+      const contenedorMod = document.getElementById('contenedor-modulos');
+      if (contenedorMod) contenedorMod.innerHTML = '';
       if (typeof UI !== 'undefined' && UI.agregarFilaModulo) {
         UI.agregarFilaModulo();
       }
 
-      this.cargarTrayectos();
+      // 1. Recargar datos desde Supabase
+      await this.cargarTrayectos();
+
+      // 2. Actualizar estadísticas del Dashboard si la función existe
+      if (typeof UI !== 'undefined' && UI.actualizarContadoresDashboard) {
+        UI.actualizarContadoresDashboard();
+      }
+
+      // 3. Redirigir a la vista "Trayectos Formativos" para ver el resultado
+      if (typeof UI !== 'undefined' && UI.showTab) {
+        UI.showTab('trayectos');
+      }
 
     } catch (err) {
       console.error('Error al guardar:', err);
@@ -186,4 +201,3 @@ const Trayectos = {
       }
     }
   }
-};
