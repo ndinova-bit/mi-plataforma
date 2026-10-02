@@ -809,5 +809,44 @@ body {
   gap: 1.25rem !important;
   margin-bottom: 3rem !important;
 }
+  /* ==========================================
+   SOLUCIÓN DEFINITIVA DE ANCHO Y CENTRADO
+   ========================================== */
+
+/* 1. Forzar a body y html a ocupar todo el ancho */
+html, body {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow-x: hidden;
+}
+
+/* 2. Corregir el contenedor principal */
+main, 
+.public-container {
+  width: 100% !important;
+  max-width: 1200px !important;
+  margin: 0 auto !important;
+  padding: 2rem 1.5rem !important;
+  box-sizing: border-box !important;
+  display: block !important; /* Desactiva flexbox que encoge el contenedor */
+}
+
+/* 3. Desbloquear las grillas y secciones */
+.hero-banner,
+.value-props-grid,
+.steps-grid,
+.news-grid,
+.features-grid,
+#coursesContainer,
+.steps-section,
+.news-section,
+#por-que,
+#cursos {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
 
 
