@@ -155,24 +155,21 @@
   font-size: 0.825rem;
   color: var(--text-muted, #94a3b8);
 }
-/* Unificar clases del HTML con el sistema de Grillas */
+/* Distribución horizontal para la sección Oferta Académica / Pilares */
 .value-props-grid {
   display: grid !important;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)) !important;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
   gap: 1.5rem !important;
-  width: 100% !important;
-  margin-bottom: 3rem;
+  margin: 2rem 0 !important;
 }
 
-/* Estilos para las tarjetas de ¿Por qué el 403? */
 .prop-card {
-  background: var(--surface, #1e293b);
-  border: 1px solid var(--border, #334155);
-  border-radius: 12px;
-  padding: 1.5rem;
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 1rem !important;
+  padding: 1.25rem 1.5rem !important;
 }
 
 /* Estirar el contenedor principal de la landing */
