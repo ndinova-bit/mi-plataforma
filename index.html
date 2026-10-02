@@ -444,50 +444,61 @@
           </div>
         </section>
 
-        <!-- VISTA 4: CERTIFICADOS (MANTENIENDO LÓGICA DE PDF-LAB) -->
-        <section id="certificados" class="section-tab admin-only" style="display: none;">
-          <div class="card-panel">
-            <div class="card-panel-header">
-              <h3>Emisión de Certificados</h3>
-            </div>
-            <form id="form-emision-certificado" onsubmit="event.preventDefault(); emitirCertificadoDesdeFormulario();">
-              <div class="form-grid-2">
-                <div class="form-group">
-                  <label>Nombre Completo del Estudiante</label>
-                  <input type="text" id="cert-alumno" class="form-control" placeholder="Ej: Juan Pérez" required>
-                </div>
-                <div class="form-group">
-                  <label>DNI del Estudiante</label>
-                  <input type="text" id="cert-dni" class="form-control" placeholder="Ej: 38123456" required>
-                </div>
-              </div>
+        <!-- VISTA 4: CERTIFICADOS POR LISTADO Y NOTA DE APROBACIÓN (>=70) -->
+<section id="certificados" class="section-tab admin-only" style="display: none;">
+  <div class="card-panel">
+    <div class="card-panel-header">
+      <div>
+        <h3>Emisión de Certificados de Egresados</h3>
+        <p style="font-size: 0.85rem; color: #94a3b8;">Estudiantes aptos para certificación (Calificación &ge; 70%)</p>
+      </div>
+      <button class="btn btn-primary" onclick="UI.cargarNominaCertificacion()">🔄 Actualizar Nómina</button>
+    </div>
 
-              <div class="form-group" style="margin-top: 1rem;">
-                <label>Trayecto Formativo / Curso</label>
-                <input type="text" id="cert-trayecto" class="form-control" placeholder="Ej: Programación Web" required>
-              </div>
-
-              <div class="form-grid-2" style="margin-top: 1rem;">
-                <div class="form-group">
-                  <label>Carga Horaria (Hs)</label>
-                  <input type="number" id="cert-horas" class="form-control" placeholder="Ej: 250">
-                </div>
-                <div class="form-group">
-                  <label>Resolución / Disposición</label>
-                  <input type="text" id="cert-resolucion" class="form-control" placeholder="Ej: Res. 1234/22">
-                </div>
-              </div>
-
-              <button type="submit" class="btn btn-primary" style="margin-top: 1.5rem; width: 100%;">
-                📜 Generar y Descargar Certificado PDF
+    <!-- TABLA DE ESTUDIANTES PARA ASIGNACIÓN DE N° DE EGRESADO -->
+    <div style="overflow-x: auto; margin-top: 1rem;">
+      <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+        <thead>
+          <tr style="border-bottom: 2px solid rgba(255,255,255,0.1); color: #94a3b8;">
+            <th style="padding: 0.75rem;">Estudiante / DNI</th>
+            <th style="padding: 0.75rem;">Trayecto Formativo</th>
+            <th style="padding: 0.75rem;">Nota Final</th>
+            <th style="padding: 0.75rem;">Estado</th>
+            <th style="padding: 0.75rem;">N° de Egresado</th>
+            <th style="padding: 0.75rem; text-align: right;">Acción</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-nomina-certificados">
+          <!-- Ejemplo renderizado de alumno aprobado -->
+          <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <td style="padding: 0.75rem;">
+              <strong>NICOLAS DINOVA</strong><br>
+              <span style="font-size: 0.78rem; color: #94a3b8;">DNI: 92828993</span>
+            </td>
+            <td style="padding: 0.75rem;">Programación Web</td>
+            <td style="padding: 0.75rem;"><span style="color: #4ade80; font-weight: 700;">85%</span></td>
+            <td style="padding: 0.75rem;"><span class="badge" style="background: rgba(34, 197, 94, 0.2); color: #4ade80; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem;">APROBADO</span></td>
+            <td style="padding: 0.75rem;">
+              <input type="text" id="egresado-92828993" class="form-control" placeholder="Ej: EG-2026-001" value="EG-2026-001" style="width: 140px; padding: 0.4rem;">
+            </td>
+            <td style="padding: 0.75rem; text-align: right;">
+              <button class="btn btn-gold" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" 
+                onclick="emitirCertificadoPDF({
+                  estudianteNombre: 'NICOLAS DINOVA',
+                  estudianteDNI: '92828993',
+                  trayectoNombre: 'Programación Web',
+                  horas: '350',
+                  numEgresado: document.getElementById('egresado-92828993').value
+                })">
+                📜 Emitir PDF
               </button>
-            </form>
-          </div>
-        </section>
-
-      </main>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
+</section>
 
   <!-- Librerías Externas -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
