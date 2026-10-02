@@ -3,6 +3,22 @@
    ========================================================================== */
 
 /**
+ * Captura los datos ingresados en el formulario de la interfaz
+ */
+function emitirCertificadoDesdeFormulario() {
+  const datos = {
+    estudianteNombre: document.getElementById('cert-alumno').value,
+    estudianteDNI: document.getElementById('cert-dni').value,
+    trayectoNombre: document.getElementById('cert-trayecto').value,
+    horas: document.getElementById('cert-horas').value,
+    resolucion: document.getElementById('cert-resolucion').value,
+    fechaEmision: new Date().toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' })
+  };
+
+  emitirCertificadoPDF(datos);
+}
+
+/**
  * Genera y descarga el certificado PDF oficial usando pdf-lib
  * @param {Object} datosCertificado
  */
@@ -70,7 +86,7 @@ async function emitirCertificadoPDF(datosCertificado) {
       x: 160, y: 285, size: 15, font: fontBold, color: rgb(0.1, 0.1, 0.1)
     });
 
-    // Datos Técnicos y Normativos provenientes del alta de Trayectos
+    // Datos Técnicos
     page.drawText(`Carga Horaria: ${horas || '-'} Hs. Reloj   |   Resolución: ${resolucion || 'S/D'}`, {
       x: 160, y: 240, size: 10, font: fontRegular, color: rgb(0.3, 0.3, 0.3)
     });
@@ -97,10 +113,14 @@ async function emitirCertificadoPDF(datosCertificado) {
 
   } catch (error) {
     console.error('Error al generar certificado:', error);
-    Swal.fire({
-      icon: 'error',
-      title: 'Error en PDF-Lab',
-      text: 'No se pudo generar el documento: ' + error.message
-    });
+    if (typeof Swal !== 'undefined') {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error en PDF-Lab',
+        text: 'No se pudo generar el documento: ' + error.message
+      });
+    } else {
+      alert('Error al generar el certificado: ' + error.message);
+    }
   }
 }
