@@ -220,7 +220,7 @@
       <p>CFP N° 403 "Oscar Smith"</p>
     </div>
 
-    <!-- PESTAÑAS DE CAMBIO (Ingresar / Solicitar Cuenta) -->
+    <!-- PESTAÑAS (Ingresar / Solicitar Cuenta) -->
     <div class="auth-tabs">
       <button id="tab-btn-login" class="auth-tab active" onclick="UI.toggleAuthTab('login')">Ingresar</button>
       <button id="tab-btn-register" class="auth-tab" onclick="UI.toggleAuthTab('register')">Solicitar Cuenta</button>
@@ -230,11 +230,13 @@
     <form id="form-login" onsubmit="event.preventDefault(); Auth.login();">
       <div class="form-group">
         <label for="login-rol">Rol de Ingreso</label>
-        <select id="login-rol" class="form-control" required>
-          <option value="estudiante">Estudiante</option>
-          <option value="docente">Docente / Instructor</option>
-          <option value="admin">Administrador</option>
-        </select>
+        <div class="select-wrapper">
+          <select id="login-rol" class="form-control custom-select" required>
+            <option value="estudiante">Estudiante</option>
+            <option value="docente">Docente / Instructor</option>
+            <option value="admin">Administrador</option>
+          </select>
+        </div>
       </div>
 
       <div class="form-group">
@@ -248,10 +250,10 @@
       </div>
 
       <button type="submit" class="btn btn-gold btn-block">Iniciar Sesión</button>
-      <button type="button" class="btn btn-secondary btn-block" onclick="UI.showLanding()" style="margin-top: 0.5rem;">← Volver al inicio</button>
+      <button type="button" class="btn btn-outline btn-block" onclick="UI.showLanding()" style="margin-top: 0.75rem;">← Volver al inicio</button>
     </form>
 
-    <!-- FORMULARIO DE REGISTRO / SOLICITUD (Oculto por defecto) -->
+    <!-- FORMULARIO DE REGISTRO / SOLICITUD -->
     <form id="form-register" style="display: none;" onsubmit="event.preventDefault(); Auth.registro();">
       <div class="form-group">
         <label for="reg-nombre">Nombre y Apellido</label>
@@ -266,7 +268,7 @@
         <input type="email" id="reg-email" class="form-control" required placeholder="correo@ejemplo.com">
       </div>
       <button type="submit" class="btn btn-gold btn-block">Solicitar Registro</button>
-      <button type="button" class="btn btn-secondary btn-block" onclick="UI.showLanding()" style="margin-top: 0.5rem;">← Volver al inicio</button>
+      <button type="button" class="btn btn-outline btn-block" onclick="UI.showLanding()" style="margin-top: 0.75rem;">← Volver al inicio</button>
     </form>
   </div>
 </div>
