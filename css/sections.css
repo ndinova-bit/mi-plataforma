@@ -155,21 +155,53 @@
   font-size: 0.825rem;
   color: var(--text-muted, #94a3b8);
 }
-/* Distribución horizontal para la sección Oferta Académica / Pilares */
+/* ==========================================
+   CORRECCIÓN DEFINITIVA DE OFERTA ACADÉMICA
+   ========================================== */
 .value-props-grid {
   display: grid !important;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
-  gap: 1.5rem !important;
+  gap: 1.25rem !important;
   margin: 2rem 0 !important;
+  width: 100% !important;
 }
 
 .prop-card {
+  background: var(--surface, #151f32) !important;
+  border: 1px solid var(--border, #2b3b55) !important;
+  border-radius: 12px !important;
+  padding: 1.25rem 1.5rem !important;
   display: flex !important;
   flex-direction: row !important;
   align-items: center !important;
-  justify-content: flex-start !important;
   gap: 1rem !important;
-  padding: 1.25rem 1.5rem !important;
+  height: auto !important;
+  min-height: fit-content !important;
+}
+
+.prop-icon {
+  font-size: 1.75rem !important;
+  background: rgba(234, 179, 8, 0.12) !important;
+  padding: 0.75rem !important;
+  border-radius: 12px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+}
+
+.prop-title {
+  font-size: 1rem !important;
+  font-weight: 700 !important;
+  color: #f8fafc !important;
+  margin: 0 0 0.25rem 0 !important;
+}
+
+.prop-desc {
+  font-size: 0.85rem !important;
+  color: #94a3b8 !important;
+  margin: 0 !important;
+  line-height: 1.4 !important;
 }
 
 /* Estirar el contenedor principal de la landing */
