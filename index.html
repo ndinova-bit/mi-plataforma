@@ -283,9 +283,19 @@
   <!-- 3. DASHBOARD / SISTEMA INTERNO -->
   <div id="app-screen" style="display: none;">
     <aside class="sidebar">
-      <div style="padding-bottom: 1rem; border-bottom: 1px solid var(--border); margin-bottom: 1rem;">
+         <div style="padding-bottom: 1rem; border-bottom: 1px solid var(--border); margin-bottom: 1rem;">
         <strong id="display-username">Usuario</strong>
         <p id="display-role" style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">ROL</p>
+      </div> <!-- AQUÍ SE CIERRA EL DIV DEL USUARIO -->
+
+      <nav style="display: flex; flex-direction: column; gap: 0.5rem; flex: 1;">
+        <button id="btn-trayectos" class="btn btn-secondary" onclick="UI.showTab('trayectos')">Trayectos</button>
+        <button id="btn-nuevo-trayecto" class="btn btn-secondary admin-only" onclick="UI.showTab('nuevo-trayecto')">Cargar Trayecto</button>
+        <button id="btn-certificados" class="btn btn-secondary admin-only" onclick="UI.showTab('certificados')">Emitir Certificados</button>
+      </nav>
+
+      <button class="btn btn-danger" style="margin-top: auto;" onclick="Auth.cerrarSesion()">Cerrar Sesión</button>
+    </aside>
       </div>
 
       <nav style="display: flex; flex-direction: column; gap: 0.5rem; flex: 1;">
@@ -296,7 +306,7 @@
       <button class="btn btn-danger" style="margin-top: auto;" onclick="Auth.cerrarSesion()">Cerrar Sesión</button>
     </aside>
 
-    <main class="main-content">
+   <main class="main-content">
       <section id="trayectos" class="section active">
         <h2>Trayectos y Módulos</h2>
         <div id="dash-lista-trayectos" style="margin-top: 1rem;">
@@ -352,8 +362,45 @@
           <button type="submit" class="btn btn-primary" style="margin-top: 1.5rem;">Guardar Trayecto Completo</button>
         </form>
       </section>
+
+      <!-- NUEVA SECCIÓN: EMISIÓN DE CERTIFICADOS -->
+      <section id="certificados" class="section admin-only" style="display: none;">
+        <h2>Emisión y Laboratorio de Certificados</h2>
+        <div class="card" style="margin-top: 1rem; padding: 1.5rem;">
+          <form id="form-emision-certificado" onsubmit="event.preventDefault(); emitirCertificadoDesdeFormulario();">
+            <div class="form-group">
+              <label>Nombre Completo del Estudiante:</label>
+              <input type="text" id="cert-alumno" class="form-control" placeholder="Ej: Juan Pérez" required>
+            </div>
+            
+            <div class="form-group" style="margin-top: 1rem;">
+              <label>DNI del Estudiante:</label>
+              <input type="text" id="cert-dni" class="form-control" placeholder="Ej: 38123456" required>
+            </div>
+
+            <div class="form-group" style="margin-top: 1rem;">
+              <label>Trayecto Formativo / Curso:</label>
+              <input type="text" id="cert-trayecto" class="form-control" placeholder="Ej: Programación Web" required>
+            </div>
+
+            <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+              <div class="form-group" style="flex: 1;">
+                <label>Carga Horaria (Hs):</label>
+                <input type="number" id="cert-horas" class="form-control" placeholder="Ej: 250">
+              </div>
+              <div class="form-group" style="flex: 1;">
+                <label>Resolución / Disposición:</label>
+                <input type="text" id="cert-resolucion" class="form-control" placeholder="Ej: Res. 1234/22">
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="margin-top: 1.5rem;">
+              📜 Generar y Descargar Certificado PDF
+            </button>
+          </form>
+        </div>
+      </section>
     </main>
-  </div>
 
   <!-- Librerías Externas (CDNs) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -372,5 +419,18 @@
       }
     });
   </script>
+  <!-- Librerías Externas (CDNs) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <!-- AGREGAR PDF-LIB -->
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+
+  <!-- Lógica Interna JS -->
+  <script src="js/supabase-config.js"></script>
+  <!-- AGREGAR MÓDULO PDF-LAB -->
+  <script src="js/pdf-lab.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/trayectos.js"></script>
 </body>
 </html>
