@@ -5,13 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CFP N° 403 - Plataforma</title>
   
-  <!-- Vinculación del CSS principal -->
-  <link rel="stylesheet" href="css/styles.css">
-</head>
-  
   <!-- Soporte App Móvil PWA -->
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0b111e">
+
+  <!-- Fuente tipográfica moderna Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <!-- Hojas de estilo modulares -->
   <link rel="stylesheet" href="css/variables.css">
@@ -22,10 +23,8 @@
   <link rel="stylesheet" href="css/animations.css">
   <link rel="stylesheet" href="css/sections.css">
   
-  <!-- Fuente tipográfica moderna Inter -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- CSS Principal con estilos de Login (Cargado al final para máxima prioridad) -->
+  <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 
@@ -33,85 +32,85 @@
   <div id="public-landing" class="fade-in">
 
     <header class="main-header">
-  <div class="header-brand-center">
-    <div class="header-top-brand">
-      <img src="logo.png" alt="CFP N° 403 Logo" class="header-logo-xl">
-      <div>
-        <h1 class="header-title-lg">CFP N° 403 "OSCAR SMITH"</h1>
-        <span style="font-size: 0.85rem; color: var(--text-muted);">LUJÁN, BUENOS AIRES</span>
+      <div class="header-brand-center">
+        <div class="header-top-brand">
+          <img src="logo.png" alt="CFP N° 403 Logo" class="header-logo-xl">
+          <div>
+            <h1 class="header-title-lg">CFP N° 403 "OSCAR SMITH"</h1>
+            <span style="font-size: 0.85rem; color: var(--text-muted);">LUJÁN, BUENOS AIRES</span>
+          </div>
+        </div>
+        
+        <!-- Barra de Navegación -->
+        <nav class="main-nav">
+          <a href="#inicio" class="nav-link">Inicio</a>
+          <a href="#cursos" class="nav-link">Cursos</a>
+          <a href="#por-que" class="nav-link">¿Por qué el 403?</a>
+          <a href="#inscripcion" class="nav-link">¿Cómo inscribirse?</a>
+          <a href="#noticias" class="nav-link">Noticias</a>
+          <a href="#contacto" class="nav-link">Contacto</a>
+        </nav>
       </div>
-    </div>
-    
-    <!-- Barra de Navegación -->
-    <nav class="main-nav">
-      <a href="#inicio" class="nav-link">Inicio</a>
-      <a href="#cursos" class="nav-link">Cursos</a>
-      <a href="#por-que" class="nav-link">¿Por qué el 403?</a>
-      <a href="#inscripcion" class="nav-link">¿Cómo inscribirse?</a>
-      <a href="#noticias" class="nav-link">Noticias</a>
-      <a href="#contacto" class="nav-link">Contacto</a>
-    </nav>
-  </div>
 
- <div class="header-action-right">
-    <a href="#" onclick="UI.showLoginScreen(); return false;" class="btn-header-login">
-      🔓 Ingresar / Registrarse
-    </a>
-  </div>
-</header> <!-- <-- ¡AGREGÁ ESTA LÍNEA ACÁ! -->
+      <div class="header-action-right">
+        <a href="#" onclick="UI.showLoginScreen(); return false;" class="btn-header-login">
+          🔓 Ingresar / Registrarse
+        </a>
+      </div>
+    </header>
 
-<!-- CONTENIDO PRINCIPAL DE LA LANDING -->
-<main class="public-container">
+    <!-- CONTENIDO PRINCIPAL DE LA LANDING -->
+    <main class="public-container">
 
-  <!-- 1. HERO BANNER -->
-  <section id="inicio" class="hero-banner">
-    <span class="hero-badge">Formación Profesional Gratuita</span>
-    <h1 class="hero-title">Encontrá tu próxima formación profesional</h1>
-    <p class="hero-subtitle">
-      Capacitate con certificados oficiales avalados por la DGCyE de la Provincia de Buenos Aires.
-    </p>
-    <div style="margin-top: 1.5rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-      <a href="#cursos" class="btn btn-gold">Ver Cursos</a>
-      <a href="#inscripcion" class="btn btn-outline">¿Cómo inscribirme?</a>
-    </div>
-  </section>
+      <!-- 1. HERO BANNER -->
+      <section id="inicio" class="hero-banner">
+        <span class="hero-badge">Formación Profesional Gratuita</span>
+        <h1 class="hero-title">Encontrá tu próxima formación profesional</h1>
+        <p class="hero-subtitle">
+          Capacitate con certificados oficiales avalados por la DGCyE de la Provincia de Buenos Aires.
+        </p>
+        <div style="margin-top: 1.5rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+          <a href="#cursos" class="btn btn-gold">Ver Cursos</a>
+          <a href="#inscripcion" class="btn btn-outline">¿Cómo inscribirme?</a>
+        </div>
+      </section>
 
       <!-- 2. CATÁLOGO Y BÚSQUEDA DE CURSOS -->
-<section id="cursos" style="margin-bottom: 3.5rem;">
-  <div class="section-heading">
-    <h2 class="section-title">Oferta Académica</h2>
-  </div>
-  <div id="coursesContainer" class="features-grid">
-    <!-- El script ui.js insertará la grilla de cursos aquí -->
-  </div>
-</section>
+      <section id="cursos" style="margin-bottom: 3.5rem;">
+        <div class="section-heading">
+          <h2 class="section-title">Oferta Académica</h2>
+        </div>
+        <div id="coursesContainer" class="features-grid">
+          <!-- El script ui.js insertará la grilla de cursos aquí -->
+        </div>
+      </section>
 
       <!-- 3. ¿POR QUÉ ELEGIR EL CFP 403? -->
-<section id="por-que" class="value-props-grid">
-  <div class="prop-card">
-    <div class="prop-icon">📜</div>
-    <div>
-      <h3 class="prop-title">Títulos Oficiales</h3>
-      <p class="prop-desc">Certificación avalada por DGCyE de Buenos Aires.</p>
-    </div>
-  </div>
-  <div class="prop-card">
-    <div class="prop-icon">🎓</div>
-    <div>
-      <h3 class="prop-title">100% Gratuito</h3>
-      <p class="prop-desc">Educación técnica pública y accesible para todos.</p>
-    </div>
-  </div>
-  <div class="prop-card">
-    <div class="prop-icon">🛠️</div>
-    <div>
-      <h3 class="prop-title">Salida Laboral</h3>
-      <p class="prop-desc">Capacitación práctica adaptada al mercado actual.</p>
-    </div>
-  </div>
-</section>
+      <section id="por-que" class="value-props-grid">
+        <div class="prop-card">
+          <div class="prop-icon">📜</div>
+          <div>
+            <h3 class="prop-title">Títulos Oficiales</h3>
+            <p class="prop-desc">Certificación avalada por DGCyE de Buenos Aires.</p>
+          </div>
+        </div>
+        <div class="prop-card">
+          <div class="prop-icon">🎓</div>
+          <div>
+            <h3 class="prop-title">100% Gratuito</h3>
+            <p class="prop-desc">Educación técnica pública y accesible para todos.</p>
+          </div>
+        </div>
+        <div class="prop-card">
+          <div class="prop-icon">🛠️</div>
+          <div>
+            <h3 class="prop-title">Salida Laboral</h3>
+            <p class="prop-desc">Capacitación práctica adaptada al mercado actual.</p>
+          </div>
+        </div>
+      </section>
 
-      <!-- 4. ¿CÓMO INSCRIBIRSE? (Pasos 01 al 04) -->
+      <!-- 4. ¿CÓMO INSCRIBIRSE? -->
       <section id="inscripcion" class="steps-section">
         <h2 class="section-title-center">¿Cómo inscribirse?</h2>
         <div class="steps-grid">
@@ -137,8 +136,8 @@
           </div>
         </div>
         <a href="https://cursosipfl.trabajo.gba.gob.ar/" target="_blank" rel="noopener noreferrer" class="btn-inscripcion-gold">
-  📝 Iniciar preinscripción en IPFL
-</a>
+          📝 Iniciar preinscripción en IPFL
+        </a>
       </section>
 
       <!-- 5. NOVEDADES Y NOTICIAS -->
@@ -176,7 +175,6 @@
     <!-- FOOTER INSTITUCIONAL -->
     <footer class="main-footer">
       <div class="footer-container">
-        <!-- Columna 1: Info Institucional -->
         <div>
           <h3 class="footer-title-gold">CFP N° 403 "Oscar Smith"</h3>
           <p class="footer-description">
@@ -184,7 +182,6 @@
           </p>
         </div>
 
-        <!-- Columna 2: Contacto y Ubicación -->
         <div class="footer-contact-group">
           <h4 class="footer-title">Contacto y Ubicación</h4>
           <a href="https://maps.google.com/?q=Lavalle+740+Lujan+Buenos+Aires" target="_blank" rel="noopener" class="contact-link-location">
@@ -198,7 +195,6 @@
           </a>
         </div>
 
-        <!-- Columna 3: Redes Sociales -->
         <div class="footer-community-group">
           <h4 class="footer-title">Comunidad</h4>
           <a href="https://instagram.com/cfp403lujan" target="_blank" rel="noopener" class="btn-instagram">
@@ -207,76 +203,76 @@
         </div>
       </div>
 
-      <!-- Copyright -->
       <div class="footer-copyright">
         © 2026 CFP N° 403. Todos los derechos reservados.
       </div>
     </footer>
 
   </div>
-<!-- PANTALLA DE ACCESO / LOGIN -->
-<div id="login-screen" class="auth-screen" style="display: none;">
-  <div class="auth-card">
-    
-    <div class="auth-header">
-      <img src="logo.png" alt="CFP N° 403 Logo" class="auth-logo">
-      <h2>Acceso al Sistema</h2>
-      <p>CFP N° 403 "Oscar Smith"</p>
-    </div>
 
-    <!-- Pestañas -->
-    <div class="auth-tabs">
-      <button id="tab-btn-login" class="auth-tab active" onclick="UI.toggleAuthTab('login')">Ingresar</button>
-      <button id="tab-btn-register" class="auth-tab" onclick="UI.toggleAuthTab('register')">Solicitar Cuenta</button>
-    </div>
+  <!-- PANTALLA DE ACCESO / LOGIN -->
+  <div id="login-screen" class="auth-screen" style="display: none;">
+    <div class="auth-card">
+      
+      <div class="auth-header">
+        <img src="logo.png" alt="CFP N° 403 Logo" class="auth-logo">
+        <h2>Acceso al Sistema</h2>
+        <p>CFP N° 403 "Oscar Smith"</p>
+      </div>
 
-    <!-- Formulario de Login -->
-    <form id="form-login" onsubmit="event.preventDefault(); UI.mostrarDashboard({usuario: 'invitado', rol: 'estudiante'});">
-      <div class="form-group">
-        <label>Rol de Ingreso</label>
-        <div class="select-wrapper">
-          <select id="login-role" class="form-control custom-select">
-            <option value="estudiante">Estudiante</option>
-            <option value="docente">Docente</option>
-            <option value="admin">Administrador</option>
-          </select>
+      <!-- Pestañas -->
+      <div class="auth-tabs">
+        <button id="tab-btn-login" class="auth-tab active" onclick="UI.toggleAuthTab('login')">Ingresar</button>
+        <button id="tab-btn-register" class="auth-tab" onclick="UI.toggleAuthTab('register')">Solicitar Cuenta</button>
+      </div>
+
+      <!-- Formulario de Login -->
+      <form id="form-login" onsubmit="event.preventDefault(); UI.mostrarDashboard({usuario: 'invitado', rol: 'estudiante'});">
+        <div class="form-group">
+          <label>Rol de Ingreso</label>
+          <div class="select-wrapper">
+            <select id="login-role" class="form-control custom-select">
+              <option value="estudiante">Estudiante</option>
+              <option value="docente">Docente</option>
+              <option value="admin">Administrador</option>
+            </select>
+          </div>
         </div>
-      </div>
 
-      <div class="form-group">
-        <label>Usuario / DNI / Email</label>
-        <input type="text" class="form-control" placeholder="Ej: 38123456" required>
-      </div>
+        <div class="form-group">
+          <label>Usuario / DNI / Email</label>
+          <input type="text" class="form-control" placeholder="Ej: 38123456" required>
+        </div>
 
-      <div class="form-group">
-        <label>Contraseña</label>
-        <input type="password" class="form-control" placeholder="••••••••" required>
-      </div>
+        <div class="form-group">
+          <label>Contraseña</label>
+          <input type="password" class="form-control" placeholder="••••••••" required>
+        </div>
 
-      <button type="submit" class="btn-block btn-gold">Iniciar Sesión</button>
-      <button type="button" class="btn-block btn-outline" style="margin-top: 0.5rem;" onclick="UI.showLanding()">← Volver al Inicio</button>
-    </form>
+        <button type="submit" class="btn-block btn-gold">Iniciar Sesión</button>
+        <button type="button" class="btn-block btn-outline" style="margin-top: 0.5rem;" onclick="UI.showLanding()">← Volver al Inicio</button>
+      </form>
 
-    <!-- Formulario de Registro (Oculto) -->
-    <form id="form-register" style="display: none;" onsubmit="event.preventDefault(); alert('Solicitud enviada.');">
-      <div class="form-group">
-        <label>Nombre y Apellido</label>
-        <input type="text" class="form-control" placeholder="Nombre completo" required>
-      </div>
-      <div class="form-group">
-        <label>DNI</label>
-        <input type="text" class="form-control" placeholder="Sin puntos" required>
-      </div>
-      <div class="form-group">
-        <label>Correo Electrónico</label>
-        <input type="email" class="form-control" placeholder="correo@ejemplo.com" required>
-      </div>
-      <button type="submit" class="btn-block btn-gold">Enviar Solicitud</button>
-      <button type="button" class="btn-block btn-outline" style="margin-top: 0.5rem;" onclick="UI.showLanding()">← Volver al Inicio</button>
-    </form>
+      <!-- Formulario de Registro (Oculto) -->
+      <form id="form-register" style="display: none;" onsubmit="event.preventDefault(); alert('Solicitud enviada.');">
+        <div class="form-group">
+          <label>Nombre y Apellido</label>
+          <input type="text" class="form-control" placeholder="Nombre completo" required>
+        </div>
+        <div class="form-group">
+          <label>DNI</label>
+          <input type="text" class="form-control" placeholder="Sin puntos" required>
+        </div>
+        <div class="form-group">
+          <label>Correo Electrónico</label>
+          <input type="email" class="form-control" placeholder="correo@ejemplo.com" required>
+        </div>
+        <button type="submit" class="btn-block btn-gold">Enviar Solicitud</button>
+        <button type="button" class="btn-block btn-outline" style="margin-top: 0.5rem;" onclick="UI.showLanding()">← Volver al Inicio</button>
+      </form>
 
+    </div>
   </div>
-</div>
   
   <!-- 3. DASHBOARD / SISTEMA INTERNO -->
   <div id="app-screen" style="display: none;">
@@ -315,16 +311,15 @@
             <input type="text" id="trayecto-sector" class="form-control" placeholder="Ej: Informática / Comunicación">
           </div>
 
-         <div class="form-group">
-  <label for="trayecto-descripcion">Descripción:</label>
-  <textarea id="trayecto-descripcion" class="form-control" rows="3" placeholder="Resumen del trayecto formativo..."></textarea>
-</div>
+          <div class="form-group">
+            <label for="trayecto-descripcion">Descripción:</label>
+            <textarea id="trayecto-descripcion" class="form-control" rows="3" placeholder="Resumen del trayecto formativo..."></textarea>
+          </div>
 
-<!-- NUEVO CAMPO DE REQUISITOS AGREGADO ABAJO -->
-<div class="form-group">
-  <label for="trayecto-requisitos">Requisitos de Inscripción:</label>
-  <textarea id="trayecto-requisitos" class="form-control" rows="2" placeholder="Ej: Mayor de 16 años, fotocopia de DNI, primario completo..."></textarea>
-</div>
+          <div class="form-group">
+            <label for="trayecto-requisitos">Requisitos de Inscripción:</label>
+            <textarea id="trayecto-requisitos" class="form-control" rows="2" placeholder="Ej: Mayor de 16 años, fotocopia de DNI, primario completo..."></textarea>
+          </div>
 
           <hr style="margin: 1.5rem 0; border: none; border-top: 1px solid var(--border);">
           
@@ -336,9 +331,9 @@
           <div id="contenedor-modulos">
             <div class="modulo-card">
               <div class="modulo-row-header">
-  <input type="text" class="mod-nombre form-control" placeholder="Nombre del Módulo">
-  <input type="text" class="mod-codigo form-control" placeholder="Código (Ej: GH 0050)">
-</div>
+                <input type="text" class="mod-nombre form-control" placeholder="Nombre del Módulo">
+                <input type="text" class="mod-codigo form-control" placeholder="Código (Ej: GH 0050)">
+              </div>
               <div class="modulo-row-dates">
                 <label>Inicio:</label>
                 <input type="date" class="mod-inicio form-control">
@@ -358,7 +353,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<!-- Lógica Interna JS -->
+  <!-- Lógica Interna JS -->
   <script src="js/supabase-config.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/auth.js"></script>
