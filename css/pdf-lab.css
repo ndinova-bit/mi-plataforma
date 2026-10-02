@@ -1,0 +1,36 @@
+/* ==========================================
+   MÓDULO PDF-LAB (EMISIÓN Y VISTA DE CERTIFICADOS)
+   ========================================== */
+
+.pdf-lab-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.pdf-preview-box {
+  background: var(--bg-surface, #151d2a);
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+  border-radius: var(--radius-md, 12px);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+.pdf-preview-box iframe {
+  width: 100%;
+  height: 500px;
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+  border-radius: var(--radius-sm, 8px);
+  background: #ffffff;
+}
+
+.cert-actions-bar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
