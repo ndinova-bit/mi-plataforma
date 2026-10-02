@@ -12,14 +12,14 @@ const UI = {
 
   // Muestra la pantalla de Login centrada
   showLoginScreen() {
-    const landing = document.getElementById('landing-screen') || document.getElementById('public-landing');
-    const login = document.getElementById('login-screen');
-    const app = document.getElementById('app-screen');
+  const landing = document.getElementById('landing-screen') || document.getElementById('public-landing');
+  const login = document.getElementById('login-screen');
+  const app = document.getElementById('app-screen');
 
-    if (landing) landing.style.display = 'none';
-    if (login) login.style.display = 'flex';
-    if (app) app.style.display = 'none';
-  },
+  if (landing) landing.style.display = 'none';
+  if (login) login.style.display = 'flex';
+  if (app) app.style.display = 'none';
+},
 
   // Muestra el Panel de Control / Dashboard según rol
   mostrarDashboard(perfil) {
