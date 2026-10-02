@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
-<head><head>
+<head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CFP N° 403 - Plataforma</title>
@@ -233,7 +233,7 @@
       </div>
 
       <!-- Formulario de Login -->
-      <form id="form-login" onsubmit="event.preventDefault(); UI.mostrarDashboard({usuario: 'invitado', rol: 'estudiante'});">
+      <form id="form-login" onsubmit="event.preventDefault(); UI.mostrarDashboard({usuario: 'invitado', rol: 'admin'});">
         <div class="form-group">
           <label>Rol de Ingreso</label>
           <div class="select-wrapper">
@@ -281,12 +281,12 @@
   </div>
   
   <!-- 3. DASHBOARD / SISTEMA INTERNO -->
-  <div id="app-screen" style="display: none;">
+  <div id="app-screen" class="dashboard-layout" style="display: none;">
     <aside class="sidebar">
-         <div style="padding-bottom: 1rem; border-bottom: 1px solid var(--border); margin-bottom: 1rem;">
+      <div style="padding-bottom: 1rem; border-bottom: 1px solid var(--border); margin-bottom: 1rem;">
         <strong id="display-username">Usuario</strong>
         <p id="display-role" style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">ROL</p>
-      </div> <!-- AQUÍ SE CIERRA EL DIV DEL USUARIO -->
+      </div>
 
       <nav style="display: flex; flex-direction: column; gap: 0.5rem; flex: 1;">
         <button id="btn-trayectos" class="btn btn-secondary" onclick="UI.showTab('trayectos')">Trayectos</button>
@@ -296,17 +296,8 @@
 
       <button class="btn btn-danger" style="margin-top: auto;" onclick="Auth.cerrarSesion()">Cerrar Sesión</button>
     </aside>
-      </div>
 
-      <nav style="display: flex; flex-direction: column; gap: 0.5rem; flex: 1;">
-        <button id="btn-trayectos" class="btn btn-secondary" onclick="UI.showTab('trayectos')">Trayectos</button>
-        <button id="btn-nuevo-trayecto" class="btn btn-secondary admin-only" onclick="UI.showTab('nuevo-trayecto')">Cargar Trayecto</button>
-      </nav>
-
-      <button class="btn btn-danger" style="margin-top: auto;" onclick="Auth.cerrarSesion()">Cerrar Sesión</button>
-    </aside>
-
-   <main class="main-content">
+    <main class="main-content">
       <section id="trayectos" class="section active">
         <h2>Trayectos y Módulos</h2>
         <div id="dash-lista-trayectos" style="margin-top: 1rem;">
@@ -314,7 +305,7 @@
         </div>
       </section>
 
-      <section id="nuevo-trayecto" class="section admin-only">
+      <section id="nuevo-trayecto" class="section admin-only" style="display: none;">
         <h2>Nuevo Trayecto Formativo</h2>
         <form id="form-trayecto" onsubmit="event.preventDefault(); Trayectos.guardarTrayecto();" class="card" style="margin-top: 1rem;">
           <div class="form-group">
@@ -363,7 +354,7 @@
         </form>
       </section>
 
-      <!-- NUEVA SECCIÓN: EMISIÓN DE CERTIFICADOS -->
+      <!-- SECCIÓN: EMISIÓN DE CERTIFICADOS -->
       <section id="certificados" class="section admin-only" style="display: none;">
         <h2>Emisión y Laboratorio de Certificados</h2>
         <div class="card" style="margin-top: 1rem; padding: 1.5rem;">
@@ -401,8 +392,9 @@
         </div>
       </section>
     </main>
+  </div>
 
-<!-- Librerías Externas -->
+  <!-- Librerías Externas -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
