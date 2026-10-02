@@ -211,3 +211,30 @@
   margin: 0 auto !important;
   padding: 2rem 1.5rem !important;
 }
+/* ==========================================
+   BOTÓN DESTACADO DE PREINSCRIPCIÓN IPFL
+   ========================================== */
+.btn-inscripcion-gold {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.6rem !important;
+  background-color: var(--accent-gold, #eab308) !important;
+  color: #0f172a !important;
+  font-weight: 700 !important;
+  font-size: 1.05rem !important;
+  padding: 0.85rem 2rem !important;
+  border-radius: 50px !important;
+  text-decoration: none !important;
+  box-shadow: 0 4px 15px rgba(234, 179, 8, 0.3) !important;
+  transition: all 0.25s ease !important;
+  margin-top: 1.5rem !important;
+  border: none !important;
+}
+
+.btn-inscripcion-gold:hover {
+  background-color: #facc15 !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(234, 179, 8, 0.45) !important;
+  color: #020617 !important;
+}
