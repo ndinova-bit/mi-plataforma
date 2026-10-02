@@ -1,135 +1,232 @@
 /* ==========================================================================
-   LABORATORIO DE EMISIÓN DE CERTIFICADOS SOBRE PLANTILLA OFICIAL (PDF-LAB)
+   js/pdf-lab.js - Generación de Certificados PDF
    ========================================================================== */
 
-/**
- * Carga la plantilla PDF oficial y escribe los datos del estudiante/egresado
- * @param {Object} datos
- */
-async function emitirCertificadoPDF(datos) {
-  const {
-    estudianteNombre,
-    estudianteDNI,
-    trayectoNombre,
-    horas,
-    numEgresado,
-    modulos = [],
-    fechaEgreso = new Date().toLocaleDateString('es-AR')
-  } = datos;
-
+async function generarCertificadoPDF_v3(trayectoJson, alumnoNombre, usuarioDni, inscripcionId) {
   try {
-    // 1. Cargar el PDF base de plantilla.pdf
-    const response = await fetch('plantilla.pdf');
-    if (!response.ok) throw new Error('No se pudo cargar plantilla.pdf desde el servidor.');
-    const arrayBuffer = await response.arrayBuffer();
+    const trayecto = typeof trayectoJson === 'object' ? trayectoJson : JSON.parse(decodeURIComponent(trayectoJson));
+    const alumno = decodeURIComponent(alumnoNombre);
 
-    const { PDFDocument, rgb, StandardFonts } = PDFLib;
-    const pdfDoc = await PDFDocument.load(arrayBuffer);
-    const pages = pdfDoc.getPages();
-    
-    const page1 = pages[0];
-    const page2 = pages[1] || null;
+    const inputNumEg = document.getElementById(`num-eg-${inscripcionId}`);
+    let numEgresadoDef = inputNumEg ? inputNumEg.value.trim() : '';
 
-    const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-    const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
-
-    // Color del texto oficial (Azul oscuro / Negro)
-    const colorTexto = rgb(0.05, 0.1, 0.25);
-
-    // --- PÁGINA 1: DATOS PRINCIPALES ---
-    // Nombre del Alumno (Sustituye 'Por cuanto ...')
-    page1.drawText(estudianteNombre.toUpperCase(), {
-      x: 180,
-      y: 395,
-      size: 13,
-      font: fontBold,
-      color: colorTexto
-    });
-
-    // DNI / DU
-    if (estudianteDNI) {
-      page1.drawText(String(estudianteDNI), {
-        x: 140,
-        y: 373,
-        size: 11,
-        font: fontRegular,
-        color: colorTexto
+    if (!numEgresadoDef) {
+      const { value: egVal } = await Swal.fire({
+        title: 'N° de Egresado',
+        input: 'text',
+        inputValue: '01',
+        inputLabel: 'Ingrese N° de Egresado asignado:',
+        showCancelButton: true
       });
+      if (!egVal) return;
+      numEgresadoDef = egVal;
     }
 
-    // Nombre del Trayecto / Curso
-    page1.drawText(trayectoNombre, {
-      x: 200,
-      y: 285,
-      size: 12,
-      font: fontBold,
-      color: colorTexto
+    const { value: fEgreso } = await Swal.fire({
+      title: 'Fecha de Egreso',
+      input: 'text',
+      inputValue: '27 de Noviembre de 2026',
+      inputLabel: 'Ingrese Fecha de Egreso para el acta:',
+      showCancelButton: true
     });
+    if (!fEgreso) return;
 
-    // Horas de duración
-    page1.drawText(String(horas || '---'), {
-      x: 150,
-      y: 238,
-      size: 11,
-      font: fontRegular,
-      color: colorTexto
-    });
+    let dniFormateado = String(usuarioDni).replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 
-    // Fecha de emisión/egreso (Día, Mes, Año)
-    const partesFecha = fechaEgreso.split('/');
-    if (partesFecha.length === 3) {
-      page1.drawText(partesFecha[0], { x: 260, y: 195, size: 10, font: fontRegular, color: colorTexto });
-      page1.drawText(partesFecha[1], { x: 310, y: 195, size: 10, font: fontRegular, color: colorTexto });
-      page1.drawText(partesFecha[2], { x: 380, y: 195, size: 10, font: fontRegular, color: colorTexto });
+    if (!dniFormateado) {
+      const { value: dniManual } = await Swal.fire({
+        title: 'DNI / D.U.',
+        input: 'text',
+        inputValue: '12345678',
+        inputLabel: 'Ingrese el DNI/D.U. del alumno:',
+        showCancelButton: true
+      });
+      if (!dniManual) return;
+      dniFormateado = dniManual.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     }
 
-    // --- PÁGINA 2: MÓDULOS Y N° DE EGRESADO ---
-    if (page2) {
-      // Listado de módulos
-      let startY = 380;
-      modulos.slice(0, 10).forEach((mod, idx) => {
-        page2.drawText(`${idx + 1}. ${mod.nombre || mod}`, {
-          x: 100,
-          y: startY - (idx * 20),
-          size: 9,
-          font: fontRegular,
-          color: colorTexto
-        });
-      });
+    let cfpVal = '403';
+    let distritoVal = 'Luján';
+    if (trayecto.descripcion) {
+      const matchCfp = trayecto.descripcion.match(/CFP N° (.*?) -/);
+      const matchDist = trayecto.descripcion.match(/Distrito: (.*?) \|/);
+      if (matchCfp) cfpVal = matchCfp[1];
+      if (matchDist) distritoVal = matchDist[1];
+    }
 
-      // Fecha de egreso
-      page2.drawText(fechaEgreso, {
-        x: 180,
-        y: 140,
-        size: 10,
-        font: fontRegular,
-        color: colorTexto
-      });
+    let hsReloj = trayecto.horas || '60';
+    let fechaEmision = trayecto.fecha_entrega || '23 de Septiembre de 2026';
 
-      // N° de Egresado
-      if (numEgresado) {
-        page2.drawText(String(numEgresado), {
-          x: 180,
-          y: 118,
-          size: 11,
-          font: fontBold,
-          color: rgb(0.8, 0.1, 0.1) // Destacado en rojo o azul
-        });
+    const resBytes = await fetch('./plantilla.pdf');
+    if (!resBytes.ok) throw new Error('No se encontró plantilla.pdf en el servidor.');
+    const plantillaBytes = await resBytes.arrayBuffer();
+
+    const pdfDoc = await PDFLib.PDFDocument.load(plantillaBytes);
+    const fuenteBold = await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
+    const fuenteRegular = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+    const colorNegro = PDFLib.rgb(0, 0, 0);
+
+    const paginas = pdfDoc.getPages();
+    const frente = paginas[0];
+    const reverso = paginas.length > 1 ? paginas[1] : frente;
+
+    function dibujaRenglonPunteado(pagina, texto, xStart, yPos, xMax, font, size) {
+      pagina.drawText(texto, { x: xStart, y: yPos, size: size, font: font, color: colorNegro });
+      const textWidth = font.widthOfTextAtSize(texto, size);
+      let puntoX = xStart + textWidth + 5;
+      while (puntoX < xMax) {
+        pagina.drawText('.', { x: puntoX, y: yPos, size: size, font: font, color: colorNegro });
+        puntoX += 4;
       }
     }
 
-    // Guardar y descargar
-    const pdfBytes = await pdfDoc.save();
-    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `Certificado_${numEgresado ? 'Egresado_' + numEgresado + '_' : ''}${estudianteNombre.replace(/\s+/g, '_')}.pdf`;
-    link.click();
+    let diaE = '23', mesE = 'Septiembre', anioE = '26';
+    if (fechaEmision) {
+      const partesF = fechaEmision.split('de');
+      if (partesF.length === 3) {
+        diaE = partesF[0].trim();
+        mesE = partesF[1].trim();
+        anioE = partesF[2].trim().slice(-2);
+      }
+    }
 
-    if (typeof notify === 'function') notify('Certificado generado correctamente', 'success');
+    const tamanoNombre = 14;
+    const xInicioLineaNombre = 130;
+    const xFinLineaNombre = 532;
+    const centroLineaNombre = xInicioLineaNombre + (xFinLineaNombre - xInicioLineaNombre) / 2;
+    
+    const textoAlumno = alumno.toUpperCase();
+    const anchoTextoAlumno = fuenteBold.widthOfTextAtSize(textoAlumno, tamanoNombre);
+    const xNombreCentrado = centroLineaNombre - (anchoTextoAlumno / 2);
 
-  } catch (error) {
-    console.error('Error al emitir certificado sobre plantilla:', error);
-    alertError('Error al emitir certificado: ' + error.message);
+    frente.drawText(textoAlumno, { x: xNombreCentrado, y: 232, size: tamanoNombre, font: fuenteBold, color: colorNegro });
+    frente.drawText(dniFormateado, { x: 115, y: 207, size: 12, font: fuenteRegular, color: colorNegro });
+    dibujaRenglonPunteado(frente, (trayecto.nombre || '').toUpperCase(), 91, 182, 400, fuenteRegular, 12);
+    frente.drawText(String(hsReloj), { x: 425, y: 182, size: 12, font: fuenteRegular, color: colorNegro });
+
+    let baseNombreCert = (trayecto.certificacion || trayecto.nombre || '').toUpperCase().trim();
+    let resTextoLimpio = (trayecto.resolucion || '').toUpperCase().trim();
+
+    baseNombreCert = baseNombreCert.split(/SEGÚN\s+RESOLUCIÓN|SEGUN\s+RESOLUCION/i)[0].trim();
+
+    if (resTextoLimpio) {
+      if (baseNombreCert) resTextoLimpio = resTextoLimpio.replaceAll(baseNombreCert, '').trim();
+      if (resTextoLimpio.includes('RESFC')) {
+        resTextoLimpio = 'RESFC' + resTextoLimpio.split('RESFC').pop().trim();
+      } else {
+        resTextoLimpio = resTextoLimpio.replace(/^(RESOLUCIÓN|RESOLUCION)\s*/i, '').replace(/^(NRO\.|NRO|N°|NO\.)\s*/i, '').trim();
+      }
+    }
+
+    let textoCert = baseNombreCert;
+    if (resTextoLimpio) {
+      textoCert += resTextoLimpio.startsWith('RESFC') || resTextoLimpio.startsWith('NRO') ? ` SEGÚN RESOLUCIÓN ${resTextoLimpio}` : ` SEGÚN RESOLUCIÓN NRO. ${resTextoLimpio}`;
+    }
+
+    const tamanoCert = 10.5;
+    const xMaxGeneral = 520;
+    const configRenglones = [{ x: 320, y: 159 }, { x: 68, y: 135 }, { x: 68, y: 117 }];
+
+    const palabras = textoCert.split(' ').filter(Boolean);
+    const lineas = ['', '', ''];
+    let lineaActual = 0;
+
+    for (const palabra of palabras) {
+      let xInicio = configRenglones[lineaActual].x;
+      let anchoDisponible = xMaxGeneral - xInicio;
+      let prueba = lineas[lineaActual] ? `${lineas[lineaActual]} ${palabra}` : palabra;
+      if (fuenteRegular.widthOfTextAtSize(prueba, tamanoCert) <= anchoDisponible) {
+        lineas[lineaActual] = prueba;
+      } else {
+        lineaActual++;
+        if (lineaActual > 2) break;
+        lineas[lineaActual] = palabra;
+      }
+    }
+
+    let ultimaLineaIndice = -1;
+    for (let i = 2; i >= 0; i--) {
+      if (lineas[i].trim() !== '') { ultimaLineaIndice = i; break; }
+    }
+
+    configRenglones.forEach((r, idx) => {
+      let textoRenglon = lineas[idx];
+      if (textoRenglon && textoRenglon.trim() !== '') {
+        if (idx === ultimaLineaIndice) {
+          dibujaRenglonPunteado(frente, textoRenglon, r.x, r.y, xMaxGeneral, fuenteRegular, tamanoCert);
+        } else {
+          frente.drawText(textoRenglon, { x: r.x, y: r.y, size: tamanoCert, font: fuenteRegular, color: colorNegro });
+        }
+      }
+    });
+
+    frente.drawText(String(diaE),  { x: 250, y: 98, size: 12, font: fuenteRegular, color: colorNegro });
+    frente.drawText(String(mesE),  { x: 320, y: 98, size: 12, font: fuenteRegular, color: colorNegro });
+    frente.drawText(String(anioE), { x: 495, y: 98, size: 12, font: fuenteRegular, color: colorNegro });
+
+    let modulosArr = [];
+    try { modulosArr = typeof trayecto.modulos === 'string' ? JSON.parse(trayecto.modulos) : (trayecto.modulos || []); } catch (e) {}
+
+    const yInicial = 370;
+    const pasoEntreItems = 30.5; 
+    const altoRenglonSecundario = 12;
+    const tamanoFuenteMod = 9.0;
+    const maxAnchoCol = 235;
+
+    function dividirEnDosLineas(texto, font, size, maxAncho) {
+      const palabras = texto.split(' ').filter(Boolean);
+      let l1 = '', l2 = '';
+      for (let p of palabras) {
+        let prueba = l1 ? l1 + ' ' + p : p;
+        if (font.widthOfTextAtSize(prueba, size) <= maxAncho) { l1 = prueba; } else { l2 = l2 ? l2 + ' ' + p : p; }
+      }
+      return [l1, l2];
+    }
+
+    modulosArr.slice(0, 10).forEach((mod, index) => {
+      const nombreMod = typeof mod === 'string' ? mod : (mod.nombre || mod.titulo || mod.modulo || '');
+      const codigoMod = mod.codigo ? ` (${mod.codigo})` : '';
+      const modTextoCompleto = `${nombreMod}${codigoMod}`.toUpperCase();
+      const [linea1, linea2] = dividirEnDosLineas(modTextoCompleto, fuenteRegular, tamanoFuenteMod, maxAnchoCol);
+
+      const esColumnaDerecha = index >= 5;
+      const idxFila = esColumnaDerecha ? (index - 5) : index;
+      const xPos = esColumnaDerecha ? 318 : 42; 
+      const yBase = yInicial - (idxFila * pasoEntreItems);          
+
+      if (linea1) reverso.drawText(linea1, { x: xPos, y: yBase, size: tamanoFuenteMod, font: fuenteRegular, color: colorNegro });
+      if (linea2) reverso.drawText(linea2, { x: xPos, y: yBase - altoRenglonSecundario, size: tamanoFuenteMod, font: fuenteRegular, color: colorNegro });
+    });
+
+    if (fEgreso) reverso.drawText(fEgreso, { x: 140, y: 202, size: 12, font: fuenteRegular, color: colorNegro });
+    if (numEgresadoDef) reverso.drawText(String(numEgresadoDef), { x: 420, y: 202, size: 12, font: fuenteRegular, color: colorNegro });
+    if (cfpVal) reverso.drawText(String(cfpVal), { x: 150, y: 72, size: 12, font: fuenteRegular, color: colorNegro });
+    if (distritoVal) reverso.drawText(String(distritoVal), { x: 390, y: 72, size: 12, font: fuenteRegular, color: colorNegro });
+
+    const pdfBytesFinal = await pdfDoc.save();
+    const blob = new Blob([pdfBytesFinal], { type: 'application/pdf' });
+    const pdfUrl = URL.createObjectURL(blob);
+    window.open(pdfUrl, '_blank');
+
+    if (typeof Toast !== 'undefined') {
+      Toast.fire({ icon: 'success', title: 'Certificado PDF generado' });
+    }
+
+  } catch (err) {
+    if (typeof Swal !== 'undefined') {
+      Swal.fire({ icon: 'error', title: 'Error al generar PDF', text: err.message });
+    } else {
+      console.error(err);
+    }
   }
 }
+
+// Alias para mantener compatibilidad si en el HTML llamas a emitirCertificadoPDF
+const emitirCertificadoPDF = (opts) => {
+  return generarCertificadoPDF_v3(
+    opts.trayecto || opts,
+    opts.estudianteNombre || opts.alumnoNombre,
+    opts.estudianteDNI || opts.usuarioDni,
+    opts.inscripcionId
+  );
+};
