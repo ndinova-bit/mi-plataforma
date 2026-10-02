@@ -122,10 +122,10 @@ const UI = {
     const elTrayectos = document.getElementById('stat-count-trayectos');
     const elModulos = document.getElementById('stat-count-modulos');
 
-    if (typeof Trayectos !== 'undefined' && Array.isArray(Trayectos.lista)) {
-      if (elTrayectos) elTrayectos.textContent = Trayectos.lista.length;
+    if (typeof Trayectos !== 'undefined' && Array.isArray(Trayectos.listaTrayectos)) {
+      if (elTrayectos) elTrayectos.textContent = Trayectos.listaTrayectos.length;
       if (elModulos) {
-        const totalModulos = Trayectos.lista.reduce((acc, t) => acc + (t.modulos ? t.modulos.length : 0), 0);
+        const totalModulos = Trayectos.listaTrayectos.reduce((acc, t) => acc + (t.modulos ? t.modulos.length : 0), 0);
         elModulos.textContent = totalModulos;
       }
     }
