@@ -210,75 +210,67 @@
     </footer>
 
   </div>
-  <!-- 2. VISTA AUTH / LOGIN & REGISTRO -->
-  <div id="login-screen" style="display: none; min-height: 100vh; align-items: center; justify-content: center; padding: 1rem;">
-    <div class="card" style="width: 100%; max-width: 420px;">
-      <div style="text-align: center; margin-bottom: 1.5rem;">
-        <img src="logo.png" alt="CFP Logo" style="height: 60px; margin-bottom: 0.5rem;">
-        <h3 style="font-size: 1.25rem;">Acceso al Sistema</h3>
-      </div>
-
-      <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">
-        <button id="tab-btn-login" class="btn btn-secondary active" style="flex: 1;" onclick="UI.toggleAuthTab('login')">Ingresar</button>
-        <button id="tab-btn-register" class="btn btn-secondary" style="flex: 1;" onclick="UI.toggleAuthTab('register')">Solicitar Cuenta</button>
-      </div>
-
-      <!-- Formulario Login -->
-      <form id="form-login" onsubmit="event.preventDefault(); Auth.iniciarSesion();">
-        <div class="form-group">
-          <label for="role-select">Rol de ingreso:</label>
-          <select id="role-select" class="form-control">
-            <option value="estudiante">Estudiante</option>
-            <option value="docente">Docente</option>
-            <option value="admin">Administrativo / Directivo</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="login-user">Usuario / DNI / Email:</label>
-          <input type="text" id="login-user" class="form-control" required placeholder="Ej: 38123456">
-        </div>
-
-        <div class="form-group">
-          <label for="login-pass">Contraseña:</label>
-          <input type="password" id="login-pass" class="form-control" required placeholder="••••••••">
-        </div>
-
-        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Iniciar Sesión</button>
-        <button type="button" class="btn btn-secondary" style="width: 100%; margin-top: 0.5rem;" onclick="UI.showLanding()">Volver a Inicio</button>
-      </form>
-
-      <!-- Formulario Registro -->
-      <form id="form-register" style="display: none;" onsubmit="event.preventDefault(); Auth.solicitarRegistro();">
-        <div class="form-group">
-          <label for="reg-nombre">Nombre y Apellido:</label>
-          <input type="text" id="reg-nombre" class="form-control" required placeholder="Juan Pérez">
-        </div>
-
-        <div class="form-group">
-          <label for="reg-dni">DNI / Usuario:</label>
-          <input type="text" id="reg-dni" class="form-control" required placeholder="Solo números">
-        </div>
-
-        <div class="form-group">
-          <label for="reg-pass">Contraseña:</label>
-          <input type="password" id="reg-pass" class="form-control" required placeholder="••••••••">
-        </div>
-
-        <div class="form-group">
-          <label for="reg-rol">Tipo de Usuario:</label>
-          <select id="reg-rol" class="form-control">
-            <option value="estudiante">Estudiante</option>
-            <option value="docente">Docente</option>
-          </select>
-        </div>
-
-        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Enviar Solicitud</button>
-        <button type="button" class="btn btn-secondary" style="width: 100%; margin-top: 0.5rem;" onclick="UI.showLanding()">Volver a Inicio</button>
-      </form>
+ <!-- PANTALLA DE ACCESO / LOGIN -->
+<div id="login-screen" class="auth-screen">
+  <div class="auth-card fade-in">
+    <!-- LOGO INSTITUCIONAL -->
+    <div class="auth-header">
+      <img src="img/logo-cfp.png" alt="CFP N° 403 Logo" class="auth-logo">
+      <h2>Acceso al Sistema</h2>
+      <p>CFP N° 403 "Oscar Smith"</p>
     </div>
-  </div>
 
+    <!-- PESTAÑAS DE CAMBIO (Ingresar / Solicitar Cuenta) -->
+    <div class="auth-tabs">
+      <button id="tab-btn-login" class="auth-tab active" onclick="UI.toggleAuthTab('login')">Ingresar</button>
+      <button id="tab-btn-register" class="auth-tab" onclick="UI.toggleAuthTab('register')">Solicitar Cuenta</button>
+    </div>
+
+    <!-- FORMULARIO DE INGRESO -->
+    <form id="form-login" onsubmit="event.preventDefault(); Auth.login();">
+      <div class="form-group">
+        <label for="login-rol">Rol de Ingreso</label>
+        <select id="login-rol" class="form-control" required>
+          <option value="estudiante">Estudiante</option>
+          <option value="docente">Docente / Instructor</option>
+          <option value="admin">Administrador</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="login-usuario">Usuario / DNI / Email</label>
+        <input type="text" id="login-usuario" class="form-control" required placeholder="Ej: 38123456">
+      </div>
+
+      <div class="form-group">
+        <label for="login-password">Contraseña</label>
+        <input type="password" id="login-password" class="form-control" required placeholder="••••••••">
+      </div>
+
+      <button type="submit" class="btn btn-gold btn-block">Iniciar Sesión</button>
+      <button type="button" class="btn btn-secondary btn-block" onclick="UI.showLanding()" style="margin-top: 0.5rem;">← Volver al inicio</button>
+    </form>
+
+    <!-- FORMULARIO DE REGISTRO / SOLICITUD (Oculto por defecto) -->
+    <form id="form-register" style="display: none;" onsubmit="event.preventDefault(); Auth.registro();">
+      <div class="form-group">
+        <label for="reg-nombre">Nombre y Apellido</label>
+        <input type="text" id="reg-nombre" class="form-control" required placeholder="Juan Pérez">
+      </div>
+      <div class="form-group">
+        <label for="reg-dni">DNI</label>
+        <input type="text" id="reg-dni" class="form-control" required placeholder="Sin puntos ni espacios">
+      </div>
+      <div class="form-group">
+        <label for="reg-email">Correo Electrónico</label>
+        <input type="email" id="reg-email" class="form-control" required placeholder="correo@ejemplo.com">
+      </div>
+      <button type="submit" class="btn btn-gold btn-block">Solicitar Registro</button>
+      <button type="button" class="btn btn-secondary btn-block" onclick="UI.showLanding()" style="margin-top: 0.5rem;">← Volver al inicio</button>
+    </form>
+  </div>
+</div>
+  
   <!-- 3. DASHBOARD / SISTEMA INTERNO -->
   <div id="app-screen" style="display: none;">
     <aside class="sidebar">
