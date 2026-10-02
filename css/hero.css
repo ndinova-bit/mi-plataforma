@@ -105,3 +105,26 @@
     font-size: 1.6rem;
   }
 }
+
+/* Botones principales del Hero Banner (AFUERA DEL MEDIA QUERY) */
+.hero-banner .btn-gold {
+  background-color: #eab308 !important;
+  color: #0f172a !important;
+  font-weight: 700 !important;
+  padding: 0.75rem 1.5rem !important;
+  border-radius: 50px !important;
+  text-decoration: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+.hero-banner .btn-outline {
+  background: transparent !important;
+  color: #f8fafc !important;
+  border: 1px solid #2b3b55 !important;
+  padding: 0.75rem 1.5rem !important;
+  border-radius: 50px !important;
+  text-decoration: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
