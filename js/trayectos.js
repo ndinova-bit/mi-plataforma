@@ -117,7 +117,7 @@ const Trayectos = {
     contenedor.appendChild(grid);
   },
 
- async guardarTrayecto() {
+  async guardarTrayecto() {
     const nombre = document.getElementById('trayecto-nombre').value.trim();
     const sector = document.getElementById('trayecto-sector').value.trim();
     const descripcion = document.getElementById('trayecto-descripcion').value.trim();
@@ -171,7 +171,7 @@ const Trayectos = {
         alertSuccess('¡Éxito!', 'El trayecto y sus módulos fueron registrados correctamente.');
       }
       
-      // Limpiar formulario y módulos agregados
+      // Limpiar formulario y restablecer vista de módulos
       const form = document.getElementById('form-trayecto');
       if (form) form.reset();
 
@@ -181,7 +181,7 @@ const Trayectos = {
         UI.agregarFilaModulo();
       }
 
-      // 1. Recargar datos desde Supabase
+      // 1. Recargar lista desde Supabase
       await this.cargarTrayectos();
 
       // 2. Actualizar estadísticas del Dashboard si la función existe
@@ -189,7 +189,7 @@ const Trayectos = {
         UI.actualizarContadoresDashboard();
       }
 
-      // 3. Redirigir a la vista "Trayectos Formativos" para ver el resultado
+      // 3. Redirigir a la pestaña "Trayectos Formativos"
       if (typeof UI !== 'undefined' && UI.showTab) {
         UI.showTab('trayectos');
       }
@@ -201,3 +201,4 @@ const Trayectos = {
       }
     }
   }
+};
