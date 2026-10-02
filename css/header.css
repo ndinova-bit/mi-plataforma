@@ -22,7 +22,15 @@
   gap: 0.4rem;
 }
 
-.header-logo-lg {
+/* Alineación horizontal del logo y títulos */
+.header-top-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.header-logo-lg,
+.header-logo-xl {
   height: 85px;
   width: auto;
   object-fit: contain;
@@ -35,6 +43,25 @@
   color: var(--text-main);
   letter-spacing: 0.5px;
   text-align: center;
+}
+
+/* Navegación Desktop */
+.main-nav {
+  display: flex;
+  gap: 1.25rem;
+  align-items: center;
+}
+
+.nav-link {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.nav-link:hover {
+  color: var(--accent-gold);
 }
 
 .header-action-right {
@@ -65,25 +92,75 @@
   background: rgba(234, 179, 8, 0.1);
 }
 
+/* ==========================================
+   HEADER RESPONSIVO (MOBILE)
+   ========================================== */
 @media (max-width: 768px) {
   .main-header {
     display: flex;
     flex-direction: column;
-    padding: 1rem;
+    align-items: center;
+    padding: 1rem 0.75rem;
     gap: 1rem;
   }
 
-  .header-logo-lg {
-    height: 65px;
+  .header-brand-center {
+    width: 100%;
   }
 
+  /* Distribución de logo y texto en móviles */
+  .header-top-brand {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    text-align: left;
+  }
+
+  .header-logo-lg,
+  .header-logo-xl {
+    height: 55px !important;
+    width: auto;
+  }
+
+  .header-title-lg {
+    font-size: 0.95rem;
+    line-height: 1.2;
+    text-align: left;
+  }
+
+  /* Barra de navegación deslizable (scroll horizontal) */
+  .main-nav {
+    display: flex;
+    width: 100%;
+    overflow-x: auto;
+    white-space: nowrap;
+    padding: 0.5rem 0;
+    gap: 1rem;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+  }
+
+  .main-nav::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Edge */
+  }
+
+  .nav-link {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.6rem;
+    flex-shrink: 0;
+  }
+
+  /* Botón de acceso a todo el ancho */
   .header-action-right {
     width: 100%;
   }
 
-  .header-action-right button,
   .btn-header-login {
     width: 100%;
     justify-content: center;
+    display: flex;
+    padding: 0.65rem;
   }
 }
