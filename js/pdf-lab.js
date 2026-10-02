@@ -1,126 +1,135 @@
 /* ==========================================================================
-   LABORATORIO DE IMPRESIÓN Y EMISIÓN DE CERTIFICADOS (PDF-LAB)
+   LABORATORIO DE EMISIÓN DE CERTIFICADOS SOBRE PLANTILLA OFICIAL (PDF-LAB)
    ========================================================================== */
 
 /**
- * Captura los datos ingresados en el formulario de la interfaz
+ * Carga la plantilla PDF oficial y escribe los datos del estudiante/egresado
+ * @param {Object} datos
  */
-function emitirCertificadoDesdeFormulario() {
-  const datos = {
-    estudianteNombre: document.getElementById('cert-alumno').value,
-    estudianteDNI: document.getElementById('cert-dni').value,
-    trayectoNombre: document.getElementById('cert-trayecto').value,
-    horas: document.getElementById('cert-horas').value,
-    resolucion: document.getElementById('cert-resolucion').value,
-    fechaEmision: new Date().toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' })
-  };
-
-  emitirCertificadoPDF(datos);
-}
-
-/**
- * Genera y descarga el certificado PDF oficial usando pdf-lib
- * @param {Object} datosCertificado
- */
-async function emitirCertificadoPDF(datosCertificado) {
+async function emitirCertificadoPDF(datos) {
   const {
     estudianteNombre,
     estudianteDNI,
     trayectoNombre,
     horas,
-    resolucion,
-    cursoNum,
-    fechaEmision
-  } = datosCertificado;
+    numEgresado,
+    modulos = [],
+    fechaEgreso = new Date().toLocaleDateString('es-AR')
+  } = datos;
 
   try {
+    // 1. Cargar el PDF base de plantilla.pdf
+    const response = await fetch('plantilla.pdf');
+    if (!response.ok) throw new Error('No se pudo cargar plantilla.pdf desde el servidor.');
+    const arrayBuffer = await response.arrayBuffer();
+
     const { PDFDocument, rgb, StandardFonts } = PDFLib;
-    const pdfDoc = await PDFDocument.create();
-    const page = pdfDoc.addPage([842, 595]); // A4 Apagado / Horizontal
+    const pdfDoc = await PDFDocument.load(arrayBuffer);
+    const pages = pdfDoc.getPages();
     
+    const page1 = pages[0];
+    const page2 = pages[1] || null;
+
     const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
     const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
-    // Marco exterior decorativo
-    page.drawRectangle({
-      x: 20,
-      y: 20,
-      width: 802,
-      height: 555,
-      borderWidth: 2,
-      borderColor: rgb(0.06, 0.71, 0.83), // Accent Cyan
-      color: rgb(0.98, 0.98, 0.99)
+    // Color del texto oficial (Azul oscuro / Negro)
+    const colorTexto = rgb(0.05, 0.1, 0.25);
+
+    // --- PÁGINA 1: DATOS PRINCIPALES ---
+    // Nombre del Alumno (Sustituye 'Por cuanto ...')
+    page1.drawText(estudianteNombre.toUpperCase(), {
+      x: 180,
+      y: 395,
+      size: 13,
+      font: fontBold,
+      color: colorTexto
     });
 
-    // Encabezado
-    page.drawText('DIRECCIÓN GENERAL DE CULTURA Y EDUCACIÓN - PBA', {
-      x: 180, y: 520, size: 11, font: fontBold, color: rgb(0.2, 0.2, 0.2)
-    });
-
-    page.drawText('CENTRO DE FORMACIÓN PROFESIONAL N° 403 LUJÁN', {
-      x: 150, y: 490, size: 18, font: fontBold, color: rgb(0.05, 0.15, 0.3)
-    });
-
-    // Subtítulo
-    page.drawText('OTORGA EL PRESENTE CERTIFICADO A:', {
-      x: 280, y: 420, size: 11, font: fontRegular, color: rgb(0.4, 0.4, 0.4)
-    });
-
-    // Nombre del Alumno
-    page.drawText(estudianteNombre.toUpperCase(), {
-      x: 160, y: 375, size: 20, font: fontBold, color: rgb(0.02, 0.5, 0.9)
-    });
-
+    // DNI / DU
     if (estudianteDNI) {
-      page.drawText(`D.N.I. N°: ${estudianteDNI}`, {
-        x: 160, y: 355, size: 10, font: fontRegular, color: rgb(0.3, 0.3, 0.3)
+      page1.drawText(String(estudianteDNI), {
+        x: 140,
+        y: 373,
+        size: 11,
+        font: fontRegular,
+        color: colorTexto
       });
     }
 
-    // Cuerpo del Certificado
-    page.drawText(`Por haber aprobado el Trayecto Formativo / Curso:`, {
-      x: 160, y: 310, size: 12, font: fontRegular, color: rgb(0.2, 0.2, 0.2)
+    // Nombre del Trayecto / Curso
+    page1.drawText(trayectoNombre, {
+      x: 200,
+      y: 285,
+      size: 12,
+      font: fontBold,
+      color: colorTexto
     });
 
-    page.drawText(trayectoNombre, {
-      x: 160, y: 285, size: 15, font: fontBold, color: rgb(0.1, 0.1, 0.1)
+    // Horas de duración
+    page1.drawText(String(horas || '---'), {
+      x: 150,
+      y: 238,
+      size: 11,
+      font: fontRegular,
+      color: colorTexto
     });
 
-    // Datos Técnicos
-    page.drawText(`Carga Horaria: ${horas || '-'} Hs. Reloj   |   Resolución: ${resolucion || 'S/D'}`, {
-      x: 160, y: 240, size: 10, font: fontRegular, color: rgb(0.3, 0.3, 0.3)
-    });
-
-    if (cursoNum) {
-      page.drawText(`Reg. Curso N°: ${cursoNum}`, {
-        x: 160, y: 220, size: 10, font: fontRegular, color: rgb(0.3, 0.3, 0.3)
-      });
+    // Fecha de emisión/egreso (Día, Mes, Año)
+    const partesFecha = fechaEgreso.split('/');
+    if (partesFecha.length === 3) {
+      page1.drawText(partesFecha[0], { x: 260, y: 195, size: 10, font: fontRegular, color: colorTexto });
+      page1.drawText(partesFecha[1], { x: 310, y: 195, size: 10, font: fontRegular, color: colorTexto });
+      page1.drawText(partesFecha[2], { x: 380, y: 195, size: 10, font: fontRegular, color: colorTexto });
     }
 
-    // Pie de página y fecha
-    const fechaTexto = fechaEmision || 'Luján, Provincia de Buenos Aires';
-    page.drawText(fechaTexto, {
-      x: 160, y: 150, size: 10, font: fontRegular, color: rgb(0.3, 0.3, 0.3)
-    });
+    // --- PÁGINA 2: MÓDULOS Y N° DE EGRESADO ---
+    if (page2) {
+      // Listado de módulos
+      let startY = 380;
+      modulos.slice(0, 10).forEach((mod, idx) => {
+        page2.drawText(`${idx + 1}. ${mod.nombre || mod}`, {
+          x: 100,
+          y: startY - (idx * 20),
+          size: 9,
+          font: fontRegular,
+          color: colorTexto
+        });
+      });
 
-    // Descargar PDF
+      // Fecha de egreso
+      page2.drawText(fechaEgreso, {
+        x: 180,
+        y: 140,
+        size: 10,
+        font: fontRegular,
+        color: colorTexto
+      });
+
+      // N° de Egresado
+      if (numEgresado) {
+        page2.drawText(String(numEgresado), {
+          x: 180,
+          y: 118,
+          size: 11,
+          font: fontBold,
+          color: rgb(0.8, 0.1, 0.1) // Destacado en rojo o azul
+        });
+      }
+    }
+
+    // Guardar y descargar
     const pdfBytes = await pdfDoc.save();
     const blob = new Blob([pdfBytes], { type: 'application/pdf' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `Certificado_${estudianteNombre.replace(/\s+/g, '_')}.pdf`;
+    link.download = `Certificado_${numEgresado ? 'Egresado_' + numEgresado + '_' : ''}${estudianteNombre.replace(/\s+/g, '_')}.pdf`;
     link.click();
 
+    if (typeof notify === 'function') notify('Certificado generado correctamente', 'success');
+
   } catch (error) {
-    console.error('Error al generar certificado:', error);
-    if (typeof Swal !== 'undefined') {
-      Swal.fire({
-        icon: 'error',
-        title: 'Error en PDF-Lab',
-        text: 'No se pudo generar el documento: ' + error.message
-      });
-    } else {
-      alert('Error al generar el certificado: ' + error.message);
-    }
+    console.error('Error al emitir certificado sobre plantilla:', error);
+    alertError('Error al emitir certificado: ' + error.message);
   }
 }
