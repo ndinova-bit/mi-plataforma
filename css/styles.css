@@ -849,84 +849,173 @@ main,
   box-sizing: border-box !important;
 }
   /* ==========================================
-   ESTILOS DE PANTALLA DE ACCESO / LOGIN
+   CENTRADO Y ESTILOS DE LA PANTALLA DE LOGIN
    ========================================== */
+
+/* Contenedor principal centrado vertical y horizontalmente */
 .auth-screen {
   min-height: 100vh;
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
   padding: 2rem 1rem;
-  background-color: var(--bg-main, #0b0f17);
+  background-color: #0b0f17;
 }
 
+/* Tarjeta contenedora con bordes suavizados y sombra */
 .auth-card {
-  background: var(--bg-card, #131b2e);
-  border: 1px solid var(--border, #2b3b55);
+  background: #131b2e;
+  border: 1px solid #2b3b55;
   border-radius: 16px;
   padding: 2.5rem 2rem;
   width: 100%;
   max-width: 420px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+  text-align: center;
 }
 
 .auth-header {
-  text-align: center;
   margin-bottom: 1.5rem;
 }
 
 .auth-logo {
-  width: 85px;
-  height: 85px;
-  object-fit: contain;
-  margin-bottom: 1rem;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
+  max-width: 120px;
+  height: auto;
+  margin: 0 auto 1rem auto;
+  display: block;
 }
 
 .auth-header h2 {
-  color: var(--text-main, #f8fafc);
-  font-size: 1.4rem;
+  color: #f8fafc;
+  font-size: 1.35rem;
   font-weight: 700;
-  margin-bottom: 0.2rem;
+  margin-bottom: 0.25rem;
 }
 
 .auth-header p {
-  color: var(--text-muted, #94a3b8);
+  color: #94a3b8;
   font-size: 0.85rem;
 }
 
+/* Selector de pestañas superiores */
 .auth-tabs {
   display: flex;
-  background: rgba(15, 23, 42, 0.6);
+  background: rgba(15, 23, 42, 0.8);
   padding: 4px;
-  border-radius: 8px;
+  border-radius: 10px;
   margin-bottom: 1.5rem;
-  border: 1px solid var(--border, #2b3b55);
+  border: 1px solid #2b3b55;
 }
 
 .auth-tab {
   flex: 1;
   background: transparent;
   border: none;
-  color: var(--text-muted, #94a3b8);
-  padding: 0.6rem;
+  color: #94a3b8;
+  padding: 0.65rem;
   font-size: 0.85rem;
   font-weight: 600;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .auth-tab.active {
-  background: var(--accent-gold, #eab308);
+  background: #eab308;
   color: #0f172a;
 }
 
-.btn-block {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+/* Agrupación de campos del formulario */
+.form-group {
+  text-align: left;
+  margin-bottom: 1.25rem;
 }
 
+.form-group label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #cbd5e1;
+  margin-bottom: 0.4rem;
+}
 
+/* Estilo moderno para Inputs y Selects */
+.form-control {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  color: #f8fafc;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  box-sizing: border-box;
+}
+
+.form-control:focus {
+  border-color: #eab308;
+  box-shadow: 0 0 0 3px rgba(234, 179, 8, 0.15);
+}
+
+/* Estilizado personalizado del Select desplegable */
+.select-wrapper {
+  position: relative;
+}
+
+.select-wrapper::after {
+  content: '▾';
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #eab308;
+  pointer-events: none;
+  font-size: 1rem;
+}
+
+.custom-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding-right: 2.5rem;
+  cursor: pointer;
+}
+
+.custom-select option {
+  background: #0f172a;
+  color: #f8fafc;
+  padding: 0.5rem;
+}
+
+/* Botones con ancho completo */
+.btn-block {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  border: none;
+  transition: opacity 0.2s ease;
+}
+
+.btn-gold {
+  background: #eab308;
+  color: #0f172a;
+}
+
+.btn-gold:hover {
+  background: #d97706;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid #334155;
+  color: #94a3b8;
+}
+
+.btn-outline:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #f8fafc;
+}
