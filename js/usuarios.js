@@ -1,4 +1,4 @@
-// js/usuarios.js - Gestión de Usuarios, Roles, Altas Manuales y Matriculación
+// js/usuarios.js - Gestión de Usuarios y Altas Manuales
 const UsuariosAdmin = {
   // Abrir modal de alta
   abrirModal() {
@@ -65,8 +65,7 @@ const UsuariosAdmin = {
               <span style="font-size: 0.8rem; color: #94a3b8;">Usuario / DNI: ${usrIdentificador}</span>
             </td>
             <td style="padding: 0.85rem 0.75rem; font-size: 0.85rem; color: #cbd5e1;">
-              ${u.email || 'Sin correo'}<br>
-              <span style="font-size: 0.75rem; color: #94a3b8;">${u.ciudad || ''} ${u.provincia ? '(' + u.provincia + ')' : ''}</span>
+              ${u.email || 'Sin correo'}
             </td>
             <td style="padding: 0.85rem 0.75rem;">
               <select class="form-control" style="padding: 0.3rem 0.5rem; font-size: 0.85rem; width: auto;" onchange="UsuariosAdmin.cambiarRol('${usrIdentificador}', this.value)">
@@ -131,7 +130,7 @@ const UsuariosAdmin = {
     }
   },
 
-  // Alta manual de usuario adaptada a los campos strictly compatibles
+  // Alta manual de usuario
   async crearUsuarioManual() {
     const apellido = document.getElementById('usr-alta-apellido')?.value.trim();
     const nombre = document.getElementById('usr-alta-nombre')?.value.trim();
@@ -145,7 +144,6 @@ const UsuariosAdmin = {
     }
 
     try {
-      // Objeto limpio con únicamente las columnas comprobadas en Supabase
       const nuevoUsuario = {
         nombre: nombre,
         apellido: apellido,
@@ -155,14 +153,12 @@ const UsuariosAdmin = {
         estado: 'activo'
       };
 
-      if (email) {
-        nuevoUsuario.email = email;
-      }
+      if (email) nuevoUsuario.email = email;
 
-      const { data: usrCreado, error: errUsr } = await supabase
+      // Insertar sin .select() para evitar la segunda consulta HTTP GET que fallaba
+      const { error: errUsr } = await supabase
         .from('usuarios')
-        .insert([nuevoUsuario])
-        .select();
+        .insert([nuevoUsuario]);
 
       if (errUsr) throw errUsr;
 
@@ -170,9 +166,8 @@ const UsuariosAdmin = {
       const checkboxes = document.querySelectorAll('input[name="trayectos_seleccionados"]:checked');
       const trayectoIds = Array.from(checkboxes).map(cb => cb.value);
 
-      if (trayectoIds.length > 0 && usrCreado && usrCreado[0]) {
+      if (trayectoIds.length > 0) {
         const inscripciones = trayectoIds.map(tId => ({
-          usuario_id: usrCreado[0].id,
           usuario_dni: dniVal,
           trayecto_id: tId,
           estado: 'cursando'
