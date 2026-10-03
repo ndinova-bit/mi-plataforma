@@ -15,10 +15,9 @@ const UsuariosAdmin = {
 
     try {
       const { data: usuarios, error } = await supabase
-        .from('usuarios')
-        .select('*')
-        .order('created_at', { ascending: false });
-
+  .from('usuarios')
+  .select('*')
+  .order('id', { ascending: false });
       if (error) throw error;
 
       if (!usuarios || usuarios.length === 0) {
