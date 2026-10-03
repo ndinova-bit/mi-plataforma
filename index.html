@@ -374,7 +374,9 @@
               <h3>Acciones Rápidas</h3>
             </div>
             <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-              <button class="btn btn-primary" onclick="UI.showTab('nuevo-trayecto')">+ Crear Trayecto</button>
+              <button class="btn btn-primary" onclick="console.log('Botón presionado'); document.getElementById('modal-alta-usuario').style.display='flex'; if(window.Usuarios) Usuarios.cargarTrayectosEnModal();">
+  + Crear Nuevo Usuario
+</button>
               <button class="btn btn-secondary" onclick="UI.showTab('trayectos')">Gestionar Trayectos</button>
               <button class="btn btn-secondary" onclick="UI.showTab('certificados')">Emitir Certificado PDF</button>
             </div>
