@@ -5,8 +5,8 @@
 
 /* 1. ESTRUCTURA Y LAYOUT BASE */
 #app-screen.dashboard-layout {
-  display: flex !important;
-  flex-direction: row !important;
+  display: flex;
+  flex-direction: row;
   min-height: 100vh;
   width: 100%;
   background-color: #0b111e;
@@ -16,7 +16,16 @@
   box-sizing: border-box;
 }
 
-/* 2. SIDEBAR LATERAL (Ancho fijo y aislamiento) */
+/* 2. REGLA DE OCULTAMIENTO AUTOMÁTICO DE LA LANDING */
+#app-screen:not([style*="display: none"]) ~ #landing-screen,
+body:has(#app-screen:not([style*="display: none"])) #landing-screen,
+body:has(#app-screen:not([style*="display: none"])) .public-landing,
+body:has(#app-screen:not([style*="display: none"])) .main-header,
+body:has(#app-screen:not([style*="display: none"])) .main-footer {
+  display: none !important;
+}
+
+/* 3. SIDEBAR LATERAL (Ancho fijo y aislamiento) */
 #app-screen .sidebar {
   width: 260px !important;
   min-width: 260px !important;
@@ -102,7 +111,7 @@
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
-/* 3. WRAPPER PRINCIPAL DERECHO */
+/* 4. WRAPPER PRINCIPAL DERECHO */
 .main-wrapper {
   flex: 1 !important;
   display: flex !important;
@@ -155,7 +164,7 @@
   display: block;
 }
 
-/* 4. CONTENIDO Y CARDS DEL DASHBOARD */
+/* 5. CONTENIDO Y CARDS DEL DASHBOARD */
 .main-content-body {
   padding: 1.75rem 2rem;
   flex: 1;
@@ -229,7 +238,7 @@
   color: #ffffff;
 }
 
-/* 5. FORMULARIOS Y MÓDULOS */
+/* 6. FORMULARIOS Y MÓDULOS */
 .form-grid-2 {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -269,10 +278,10 @@
   margin-bottom: 1rem;
 }
 
-/* 6. RESPONSIVE ADAPTATIVO */
+/* 7. RESPONSIVE ADAPTATIVO */
 @media (max-width: 900px) {
   #app-screen.dashboard-layout {
-    flex-direction: column !important;
+    flex-direction: column;
   }
 
   #app-screen .sidebar {
