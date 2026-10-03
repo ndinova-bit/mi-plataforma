@@ -114,12 +114,13 @@ const UI = {
       sec.classList.add('active');
     }
 
-    // Actualizar título en el Header Superior
+   // Actualizar título en el Header Superior
     const titleMap = {
       'dashboard': 'Dashboard General',
       'trayectos': 'Trayectos Formativos',
       'nuevo-trayecto': 'Cargar Nuevo Trayecto',
-      'certificados': 'Emisión de Certificados'
+      'certificados': 'Emisión de Certificados',
+      'usuarios': 'Gestión de Usuarios y Solicitudes' // <-- AGREGAR ESTA LÍNEA
     };
     const headerTitle = document.getElementById('current-section-title');
     if (headerTitle) {
@@ -129,6 +130,10 @@ const UI = {
     // Recargar datos desde Supabase al abrir la pestaña "Trayectos Formativos"
     if (tabId === 'trayectos' && typeof Trayectos !== 'undefined' && Trayectos.cargarTrayectos) {
       Trayectos.cargarTrayectos();
+    }
+     // <-- AGREGAR ESTA CONDICIÓN
+    if (tabId === 'usuarios' && typeof Usuarios !== 'undefined' && Usuarios.cargarUsuarios) {
+      Usuarios.cargarUsuarios();
     }
   },
 
