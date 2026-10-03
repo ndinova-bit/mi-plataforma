@@ -144,13 +144,18 @@ const UI = {
     const modal = document.getElementById('modal-alta-usuario');
     if (modal) {
       modal.style.setProperty('display', 'flex', 'important');
+      modal.style.setProperty('z-index', '999999', 'important');
+      modal.style.setProperty('opacity', '1', 'important');
+      modal.style.setProperty('visibility', 'visible', 'important');
+    } else {
+      alert('Error: No se encontró el elemento HTML con id "modal-alta-usuario"');
     }
+
     const usrObj = window.Usuarios || window.UsuariosAdmin;
     if (usrObj && typeof usrObj.cargarTrayectosEnModal === 'function') {
       usrObj.cargarTrayectosEnModal();
     }
   },
-
   // Actualiza contadores numéricos del Dashboard con datos reales de Supabase
   actualizarContadoresDashboard() {
     const elTrayectos = document.getElementById('stat-count-trayectos');
