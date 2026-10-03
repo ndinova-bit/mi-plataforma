@@ -56,20 +56,20 @@ const UsuariosAdmin = {
         const estado = u.estado || 'pendiente';
         const esActivo = estado === 'activo';
         const nombreCompleto = u.apellido ? `${u.apellido}, ${u.nombre}` : (u.nombre || 'Sin Nombre');
-        const dniVal = u.dni || u.usuario || u.id;
+        const usrIdentificador = u.usuario || u.id;
 
         return `
           <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
             <td style="padding: 0.85rem 0.75rem;">
               <strong style="color: #f8fafc; font-size: 0.95rem;">${nombreCompleto}</strong><br>
-              <span style="font-size: 0.8rem; color: #94a3b8;">DNI / Usuario: ${dniVal}</span>
+              <span style="font-size: 0.8rem; color: #94a3b8;">Usuario / DNI: ${usrIdentificador}</span>
             </td>
             <td style="padding: 0.85rem 0.75rem; font-size: 0.85rem; color: #cbd5e1;">
               ${u.email || 'Sin correo'}<br>
               <span style="font-size: 0.75rem; color: #94a3b8;">${u.ciudad || ''} ${u.provincia ? '(' + u.provincia + ')' : ''}</span>
             </td>
             <td style="padding: 0.85rem 0.75rem;">
-              <select class="form-control" style="padding: 0.3rem 0.5rem; font-size: 0.85rem; width: auto;" onchange="UsuariosAdmin.cambiarRol('${dniVal}', this.value)">
+              <select class="form-control" style="padding: 0.3rem 0.5rem; font-size: 0.85rem; width: auto;" onchange="UsuariosAdmin.cambiarRol('${usrIdentificador}', this.value)">
                 <option value="estudiante" ${u.rol === 'estudiante' ? 'selected' : ''}>Estudiante</option>
                 <option value="docente" ${u.rol === 'docente' ? 'selected' : ''}>Docente</option>
                 <option value="admin" ${u.rol === 'admin' ? 'selected' : ''}>Administrador</option>
@@ -82,11 +82,11 @@ const UsuariosAdmin = {
             </td>
             <td style="padding: 0.85rem 0.75rem; text-align: right;">
               ${!esActivo ? `
-                <button class="btn btn-gold" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;" onclick="UsuariosAdmin.cambiarEstado('${dniVal}', 'activo')">
+                <button class="btn btn-gold" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;" onclick="UsuariosAdmin.cambiarEstado('${usrIdentificador}', 'activo')">
                   ✓ Aprobar
                 </button>
               ` : `
-                <button class="btn btn-danger" style="padding: 0.35rem 0.75rem; font-size: 0.8rem; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171;" onclick="UsuariosAdmin.cambiarEstado('${dniVal}', 'pendiente')">
+                <button class="btn btn-danger" style="padding: 0.35rem 0.75rem; font-size: 0.8rem; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171;" onclick="UsuariosAdmin.cambiarEstado('${usrIdentificador}', 'pendiente')">
                   🔒 Inhabilitar
                 </button>
               `}
@@ -131,11 +131,11 @@ const UsuariosAdmin = {
     }
   },
 
-  // Alta manual de usuario con asignación de trayectos
+  // Alta manual de usuario adaptada a la estructura exacta de Supabase
   async crearUsuarioManual() {
     const apellido = document.getElementById('usr-alta-apellido')?.value.trim();
     const nombre = document.getElementById('usr-alta-nombre')?.value.trim();
-    const dni = document.getElementById('usr-alta-dni')?.value.trim();
+    const dniVal = document.getElementById('usr-alta-dni')?.value.trim();
     const email = document.getElementById('usr-alta-email')?.value.trim();
     const rol = document.getElementById('usr-alta-rol')?.value || 'estudiante';
     const fechaNac = document.getElementById('usr-alta-fecha')?.value || null;
@@ -144,28 +144,32 @@ const UsuariosAdmin = {
     const provincia = document.getElementById('usr-alta-provincia')?.value.trim() || '';
     const nacionalidad = document.getElementById('usr-alta-nacionalidad')?.value.trim() || 'Argentina';
 
-    if (!nombre || !apellido || !dni) {
+    if (!nombre || !apellido || !dniVal) {
       if (typeof notify === 'function') notify('error', 'Por favor completá Nombre, Apellido y DNI.');
       return;
     }
 
     try {
+      // Estructura limpia que coincide con la tabla 'usuarios'
       const nuevoUsuario = {
         nombre: nombre,
         apellido: apellido,
-        dni: dni,
-        usuario: dni,
-        pass: dni,
-        email: email,
+        usuario: dniVal,
+        pass: dniVal,
+        email: email || null,
         rol: rol,
         estado: 'activo',
-        fecha_nacimiento: fechaNac,
         domicilio: domicilio,
         ciudad: ciudad,
         provincia: provincia,
         nacionalidad: nacionalidad,
         cambiar_pass: true
       };
+
+      // Si ingresó fecha de nacimiento, la incluimos
+      if (fechaNac) {
+        nuevoUsuario.fecha_nacimiento = fechaNac;
+      }
 
       const { data: usrCreado, error: errUsr } = await supabase
         .from('usuarios')
@@ -174,13 +178,14 @@ const UsuariosAdmin = {
 
       if (errUsr) throw errUsr;
 
+      // Inscribir en trayectos seleccionados
       const checkboxes = document.querySelectorAll('input[name="trayectos_seleccionados"]:checked');
       const trayectoIds = Array.from(checkboxes).map(cb => cb.value);
 
       if (trayectoIds.length > 0 && usrCreado && usrCreado[0]) {
         const inscripciones = trayectoIds.map(tId => ({
           usuario_id: usrCreado[0].id,
-          usuario_dni: dni,
+          usuario_dni: dniVal,
           trayecto_id: tId,
           estado: 'cursando'
         }));
@@ -189,23 +194,32 @@ const UsuariosAdmin = {
         if (errInsc) console.error('Error guardando inscripciones:', errInsc);
       }
 
-      if (typeof notify === 'function') notify('success', `Usuario ${nombre} ${apellido} creado con éxito. Usuario y Clave: ${dni}`);
-      
+      if (typeof notify === 'function') {
+        notify('success', `Usuario ${nombre} ${apellido} creado con éxito.`);
+      } else {
+        alert(`Usuario ${nombre} ${apellido} creado con éxito.`);
+      }
+
       this.cerrarModal();
       this.cargarUsuarios();
     } catch (err) {
       console.error('Error al crear usuario:', err);
-      if (typeof notify === 'function') notify('error', 'Error al guardar usuario en Supabase. Verificá si el DNI ya existe.');
+      const msgError = err.message || 'Error al guardar usuario en Supabase.';
+      if (typeof notify === 'function') {
+        notify('error', msgError);
+      } else {
+        alert('Error al guardar: ' + msgError);
+      }
     }
   },
 
   // Cambiar estado
-  async cambiarEstado(dni, nuevoEstado) {
+  async cambiarEstado(identificador, nuevoEstado) {
     try {
       const { error } = await supabase
         .from('usuarios')
         .update({ estado: nuevoEstado })
-        .eq('usuario', dni);
+        .eq('usuario', identificador);
 
       if (error) throw error;
 
@@ -218,12 +232,12 @@ const UsuariosAdmin = {
   },
 
   // Cambiar rol
-  async cambiarRol(dni, nuevoRol) {
+  async cambiarRol(identificador, nuevoRol) {
     try {
       const { error } = await supabase
         .from('usuarios')
         .update({ rol: nuevoRol })
-        .eq('usuario', dni);
+        .eq('usuario', identificador);
 
       if (error) throw error;
 
@@ -235,14 +249,13 @@ const UsuariosAdmin = {
   }
 };
 
-// Alias y funciones globales para garantizar compatibilidad con HTML Inline
+// Aliases y exposición global
 UsuariosAdmin.cargarTrayectosModal = UsuariosAdmin.cargarTrayectosEnModal;
 UsuariosAdmin.cargarTrayectos = UsuariosAdmin.cargarTrayectosEnModal;
 
 window.UsuariosAdmin = UsuariosAdmin;
 window.Usuarios = UsuariosAdmin;
 
-// Mapeo global directo para eventos HTML onclick / onsubmit
 window.crearUsuarioManual = () => UsuariosAdmin.crearUsuarioManual();
 window.cerrarModal = () => UsuariosAdmin.cerrarModal();
 window.abrirModal = () => UsuariosAdmin.abrirModal();
