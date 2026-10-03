@@ -292,22 +292,34 @@ body:has(#app-screen[style*="display: flex"]) .main-footer {
     border-right: none;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   }
-}
+
   .main-content-body {
     padding: 1rem;
   }
-   /* ==========================================================
-   DESBLOQUEO TOTAL DEL MODAL DE USUARIOS (#modal-alta-usuario)
+}
+
+/* ==========================================================
+   CONTROL Y DESBLOQUEO DEL MODAL DE USUARIOS (#modal-alta-usuario)
    ========================================================== */
+
+/* 1. OCULTO POR DEFECTO para liberar la pantalla */
 #modal-alta-usuario,
 .modal-overlay {
+  display: none !important;
+  pointer-events: none !important;
   position: fixed !important;
   inset: 0 !important;
   background: rgba(0, 0, 0, 0.75) !important;
   z-index: 99999 !important;
-  display: flex !important;
   align-items: center !important;
   justify-content: center !important;
+}
+
+/* 2. SOLO VISIBLE CUANDO JS LO ACTIVA */
+#modal-alta-usuario[style*="display: flex"],
+#modal-alta-usuario.active,
+.modal-overlay.active {
+  display: flex !important;
   pointer-events: auto !important;
 }
 
@@ -336,18 +348,4 @@ body:has(#app-screen[style*="display: flex"]) .main-footer {
 #modal-alta-usuario input[type="email"],
 #modal-alta-usuario input[type="date"] {
   cursor: text !important;
-}
-
-/* Bloquea la interacción con el fondo mientras el modal está activo */
-body:has(#modal-alta-usuario[style*="display: flex"]) .main-wrapper,
-body:has(#modal-alta-usuario[style*="display: flex"]) .sidebar {
-  pointer-events: none !important;
-}
-
-#modal-alta-usuario {
-  pointer-events: auto !important;
-}
-
-#modal-alta-usuario .card-panel {
-  pointer-events: auto !important;
 }
