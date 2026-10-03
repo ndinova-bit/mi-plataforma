@@ -131,7 +131,7 @@ const UsuariosAdmin = {
     }
   },
 
-  // Alta manual de usuario adaptada a la estructura exacta de Supabase
+  // Alta manual de usuario
   async crearUsuarioManual() {
     const apellido = document.getElementById('usr-alta-apellido')?.value.trim();
     const nombre = document.getElementById('usr-alta-nombre')?.value.trim();
@@ -150,26 +150,23 @@ const UsuariosAdmin = {
     }
 
     try {
-      // Estructura limpia que coincide con la tabla 'usuarios'
+      // Objeto limpio con campos validados
       const nuevoUsuario = {
         nombre: nombre,
         apellido: apellido,
         usuario: dniVal,
         pass: dniVal,
-        email: email || null,
         rol: rol,
         estado: 'activo',
-        domicilio: domicilio,
-        ciudad: ciudad,
-        provincia: provincia,
-        nacionalidad: nacionalidad,
         cambiar_pass: true
       };
 
-      // Si ingresó fecha de nacimiento, la incluimos
-      if (fechaNac) {
-        nuevoUsuario.fecha_nacimiento = fechaNac;
-      }
+      if (email) nuevoUsuario.email = email;
+      if (domicilio) nuevoUsuario.domicilio = domicilio;
+      if (ciudad) nuevoUsuario.ciudad = ciudad;
+      if (provincia) nuevoUsuario.provincia = provincia;
+      if (nacionalidad) nuevoUsuario.nacionalidad = nacionalidad;
+      if (fechaNac) nuevoUsuario.fecha_nacimiento = fechaNac;
 
       const { data: usrCreado, error: errUsr } = await supabase
         .from('usuarios')
