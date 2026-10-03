@@ -1,7 +1,7 @@
 // Configuración de Supabase
 if (typeof SUPABASE_URL === 'undefined') {
   var SUPABASE_URL = 'https://dxgqtdaexlegsaohdywx.supabase.co';
-  var SUPABASE_ANON_KEY = 'sb_publishable_q3iliYP60gR5bP6vtTwoHA_8FWqg7iz';
+  var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR4Z3F0ZGFleGxlZ3Nhb2hkeXd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA0MDk3MTMsImV4cCI6MjEwNTk4NTcxM30.XFH0vQYm68RQcY8fQNbCx_5kt6Iclb-QeJWGBuyNQow';
 }
 
 // Inicializar el cliente Supabase de forma segura
