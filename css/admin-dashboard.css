@@ -16,7 +16,7 @@
   box-sizing: border-box;
 }
 
-/* 2. OCULTAR LANDING SOLO CUANDO EL DASHBOARD ESTÁ VISIBLE (DISPLAY: FLEX) */
+/* 2. OCULTAR LANDING SOLO CUANDO EL DASHBOARD ESTÁ VISIBLE */
 #app-screen[style*="display: flex"] ~ #landing-screen,
 body:has(#app-screen[style*="display: flex"]) #landing-screen,
 body:has(#app-screen[style*="display: flex"]) .public-landing,
@@ -40,7 +40,7 @@ body:has(#app-screen[style*="display: flex"]) .main-footer {
   flex-shrink: 0;
 }
 
-/* Control estricto de tamaño del Logo en el Sidebar */
+/* Control de tamaño del Logo en el Sidebar */
 .sidebar-brand {
   display: flex;
   align-items: center;
@@ -299,53 +299,70 @@ body:has(#app-screen[style*="display: flex"]) .main-footer {
 }
 
 /* ==========================================================
-   CONTROL Y DESBLOQUEO DEL MODAL DE USUARIOS (#modal-alta-usuario)
+   ESTILOS Y MANEJO DE OVERLAY / MODAL (#modal-alta-usuario)
    ========================================================== */
 
-/* 1. OCULTO POR DEFECTO para liberar la pantalla */
-#modal-alta-usuario,
-.modal-overlay {
-  display: none !important;
-  pointer-events: none !important;
+/* Overlay base (oculto por defecto) */
+.modal-overlay,
+#modal-alta-usuario {
+  display: none;
   position: fixed !important;
   inset: 0 !important;
-  background: rgba(0, 0, 0, 0.75) !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(0, 0, 0, 0.8) !important;
+  backdrop-filter: blur(4px);
   z-index: 99999 !important;
   align-items: center !important;
   justify-content: center !important;
+  padding: 1rem !important;
+  box-sizing: border-box;
 }
 
-/* 2. SOLO VISIBLE CUANDO JS LO ACTIVA O TIENE DISPLAY FLEX */
-#modal-alta-usuario[style*="display: flex"],
+/* Estado visible (activado por JS agregando estilo display: flex o la clase .open/.active) */
+.modal-overlay.open,
+.modal-overlay.active,
+#modal-alta-usuario.open,
 #modal-alta-usuario.active,
-.modal-overlay.active {
+#modal-alta-usuario[style*="display: flex"],
+#modal-alta-usuario[style*="display:flex"] {
   display: flex !important;
   pointer-events: auto !important;
 }
 
+/* Contenedor del panel dentro del modal */
+.modal-overlay .card-panel,
 #modal-alta-usuario .card-panel {
   position: relative !important;
   z-index: 100000 !important;
   pointer-events: auto !important;
   background: #0f172a !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+  width: 100%;
+  max-width: 650px;
   max-height: 90vh !important;
   overflow-y: auto !important;
 }
 
-/* Habilita interacción explícita en todos los inputs y selects */
+/* Corrección de interacciones y cursores de campos */
 #modal-alta-usuario input,
 #modal-alta-usuario select,
-#modal-alta-usuario button,
-#modal-alta-usuario label,
-#usr-alta-trayectos,
-#usr-alta-trayectos input[type="checkbox"] {
+#modal-alta-usuario textarea,
+#modal-alta-usuario button {
   pointer-events: auto !important;
   user-select: text !important;
-  cursor: pointer !important;
 }
 
 #modal-alta-usuario input[type="text"],
 #modal-alta-usuario input[type="email"],
-#modal-alta-usuario input[type="date"] {
+#modal-alta-usuario input[type="date"],
+#modal-alta-usuario textarea {
   cursor: text !important;
+}
+
+#modal-alta-usuario button,
+#modal-alta-usuario select,
+#modal-alta-usuario input[type="checkbox"] {
+  cursor: pointer !important;
 }
