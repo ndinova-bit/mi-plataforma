@@ -53,8 +53,8 @@ const UsuariosAdmin = {
       }
 
       tbody.innerHTML = usuarios.map(u => {
-        const estado = (u.estado || 'PENDIENTE').toUpperCase();
-        const esActivo = estado === 'ACTIVO';
+        const estadoRaw = String(u.estado || 'PENDIENTE').toUpperCase();
+        const esActivo = estadoRaw === 'ACTIVO' || estadoRaw === 'ACTIVA' || estadoRaw === 'HABILITADO';
         const nombreCompleto = u.apellido ? `${u.apellido}, ${u.nombre}` : (u.nombre || 'Sin Nombre');
         const usrIdentificador = u.usuario || u.id;
 
@@ -76,7 +76,7 @@ const UsuariosAdmin = {
             </td>
             <td style="padding: 0.85rem 0.75rem;">
               <span class="badge" style="background: ${esActivo ? 'rgba(34, 197, 94, 0.15)' : 'rgba(234, 179, 8, 0.15)'}; color: ${esActivo ? '#4ade80' : '#facc15'}; border: 1px solid ${esActivo ? 'rgba(34, 197, 94, 0.3)' : 'rgba(234, 179, 8, 0.3)'}; padding: 0.25rem 0.6rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600;">
-                ${estado}
+                ${estadoRaw}
               </span>
             </td>
             <td style="padding: 0.85rem 0.75rem; text-align: right;">
@@ -130,7 +130,7 @@ const UsuariosAdmin = {
     }
   },
 
-  // Alta manual de usuario con conversión a MAYÚSCULAS
+  // Alta manual de usuario con conversión a MAYÚSCULAS y omitiendo "estado"
   async crearUsuarioManual() {
     const apellido = document.getElementById('usr-alta-apellido')?.value.trim().toUpperCase();
     const nombre = document.getElementById('usr-alta-nombre')?.value.trim().toUpperCase();
@@ -149,8 +149,8 @@ const UsuariosAdmin = {
         apellido: apellido,
         usuario: dniVal,
         pass: dniVal,
-        rol: rol,
-        estado: 'ACTIVO'
+        rol: rol
+        // Omitimos 'estado' para dejar que Supabase use el valor por defecto de la base de datos
       };
 
       if (email) nuevoUsuario.email = email;
@@ -200,7 +200,7 @@ const UsuariosAdmin = {
     try {
       const { error } = await supabase
         .from('usuarios')
-        .update({ estado: nuevoEstado.toUpperCase() })
+        .update({ estado: nuevoEstado })
         .eq('usuario', identificador);
 
       if (error) throw error;
