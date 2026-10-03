@@ -296,4 +296,33 @@ body:has(#app-screen[style*="display: flex"]) .main-footer {
   .main-content-body {
     padding: 1rem;
   }
+   /* ==========================================
+   ESTILOS DE VENTANA MODAL (CREAR USUARIO)
+   ========================================== */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 1rem;
+}
+
+.modal-content {
+  position: relative;
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  z-index: 10000;
+  pointer-events: auto;
+}
 }
