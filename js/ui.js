@@ -1,7 +1,6 @@
-const UI = {
-  // Muestra la pantalla de inicio (Landing)
+// Muestra la pantalla de inicio (Landing)
   showLanding() {
-    const landing = document.getElementById('landing-screen') || document.getElementById('public-landing');
+    const landing = document.getElementById('landing-screen') || document.querySelector('header')?.parentElement;
     const login = document.getElementById('login-screen');
     const app = document.getElementById('app-screen');
 
@@ -10,26 +9,25 @@ const UI = {
     if (app) app.style.display = 'none';
   },
 
-  // Muestra la pantalla de Login centrada
-  showLoginScreen() {
-    const landing = document.getElementById('landing-screen') || document.getElementById('public-landing');
-    const login = document.getElementById('login-screen');
-    const app = document.getElementById('app-screen');
-
-    if (landing) landing.style.display = 'none';
-    if (login) login.style.display = 'flex';
-    if (app) app.style.display = 'none';
-  },
-
   // Muestra el Panel de Control / Dashboard según rol
   mostrarDashboard(perfil) {
-    const landing = document.getElementById('landing-screen') || document.getElementById('public-landing');
+    const landing = document.getElementById('landing-screen') || document.querySelector('header');
     const login = document.getElementById('login-screen');
     const app = document.getElementById('app-screen');
 
+    // Ocultar Landing y Login por completo
     if (landing) landing.style.display = 'none';
     if (login) login.style.display = 'none';
-    if (app) app.style.display = 'flex'; // Usar flex para el layout sidebar + wrapper
+
+    // Ocultar cualquier sección previa de la landing pública
+    document.querySelectorAll('.public-section, header, footer').forEach(el => {
+      if (!el.closest('#app-screen')) {
+        el.style.display = 'none';
+      }
+    });
+
+    // Mostrar solo el Panel Administrativo
+    if (app) app.style.display = 'flex'; 
 
     const displayUsername = document.getElementById('display-username');
     const displayRole = document.getElementById('display-role');
@@ -37,7 +35,7 @@ const UI = {
     if (displayUsername) displayUsername.innerText = perfil.nombre || perfil.usuario;
     if (displayRole) displayRole.innerText = (perfil.rol || '').toUpperCase();
 
-    // Gestión de permisos según ROL (Soporta flex y block según el elemento)
+    // Gestión de permisos según ROL
     const isAdmin = perfil.rol === 'admin';
     const isDocente = perfil.rol === 'docente';
 
@@ -53,10 +51,7 @@ const UI = {
       el.style.display = (isDocente || isAdmin) ? (el.tagName === 'BUTTON' ? 'flex' : 'block') : 'none';
     });
 
-    // Cargar estadísticas breves si existen datos en memoria
     this.actualizarContadoresDashboard();
-
-    // Ir al Dashboard de inicio por defecto
     this.showTab('dashboard');
   },
 
