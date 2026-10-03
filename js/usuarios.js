@@ -1,4 +1,4 @@
-// js/usuarios.js - Gestión de Usuarios, Roles y Altas Manuales
+// js/usuarios.js - Gestión de Usuarios, Roles, Altas Manuales y Matriculación
 const UsuariosAdmin = {
   // Cargar lista de usuarios registrados
   async cargarUsuarios() {
@@ -42,7 +42,7 @@ const UsuariosAdmin = {
           <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
             <td style="padding: 0.85rem 0.75rem;">
               <strong style="color: #f8fafc; font-size: 0.95rem;">${nombreCompleto}</strong><br>
-              <span style="font-size: 0.8rem; color: #94a3b8;">DNI: ${dniVal}</span>
+              <span style="font-size: 0.8rem; color: #94a3b8;">DNI / Usuario: ${dniVal}</span>
             </td>
             <td style="padding: 0.85rem 0.75rem; font-size: 0.85rem; color: #cbd5e1;">
               ${u.email || 'Sin correo'}<br>
@@ -80,7 +80,38 @@ const UsuariosAdmin = {
     }
   },
 
-  // Alta manual de usuario desde el administrador
+  // Cargar lista de trayectos activos dentro del modal
+  async cargarTrayectosEnModal() {
+    const contenedor = document.getElementById('usr-alta-trayectos');
+    if (!contenedor) return;
+
+    contenedor.innerHTML = '<span style="color: #94a3b8; font-size: 0.85rem;">Cargando trayectos...</span>';
+
+    try {
+      const { data: trayectos, error } = await supabase
+        .from('trayectos')
+        .select('id, nombre');
+
+      if (error) throw error;
+
+      if (!trayectos || trayectos.length === 0) {
+        contenedor.innerHTML = '<span style="color: #94a3b8; font-size: 0.85rem;">No hay trayectos disponibles aún.</span>';
+        return;
+      }
+
+      contenedor.innerHTML = trayectos.map(t => `
+        <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: #cbd5e1; cursor: pointer; margin-bottom: 0.4rem;">
+          <input type="checkbox" name="trayectos_seleccionados" value="${t.id}">
+          <span>${t.nombre}</span>
+        </label>
+      `).join('');
+    } catch (err) {
+      console.error('Error al cargar trayectos para el modal:', err);
+      contenedor.innerHTML = '<span style="color: #f87171; font-size: 0.85rem;">Error al obtener trayectos.</span>';
+    }
+  },
+
+  // Alta manual de usuario con asignación de trayectos
   async crearUsuarioManual() {
     const apellido = document.getElementById('usr-alta-apellido')?.value.trim();
     const nombre = document.getElementById('usr-alta-nombre')?.value.trim();
@@ -103,7 +134,7 @@ const UsuariosAdmin = {
         nombre: nombre,
         apellido: apellido,
         dni: dni,
-        usuario: dni, // DNI como usuario
+        usuario: dni, // DNI como usuario de acceso
         pass: dni,    // DNI como contraseña inicial por defecto
         email: email,
         rol: rol,
@@ -116,13 +147,33 @@ const UsuariosAdmin = {
         cambiar_pass: true
       };
 
-      const { error } = await supabase.from('usuarios').insert([nuevoUsuario]);
+      const { data: usrCreado, error: errUsr } = await supabase
+        .from('usuarios')
+        .insert([nuevoUsuario])
+        .select();
 
-      if (error) throw error;
+      if (errUsr) throw errUsr;
 
-      notify('success', `Usuario ${nombre} ${apellido} creado con éxito. Clave inicial: ${dni}`);
+      // Obtener trayectos marcados en el checkbox
+      const checkboxes = document.querySelectorAll('input[name="trayectos_seleccionados"]:checked');
+      const trayectoIds = Array.from(checkboxes).map(cb => cb.value);
+
+      // Guardar inscripciones si se seleccionaron trayectos
+      if (trayectoIds.length > 0 && usrCreado && usrCreado[0]) {
+        const inscripciones = trayectoIds.map(tId => ({
+          usuario_id: usrCreado[0].id,
+          usuario_dni: dni,
+          trayecto_id: tId,
+          estado: 'cursando'
+        }));
+
+        const { error: errInsc } = await supabase.from('inscripciones').insert(inscripciones);
+        if (errInsc) console.error('Error guardando inscripciones:', errInsc);
+      }
+
+      notify('success', `Usuario ${nombre} ${apellido} creado con éxito. Usuario y Clave: ${dni}`);
       
-      // Limpiar formulario y cerrar modal si existe
+      // Limpiar formulario y cerrar modal
       document.getElementById('form-alta-usuario')?.reset();
       const modal = document.getElementById('modal-alta-usuario');
       if (modal) modal.style.display = 'none';
@@ -130,11 +181,11 @@ const UsuariosAdmin = {
       this.cargarUsuarios();
     } catch (err) {
       console.error('Error al crear usuario:', err);
-      notify('error', 'Error al guardar el usuario en Supabase.');
+      notify('error', 'Error al guardar usuario en Supabase. Verificá si el DNI ya existe.');
     }
   },
 
-  // Cambiar estado
+  // Cambiar estado (Activo / Inactivo)
   async cambiarEstado(dni, nuevoEstado) {
     try {
       const { error } = await supabase
@@ -152,7 +203,7 @@ const UsuariosAdmin = {
     }
   },
 
-  // Cambiar rol
+  // Cambiar rol (Estudiante / Docente / Admin)
   async cambiarRol(dni, nuevoRol) {
     try {
       const { error } = await supabase
