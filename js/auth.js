@@ -34,10 +34,14 @@ const Auth = {
 
       if (perfil.estado === 'pendiente') {
         // ✅ Forma correcta (vía objeto):
+        
+// OPCIÓN 1 (Recomendada):
 Swal.fire({
   icon: 'success',
-  title: '¡Bienvenido/a NICOLAS DINOVA!',
-  confirmButtonColor: '#2563eb'
+  title: '¡Sesión Iniciada!',
+  text: `¡Bienvenido/a ${usuario.nombre}!`,
+  timer: 2000,
+  showConfirmButton: false
 });
 
 // ✅ O de forma abreviada: Swal.fire(título, texto, icono)
