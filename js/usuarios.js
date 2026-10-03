@@ -224,3 +224,5 @@ UsuariosAdmin.cargarTrayectos = UsuariosAdmin.cargarTrayectosEnModal;
 
 window.UsuariosAdmin = UsuariosAdmin;
 window.Usuarios = UsuariosAdmin;
+
+
