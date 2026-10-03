@@ -378,7 +378,7 @@
           </div>
         </section>
 
-        <!-- VISTA 2: LISTA DE TRAYECTOS DENTRO DEL DASHBOARD -->
+       <!-- VISTA 2: LISTA DE TRAYECTOS DENTRO DEL DASHBOARD -->
         <section id="trayectos" class="section-tab" style="display: none;">
           <div class="card-panel-header">
             <div>
@@ -387,68 +387,11 @@
             </div>
             <button class="btn btn-primary admin-only" onclick="UI.showTab('nuevo-trayecto')">+ Nuevo Trayecto</button>
           </div>
-          <!-- Contenedor donde trayectos.js renderiza los trayectos -->
-          <div id="lista-trayectos-cards"></div>
+          <!-- Contenedor único para el panel admin -->
+          <div id="lista-trayectos-admin"></div>
         </section>
-
-        <!-- VISTA 3: CARGA DE TRAYECTO (FORMULARIO) -->
-        <section id="nuevo-trayecto" class="section-tab admin-only" style="display: none;">
-          <div class="card-panel">
-            <div class="card-panel-header">
-              <h3>Nuevo Trayecto Formativo</h3>
-            </div>
-            <form id="form-trayecto" onsubmit="event.preventDefault(); Trayectos.guardarTrayecto();">
-              <div class="form-grid-2">
-                <div class="form-group">
-                  <label for="trayecto-nombre">Nombre del Trayecto</label>
-                  <input type="text" id="trayecto-nombre" class="form-control" placeholder="Ej: Programación Web" required>
-                </div>
-                <div class="form-group">
-                  <label for="trayecto-sector">Sector Profesional</label>
-                  <input type="text" id="trayecto-sector" class="form-control" placeholder="Ej: Informática y Comunicación">
-                </div>
-              </div>
-
-              <div class="form-group" style="margin-top: 1rem;">
-                <label for="trayecto-descripcion">Descripción</label>
-                <textarea id="trayecto-descripcion" class="form-control" rows="3" placeholder="Resumen del trayecto..."></textarea>
-              </div>
-
-              <div class="form-group" style="margin-top: 1rem;">
-                <label for="trayecto-requisitos">Requisitos de Inscripción</label>
-                <textarea id="trayecto-requisitos" class="form-control" rows="2" placeholder="Ej: DNI, mayor de 16 años..."></textarea>
-              </div>
-
-              <hr style="margin: 1.5rem 0; border-color: rgba(255,255,255,0.08);">
-              
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                <h4>Módulos Asociados</h4>
-                <button type="button" class="btn btn-secondary" onclick="UI.agregarFilaModulo()">+ Agregar Módulo</button>
-              </div>
-
-              <div id="contenedor-modulos">
-                <div class="modulo-item-card">
-                  <div class="form-grid-2">
-                    <input type="text" class="mod-nombre form-control" placeholder="Nombre del Módulo">
-                    <input type="text" class="mod-codigo form-control" placeholder="Código (Ej: GH 0050)">
-                  </div>
-                  <div class="form-grid-2" style="margin-top: 0.75rem;">
-                    <div>
-                      <label style="font-size: 0.75rem;">Fecha Inicio</label>
-                      <input type="date" class="mod-inicio form-control">
-                    </div>
-                    <div>
-                      <label style="font-size: 0.75rem;">Fecha Fin</label>
-                      <input type="date" class="mod-fin form-control">
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <button type="submit" class="btn btn-primary" style="margin-top: 1.5rem; width: 100%;">Guardar Trayecto Completo</button>
-            </form>
-          </div>
-        </section>
+        
+        <En el formulario de "Nuevo Trayecto" (#nuevo-trayecto), agregá los inputs de Certificación Oficial y Resolución N°:
 
         <!-- VISTA 4: CERTIFICADOS POR LISTADO -->
         <section id="certificados" class="section-tab admin-only" style="display: none;">
