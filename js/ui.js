@@ -139,6 +139,18 @@ const UI = {
     }
   },
 
+  // Método seguro para abrir el modal de Alta de Usuario
+  abrirModalNuevoUsuario() {
+    const modal = document.getElementById('modal-alta-usuario');
+    if (modal) {
+      modal.style.setProperty('display', 'flex', 'important');
+    }
+    const usrObj = window.Usuarios || window.UsuariosAdmin;
+    if (usrObj && typeof usrObj.cargarTrayectosEnModal === 'function') {
+      usrObj.cargarTrayectosEnModal();
+    }
+  },
+
   // Actualiza contadores numéricos del Dashboard con datos reales de Supabase
   actualizarContadoresDashboard() {
     const elTrayectos = document.getElementById('stat-count-trayectos');
