@@ -131,26 +131,38 @@ const UsuariosAdmin = {
     }
   },
 
-  // Alta manual de usuario
+  // Alta manual de usuario con formateo estricto
   async crearUsuarioManual() {
     const apellido = document.getElementById('usr-alta-apellido')?.value.trim();
     const nombre = document.getElementById('usr-alta-nombre')?.value.trim();
     const dniVal = document.getElementById('usr-alta-dni')?.value.trim();
     const email = document.getElementById('usr-alta-email')?.value.trim();
     const rol = document.getElementById('usr-alta-rol')?.value || 'estudiante';
-    const fechaNac = document.getElementById('usr-alta-fecha')?.value || null;
-    const domicilio = document.getElementById('usr-alta-domicilio')?.value.trim() || '';
-    const ciudad = document.getElementById('usr-alta-ciudad')?.value.trim() || '';
-    const provincia = document.getElementById('usr-alta-provincia')?.value.trim() || '';
-    const nacionalidad = document.getElementById('usr-alta-nacionalidad')?.value.trim() || 'Argentina';
+    const fechaInput = document.getElementById('usr-alta-fecha')?.value;
+    const domicilio = document.getElementById('usr-alta-domicilio')?.value.trim();
+    const ciudad = document.getElementById('usr-alta-ciudad')?.value.trim();
+    const provincia = document.getElementById('usr-alta-provincia')?.value.trim();
+    const nacionalidad = document.getElementById('usr-alta-nacionalidad')?.value.trim();
 
     if (!nombre || !apellido || !dniVal) {
       if (typeof notify === 'function') notify('error', 'Por favor completá Nombre, Apellido y DNI.');
       return;
     }
 
+    // Convertir fecha de DD/MM/YYYY o YYYY-MM-DD a YYYY-MM-DD estricto
+    let fechaNac = null;
+    if (fechaInput) {
+      if (fechaInput.includes('/')) {
+        const partes = fechaInput.split('/');
+        if (partes.length === 3) {
+          fechaNac = `${partes[2]}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}`;
+        }
+      } else {
+        fechaNac = fechaInput;
+      }
+    }
+
     try {
-      // Objeto limpio con campos validados
       const nuevoUsuario = {
         nombre: nombre,
         apellido: apellido,
