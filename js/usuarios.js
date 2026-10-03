@@ -53,8 +53,8 @@ const UsuariosAdmin = {
       }
 
       tbody.innerHTML = usuarios.map(u => {
-        const estado = u.estado || 'pendiente';
-        const esActivo = estado === 'activo';
+        const estado = (u.estado || 'PENDIENTE').toUpperCase();
+        const esActivo = estado === 'ACTIVO';
         const nombreCompleto = u.apellido ? `${u.apellido}, ${u.nombre}` : (u.nombre || 'Sin Nombre');
         const usrIdentificador = u.usuario || u.id;
 
@@ -76,16 +76,16 @@ const UsuariosAdmin = {
             </td>
             <td style="padding: 0.85rem 0.75rem;">
               <span class="badge" style="background: ${esActivo ? 'rgba(34, 197, 94, 0.15)' : 'rgba(234, 179, 8, 0.15)'}; color: ${esActivo ? '#4ade80' : '#facc15'}; border: 1px solid ${esActivo ? 'rgba(34, 197, 94, 0.3)' : 'rgba(234, 179, 8, 0.3)'}; padding: 0.25rem 0.6rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600;">
-                ${estado.toUpperCase()}
+                ${estado}
               </span>
             </td>
             <td style="padding: 0.85rem 0.75rem; text-align: right;">
               ${!esActivo ? `
-                <button class="btn btn-gold" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;" onclick="UsuariosAdmin.cambiarEstado('${usrIdentificador}', 'activo')">
+                <button class="btn btn-gold" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;" onclick="UsuariosAdmin.cambiarEstado('${usrIdentificador}', 'ACTIVO')">
                   ✓ Aprobar
                 </button>
               ` : `
-                <button class="btn btn-danger" style="padding: 0.35rem 0.75rem; font-size: 0.8rem; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171;" onclick="UsuariosAdmin.cambiarEstado('${usrIdentificador}', 'pendiente')">
+                <button class="btn btn-danger" style="padding: 0.35rem 0.75rem; font-size: 0.8rem; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171;" onclick="UsuariosAdmin.cambiarEstado('${usrIdentificador}', 'PENDIENTE')">
                   🔒 Inhabilitar
                 </button>
               `}
@@ -130,12 +130,12 @@ const UsuariosAdmin = {
     }
   },
 
-  // Alta manual de usuario
+  // Alta manual de usuario con conversión a MAYÚSCULAS
   async crearUsuarioManual() {
-    const apellido = document.getElementById('usr-alta-apellido')?.value.trim();
-    const nombre = document.getElementById('usr-alta-nombre')?.value.trim();
+    const apellido = document.getElementById('usr-alta-apellido')?.value.trim().toUpperCase();
+    const nombre = document.getElementById('usr-alta-nombre')?.value.trim().toUpperCase();
     const dniVal = document.getElementById('usr-alta-dni')?.value.trim();
-    const email = document.getElementById('usr-alta-email')?.value.trim();
+    const email = document.getElementById('usr-alta-email')?.value.trim().toUpperCase();
     const rol = document.getElementById('usr-alta-rol')?.value || 'estudiante';
 
     if (!nombre || !apellido || !dniVal) {
@@ -150,12 +150,11 @@ const UsuariosAdmin = {
         usuario: dniVal,
         pass: dniVal,
         rol: rol,
-        estado: 'activo'
+        estado: 'ACTIVO'
       };
 
       if (email) nuevoUsuario.email = email;
 
-      // Insertar sin .select() para evitar la segunda consulta HTTP GET que fallaba
       const { error: errUsr } = await supabase
         .from('usuarios')
         .insert([nuevoUsuario]);
@@ -201,7 +200,7 @@ const UsuariosAdmin = {
     try {
       const { error } = await supabase
         .from('usuarios')
-        .update({ estado: nuevoEstado })
+        .update({ estado: nuevoEstado.toUpperCase() })
         .eq('usuario', identificador);
 
       if (error) throw error;
