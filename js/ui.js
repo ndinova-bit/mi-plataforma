@@ -206,5 +206,9 @@ const UI = {
       box.style.display = 'block';
       if (lbl) lbl.innerText = rol === 'estudiante' ? 'Asignar a Trayectos:' : 'Asignar como Docente en:';
     }
+    // Cargar trayectos desde Supabase al iniciar la página
+document.addEventListener('DOMContentLoaded', () => {
+  if (typeof Trayectos !== 'undefined' && Trayectos.cargarTrayectos) {
+    Trayectos.cargarTrayectos();
   }
-};
+});
