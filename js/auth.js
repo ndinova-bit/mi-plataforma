@@ -33,12 +33,15 @@ const Auth = {
       }
 
       if (perfil.estado === 'pendiente') {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Cuenta Pendiente de Aprobación',
-          text: 'Tu solicitud de registro está siendo revisada por el equipo directivo/administrador.',
-          confirmButtonColor: '#f59e0b'
-        });
+        // ✅ Forma correcta (vía objeto):
+Swal.fire({
+  icon: 'success',
+  title: '¡Bienvenido/a NICOLAS DINOVA!',
+  confirmButtonColor: '#2563eb'
+});
+
+// ✅ O de forma abreviada: Swal.fire(título, texto, icono)
+Swal.fire('¡Éxito!', '¡Bienvenido/a NICOLAS DINOVA!', 'success');
         await supabase.auth.signOut();
         return;
       }
