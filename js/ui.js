@@ -119,8 +119,19 @@ const UI = {
   abrirModalNuevoUsuario() {
     const modal = document.getElementById('modal-alta-usuario');
     if (modal) {
+      modal.classList.add('open', 'active');
       modal.style.display = 'flex';
       if (window.UsuariosAdmin) window.UsuariosAdmin.cargarTrayectosEnModal();
+    }
+  },
+
+  // Cierra el modal de alta de usuario
+  cerrarModalNuevoUsuario() {
+    const modal = document.getElementById('modal-alta-usuario');
+    if (modal) {
+      modal.classList.remove('open', 'active');
+      modal.style.display = 'none';
+      document.getElementById('form-alta-usuario')?.reset();
     }
   },
 
