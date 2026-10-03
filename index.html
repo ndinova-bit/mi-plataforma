@@ -374,9 +374,9 @@
               <h3>Acciones Rápidas</h3>
             </div>
             <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-              <button class="btn btn-primary" onclick="console.log('Botón presionado'); document.getElementById('modal-alta-usuario').style.display='flex'; if(window.Usuarios) Usuarios.cargarTrayectosEnModal();">
-  + Crear Nuevo Usuario
-</button>
+              <button class="btn btn-primary" onclick="UI.abrirModalNuevoUsuario();">
+                + Crear Nuevo Usuario
+              </button>
               <button class="btn btn-secondary" onclick="UI.showTab('trayectos')">Gestionar Trayectos</button>
               <button class="btn btn-secondary" onclick="UI.showTab('certificados')">Emitir Certificado PDF</button>
             </div>
@@ -532,9 +532,9 @@
                   Aprobación de registros pendientes, alta manual y asignación de roles.
                 </p>
               </div>
-              <button class="btn btn-primary" onclick="document.getElementById('modal-alta-usuario').style.display='flex'; if (typeof Usuarios !== 'undefined' && Usuarios.cargarTrayectosEnModal) Usuarios.cargarTrayectosEnModal();">
-  + Crear Nuevo Usuario
-</button>
+              <button class="btn btn-primary" onclick="UI.abrirModalNuevoUsuario();">
+                + Crear Nuevo Usuario
+              </button>
             </div>
 
             <div style="overflow-x: auto; margin-top: 1.25rem;">
@@ -568,7 +568,7 @@
         <button type="button" class="btn btn-outline" onclick="document.getElementById('modal-alta-usuario').style.display='none';" style="padding: 0.2rem 0.6rem;">✕</button>
       </div>
 
-      <form id="form-alta-usuario" onsubmit="event.preventDefault(); UsuariosAdmin.crearUsuarioManual();">
+      <form id="form-alta-usuario" onsubmit="event.preventDefault(); if(window.Usuarios && Usuarios.crearUsuarioManual) { Usuarios.crearUsuarioManual(); } else if(window.UsuariosAdmin && UsuariosAdmin.crearUsuarioManual) { UsuariosAdmin.crearUsuarioManual(); }">
         <div class="form-grid-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
           <div class="form-group">
             <label for="usr-alta-apellido">Apellido *</label>
@@ -651,10 +651,10 @@
   <!-- Lógica Interna -->
   <script src="js/supabase-config.js"></script>
   <script src="js/pdf-lab.js"></script>
-  <script src="js/ui.js?v=3"></script>
+  <script src="js/ui.js?v=4"></script>
   <script src="js/auth.js?v=2"></script>
   <script src="js/trayectos.js?v=2"></script>
-  <script src="js/usuarios.js?v=1"></script>
+  <script src="js/usuarios.js?v=2"></script>
 
 </body>
 </html>
