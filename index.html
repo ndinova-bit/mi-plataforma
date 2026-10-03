@@ -30,13 +30,13 @@
   <!-- 3. CSS principal base -->
   <link rel="stylesheet" href="css/styles.css">
 
-  <!-- 4. CSS Panel de Administración (Siempre al final para priorizar su diseño) -->
+  <!-- 4. CSS Panel de Administración -->
   <link rel="stylesheet" href="css/admin-dashboard.css">
 </head>
 <body>
 
- <!-- 1. VISTA PÚBLICA / LANDING -->
-<div id="landing-screen" class="fade-in">
+  <!-- 1. VISTA PÚBLICA / LANDING (id doble para compatibilidad total) -->
+  <div id="landing-screen" id="public-landing" class="fade-in">
 
     <header class="main-header">
       <div class="header-brand-center">
@@ -82,13 +82,13 @@
         </div>
       </section>
 
-      <!-- 2. CATÁLOGO Y BÚSQUEDA DE CURSOS -->
+      <!-- 2. CATÁLOGO Y BÚSQUEDA DE CURSOS PÚBLICO -->
       <section id="cursos" style="margin-bottom: 3.5rem;">
         <div class="section-heading">
           <h2 class="section-title">Oferta Académica</h2>
         </div>
-        <div id="coursesContainer" class="features-grid">
-          <!-- El script ui.js insertará la grilla de cursos aquí -->
+        <div id="lista-trayectos-cards" class="features-grid">
+          <!-- Trayectos insertados por trayectos.js -->
         </div>
       </section>
 
@@ -180,7 +180,7 @@
     </main>
 
     <!-- FOOTER INSTITUCIONAL -->
-    <footer class="main-footer">
+    <footer id="contacto" class="main-footer">
       <div class="footer-container">
         <div>
           <h3 class="footer-title-gold">CFP N° 403 "Oscar Smith"</h3>
@@ -234,11 +234,11 @@
       </div>
 
       <!-- Formulario de Login -->
-      <form id="form-login" onsubmit="event.preventDefault(); UI.mostrarDashboard({usuario: 'invitado', rol: 'admin'});">
+      <form id="form-login" onsubmit="event.preventDefault(); Auth.iniciarSesion();">
         <div class="form-group">
-          <label>Rol de Ingreso</label>
+          <label for="role-select">Rol de Ingreso</label>
           <div class="select-wrapper">
-            <select id="login-role" class="form-control custom-select">
+            <select id="role-select" class="form-control custom-select">
               <option value="estudiante">Estudiante</option>
               <option value="docente">Docente</option>
               <option value="admin">Administrador</option>
@@ -247,32 +247,39 @@
         </div>
 
         <div class="form-group">
-          <label>Usuario / DNI / Email</label>
-          <input type="text" class="form-control" placeholder="Ej: 38123456" required>
+          <label for="login-user">Usuario / DNI / Email</label>
+          <input type="text" id="login-user" class="form-control" placeholder="Ej: 38123456" required>
         </div>
 
         <div class="form-group">
-          <label>Contraseña</label>
-          <input type="password" class="form-control" placeholder="••••••••" required>
+          <label for="login-pass">Contraseña</label>
+          <input type="password" id="login-pass" class="form-control" placeholder="••••••••" required>
         </div>
 
         <button type="submit" class="btn-block btn-gold">Iniciar Sesión</button>
         <button type="button" class="btn-block btn-outline" style="margin-top: 0.5rem;" onclick="UI.showLanding()">← Volver al Inicio</button>
       </form>
 
-      <!-- Formulario de Registro (Oculto) -->
-      <form id="form-register" style="display: none;" onsubmit="event.preventDefault(); alert('Solicitud enviada.');">
+      <!-- Formulario de Registro -->
+      <form id="form-register" style="display: none;" onsubmit="event.preventDefault(); Auth.solicitarRegistro();">
         <div class="form-group">
-          <label>Nombre y Apellido</label>
-          <input type="text" class="form-control" placeholder="Nombre completo" required>
+          <label for="reg-nombre">Nombre y Apellido</label>
+          <input type="text" id="reg-nombre" class="form-control" placeholder="Nombre completo" required>
         </div>
         <div class="form-group">
-          <label>DNI</label>
-          <input type="text" class="form-control" placeholder="Sin puntos" required>
+          <label for="reg-dni">DNI</label>
+          <input type="text" id="reg-dni" class="form-control" placeholder="Sin puntos" required>
         </div>
         <div class="form-group">
-          <label>Correo Electrónico</label>
-          <input type="email" class="form-control" placeholder="correo@ejemplo.com" required>
+          <label for="reg-pass">Contraseña</label>
+          <input type="password" id="reg-pass" class="form-control" placeholder="••••••••" required>
+        </div>
+        <div class="form-group">
+          <label for="reg-rol">Rol Solicitado</label>
+          <select id="reg-rol" class="form-control custom-select">
+            <option value="estudiante">Estudiante</option>
+            <option value="docente">Docente</option>
+          </select>
         </div>
         <button type="submit" class="btn-block btn-gold">Enviar Solicitud</button>
         <button type="button" class="btn-block btn-outline" style="margin-top: 0.5rem;" onclick="UI.showLanding()">← Volver al Inicio</button>
@@ -371,7 +378,7 @@
           </div>
         </section>
 
-        <!-- VISTA 2: LISTA DE TRAYECTOS -->
+        <!-- VISTA 2: LISTA DE TRAYECTOS DENTRO DEL DASHBOARD -->
         <section id="trayectos" class="section-tab" style="display: none;">
           <div class="card-panel-header">
             <div>
@@ -380,9 +387,8 @@
             </div>
             <button class="btn btn-primary admin-only" onclick="UI.showTab('nuevo-trayecto')">+ Nuevo Trayecto</button>
           </div>
-          <div id="dash-lista-trayectos">
-            <!-- Trayectos renderizados desde trayectos.js -->
-          </div>
+          <!-- Contenedor donde trayectos.js renderiza los trayectos -->
+          <div id="lista-trayectos-cards"></div>
         </section>
 
         <!-- VISTA 3: CARGA DE TRAYECTO (FORMULARIO) -->
@@ -444,61 +450,63 @@
           </div>
         </section>
 
-        <!-- VISTA 4: CERTIFICADOS POR LISTADO Y NOTA DE APROBACIÓN (>=70) -->
-<section id="certificados" class="section-tab admin-only" style="display: none;">
-  <div class="card-panel">
-    <div class="card-panel-header">
-      <div>
-        <h3>Emisión de Certificados de Egresados</h3>
-        <p style="font-size: 0.85rem; color: #94a3b8;">Estudiantes aptos para certificación (Calificación &ge; 70%)</p>
-      </div>
-      <button class="btn btn-primary" onclick="UI.cargarNominaCertificacion()">🔄 Actualizar Nómina</button>
-    </div>
+        <!-- VISTA 4: CERTIFICADOS POR LISTADO -->
+        <section id="certificados" class="section-tab admin-only" style="display: none;">
+          <div class="card-panel">
+            <div class="card-panel-header">
+              <div>
+                <h3>Emisión de Certificados de Egresados</h3>
+                <p style="font-size: 0.85rem; color: #94a3b8;">Estudiantes aptos para certificación (Calificación &ge; 70%)</p>
+              </div>
+            </div>
 
-    <!-- TABLA DE ESTUDIANTES PARA ASIGNACIÓN DE N° DE EGRESADO -->
-    <div style="overflow-x: auto; margin-top: 1rem;">
-      <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
-        <thead>
-          <tr style="border-bottom: 2px solid rgba(255,255,255,0.1); color: #94a3b8;">
-            <th style="padding: 0.75rem;">Estudiante / DNI</th>
-            <th style="padding: 0.75rem;">Trayecto Formativo</th>
-            <th style="padding: 0.75rem;">Nota Final</th>
-            <th style="padding: 0.75rem;">Estado</th>
-            <th style="padding: 0.75rem;">N° de Egresado</th>
-            <th style="padding: 0.75rem; text-align: right;">Acción</th>
-          </tr>
-        </thead>
-        <tbody id="tabla-nomina-certificados">
-          <!-- Ejemplo renderizado de alumno aprobado -->
-          <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-            <td style="padding: 0.75rem;">
-              <strong>NICOLAS DINOVA</strong><br>
-              <span style="font-size: 0.78rem; color: #94a3b8;">DNI: 92828993</span>
-            </td>
-            <td style="padding: 0.75rem;">Programación Web</td>
-            <td style="padding: 0.75rem;"><span style="color: #4ade80; font-weight: 700;">85%</span></td>
-            <td style="padding: 0.75rem;"><span class="badge" style="background: rgba(34, 197, 94, 0.2); color: #4ade80; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem;">APROBADO</span></td>
-            <td style="padding: 0.75rem;">
-              <input type="text" id="egresado-92828993" class="form-control" placeholder="Ej: EG-2026-001" value="EG-2026-001" style="width: 140px; padding: 0.4rem;">
-            </td>
-            <td style="padding: 0.75rem; text-align: right;">
-              <button class="btn btn-gold" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" 
-                onclick="emitirCertificadoPDF({
-                  estudianteNombre: 'NICOLAS DINOVA',
-                  estudianteDNI: '92828993',
-                  trayectoNombre: 'Programación Web',
-                  horas: '350',
-                  numEgresado: document.getElementById('egresado-92828993').value
-                })">
-                📜 Emitir PDF
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+            <!-- TABLA DE ESTUDIANTES PARA ASIGNACIÓN DE N° DE EGRESADO -->
+            <div style="overflow-x: auto; margin-top: 1rem;">
+              <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+                <thead>
+                  <tr style="border-bottom: 2px solid rgba(255,255,255,0.1); color: #94a3b8;">
+                    <th style="padding: 0.75rem;">Estudiante / DNI</th>
+                    <th style="padding: 0.75rem;">Trayecto Formativo</th>
+                    <th style="padding: 0.75rem;">Nota Final</th>
+                    <th style="padding: 0.75rem;">Estado</th>
+                    <th style="padding: 0.75rem;">N° de Egresado</th>
+                    <th style="padding: 0.75rem; text-align: right;">Acción</th>
+                  </tr>
+                </thead>
+                <tbody id="tabla-nomina-certificados">
+                  <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 0.75rem;">
+                      <strong>NICOLAS DINOVA</strong><br>
+                      <span style="font-size: 0.78rem; color: #94a3b8;">DNI: 92828993</span>
+                    </td>
+                    <td style="padding: 0.75rem;">Programación Web</td>
+                    <td style="padding: 0.75rem;"><span style="color: #4ade80; font-weight: 700;">85%</span></td>
+                    <td style="padding: 0.75rem;"><span class="badge" style="background: rgba(34, 197, 94, 0.2); color: #4ade80; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem;">APROBADO</span></td>
+                    <td style="padding: 0.75rem;">
+                      <input type="text" id="egresado-92828993" class="form-control" placeholder="Ej: EG-2026-001" value="EG-2026-001" style="width: 140px; padding: 0.4rem;">
+                    </td>
+                    <td style="padding: 0.75rem; text-align: right;">
+                      <button class="btn btn-gold" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" 
+                        onclick="emitirCertificadoPDF({
+                          estudianteNombre: 'NICOLAS DINOVA',
+                          estudianteDNI: '92828993',
+                          trayectoNombre: 'Programación Web',
+                          horas: '350',
+                          numEgresado: document.getElementById('egresado-92828993').value
+                        })">
+                        📜 Emitir PDF
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+      </main>
     </div>
   </div>
-</section>
 
   <!-- Librerías Externas -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -511,13 +519,5 @@
   <script src="js/ui.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/trayectos.js"></script>
-  
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      if (typeof Trayectos !== 'undefined' && Trayectos.cargarTrayectos) {
-        Trayectos.cargarTrayectos();
-      }
-    });
-  </script>
 </body>
 </html>
