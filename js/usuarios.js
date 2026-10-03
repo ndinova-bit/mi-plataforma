@@ -15,9 +15,10 @@ const UsuariosAdmin = {
 
     try {
       const { data: usuarios, error } = await supabase
-  .from('usuarios')
-  .select('*')
-  .order('id', { ascending: false });
+        .from('usuarios')
+        .select('*')
+        .order('id', { ascending: false }); // <-- CAMBIAR AQUÍ (de created_at a id)
+
       if (error) throw error;
 
       if (!usuarios || usuarios.length === 0) {
