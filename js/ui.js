@@ -4,7 +4,7 @@
    ========================================================================== */
 
 const UI = {
-  // Muestra la vista pública
+  // Muestra la vista pública inicial
   showLanding() {
     const landing = document.getElementById('landing-screen') || document.querySelector('.public-landing');
     const login = document.getElementById('login-screen');
@@ -15,7 +15,7 @@ const UI = {
     if (app) app.style.setProperty('display', 'none', 'important');
   },
 
-  // Muestra la pantalla / modal de login centrada
+  // Muestra la pantalla o modal de Login centrado
   showLoginScreen() {
     const landing = document.getElementById('landing-screen') || document.querySelector('.public-landing');
     const login = document.getElementById('login-screen');
@@ -32,17 +32,34 @@ const UI = {
     }
   },
 
-  // Muestra el Panel Administrativo y OCULTA la vista pública
+  // Cambia entre las pestañas de Login y Registro
+  toggleAuthTab(tab) {
+    const formLogin = document.getElementById('form-login');
+    const formRegister = document.getElementById('form-register');
+    const tabLogin = document.getElementById('tab-btn-login');
+    const tabRegister = document.getElementById('tab-btn-register');
+
+    if (tab === 'login') {
+      if (formLogin) formLogin.style.display = 'block';
+      if (formRegister) formRegister.style.display = 'none';
+      if (tabLogin) tabLogin.classList.add('active');
+      if (tabRegister) tabRegister.classList.remove('active');
+    } else {
+      if (formLogin) formLogin.style.display = 'none';
+      if (formRegister) formRegister.style.display = 'block';
+      if (tabLogin) tabLogin.classList.remove('active');
+      if (tabRegister) tabRegister.classList.add('active');
+    }
+  },
+
+  // Muestra el Panel Administrativo y oculta la vista pública
   mostrarDashboard(perfil) {
     const landing = document.getElementById('landing-screen') || document.querySelector('.public-landing');
     const login = document.getElementById('login-screen');
     const app = document.getElementById('app-screen');
 
-    // Ocultar Landing y Login por completo
     if (landing) landing.style.setProperty('display', 'none', 'important');
     if (login) login.style.setProperty('display', 'none', 'important');
-
-    // Mostrar el Dashboard
     if (app) app.style.setProperty('display', 'flex', 'important'); 
 
     const displayUsername = document.getElementById('display-username');
@@ -51,147 +68,63 @@ const UI = {
     if (displayUsername) displayUsername.innerText = perfil.nombre || perfil.usuario;
     if (displayRole) displayRole.innerText = (perfil.rol || '').toUpperCase();
 
-    // Permisos de roles
+    // Permisos según el rol de usuario
     const isAdmin = perfil.rol === 'admin';
-    const isDocente = perfil.rol === 'docente';
 
     document.querySelectorAll('.admin-only').forEach(el => {
       el.style.display = isAdmin ? (el.tagName === 'BUTTON' ? 'flex' : 'block') : 'none';
     });
 
-    document.querySelectorAll('.docente-only').forEach(el => {
-      el.style.display = isDocente ? (el.tagName === 'BUTTON' ? 'flex' : 'block') : 'none';
-    });
-
-    document.querySelectorAll('.docente-or-admin').forEach(el => {
-      el.style.display = (isDocente || isAdmin) ? (el.tagName === 'BUTTON' ? 'flex' : 'block') : 'none';
-    });
-
-    this.actualizarContadoresDashboard();
     this.showTab('dashboard');
   },
 
-  // Alterna entre la pestaña Ingresar y Solicitar Cuenta
-  toggleAuthTab(tab) {
-    const btnLogin = document.getElementById('tab-btn-login');
-    const btnReg = document.getElementById('tab-btn-register');
-    const formLogin = document.getElementById('form-login');
-    const formReg = document.getElementById('form-register');
-
-    if (tab === 'login') {
-      if (btnLogin) btnLogin.classList.add('active');
-      if (btnReg) btnReg.classList.remove('active');
-      if (formLogin) formLogin.style.display = 'block';
-      if (formReg) formReg.style.display = 'none';
-    } else {
-      if (btnReg) btnReg.classList.add('active');
-      if (btnLogin) btnLogin.classList.remove('active');
-      if (formReg) formReg.style.display = 'block';
-      if (formLogin) formLogin.style.display = 'none';
-    }
-  },
-
-  // Manejo de solapas dentro del Dashboard
+  // Cambia entre secciones dentro del Panel
   showTab(tabId) {
-    // Quitar 'active' de todos los botones de la barra lateral
-    document.querySelectorAll('.sidebar .nav-item-btn, .sidebar button').forEach(btn => {
-      btn.classList.remove('active');
-    });
-
-    // Ocultar todas las secciones
-    document.querySelectorAll('.section-tab, .section').forEach(sec => {
+    document.querySelectorAll('.section-tab').forEach(sec => {
       sec.style.display = 'none';
       sec.classList.remove('active');
     });
 
-    // Determinar ID real de la sección
-    const sectionId = tabId === 'dashboard' ? 'sec-dashboard' : tabId;
-    const btn = document.getElementById(`btn-${tabId}`);
-    const sec = document.getElementById(sectionId);
+    document.querySelectorAll('.sidebar-nav .nav-item-btn').forEach(btn => {
+      btn.classList.remove('active');
+    });
 
-    if (btn) btn.classList.add('active');
-    if (sec) {
-      sec.style.display = 'block';
-      sec.classList.add('active');
+    const targetSection = document.getElementById(tabId === 'dashboard' ? 'sec-dashboard' : tabId);
+    if (targetSection) {
+      targetSection.style.display = 'block';
+      targetSection.classList.add('active');
     }
 
-    // Actualizar título en el Header Superior
-    const titleMap = {
-      'dashboard': 'Dashboard General',
-      'trayectos': 'Trayectos Formativos',
-      'nuevo-trayecto': 'Cargar Nuevo Trayecto',
-      'certificados': 'Emisión de Certificados',
-      'usuarios': 'Gestión de Usuarios y Solicitudes'
-    };
-    const headerTitle = document.getElementById('current-section-title');
-    if (headerTitle) {
-      headerTitle.textContent = titleMap[tabId] || 'Panel Administrativo';
+    const activeBtn = document.getElementById(`btn-${tabId}`);
+    if (activeBtn) activeBtn.classList.add('active');
+
+    const titleEl = document.getElementById('current-section-title');
+    if (titleEl) {
+      const titles = {
+        'dashboard': 'Dashboard',
+        'trayectos': 'Trayectos Formativos',
+        'nuevo-trayecto': 'Cargar Trayecto',
+        'certificados': 'Emitir Certificados',
+        'usuarios': 'Usuarios y Roles'
+      };
+      titleEl.innerText = titles[tabId] || 'Panel de Control';
     }
 
-    // Recargar datos desde Supabase al abrir la pestaña "Trayectos Formativos"
-    if (tabId === 'trayectos' && typeof Trayectos !== 'undefined' && Trayectos.cargarTrayectos) {
-      Trayectos.cargarTrayectos();
-    }
-    
-    // Recargar datos desde Supabase al abrir la pestaña "Gestión de Usuarios"
-    if (tabId === 'usuarios' && typeof Usuarios !== 'undefined' && Usuarios.cargarUsuarios) {
-      Usuarios.cargarUsuarios();
+    if (tabId === 'usuarios' && window.UsuariosAdmin) {
+      window.UsuariosAdmin.cargarUsuarios();
     }
   },
 
-  // Método seguro para abrir el modal de Alta de Usuario
-  // Método seguro para abrir el modal de Alta de Usuario
+  // Abre el modal para dar de alta a un usuario
   abrirModalNuevoUsuario() {
     const modal = document.getElementById('modal-alta-usuario');
     if (modal) {
-      modal.style.setProperty('display', 'flex', 'important');
-      modal.style.setProperty('z-index', '999999', 'important');
-      modal.style.setProperty('opacity', '1', 'important');
-      modal.style.setProperty('visibility', 'visible', 'important');
-      modal.style.setProperty('pointer-events', 'auto', 'important');
-
-      // Forzar interacciones directas en la caja y los inputs
-      const panel = modal.querySelector('.card-panel');
-      if (panel) {
-        panel.style.setProperty('pointer-events', 'auto', 'important');
-      }
-
-      modal.querySelectorAll('input, select, button').forEach(el => {
-        el.style.setProperty('pointer-events', 'auto', 'important');
-        el.removeAttribute('disabled');
-      });
-    } else {
-      alert('Error: No se encontró el elemento HTML con id "modal-alta-usuario"');
-    }
-
-    const usrObj = window.Usuarios || window.UsuariosAdmin;
-    if (usrObj && typeof usrObj.cargarTrayectosEnModal === 'function') {
-      usrObj.cargarTrayectosEnModal();
-    }
-  },
-  // Actualiza contadores numéricos del Dashboard con datos reales de Supabase
-  actualizarContadoresDashboard() {
-    const elTrayectos = document.getElementById('stat-count-trayectos');
-    const elModulos = document.getElementById('stat-count-modulos');
-
-    if (typeof Trayectos !== 'undefined' && Array.isArray(Trayectos.listaTrayectos)) {
-      if (elTrayectos) elTrayectos.textContent = Trayectos.listaTrayectos.length;
-      if (elModulos) {
-        const totalModulos = Trayectos.listaTrayectos.reduce((acc, t) => acc + (t.modulos ? t.modulos.length : 0), 0);
-        elModulos.textContent = totalModulos;
-      }
+      modal.style.display = 'flex';
+      if (window.UsuariosAdmin) window.UsuariosAdmin.cargarTrayectosEnModal();
     }
   },
 
-  // Utilidades de formularios
-  toggleWidget(headerEl) {
-    const body = headerEl.nextElementSibling;
-    if (body) {
-      const isVisible = body.style.display === 'block';
-      body.style.display = isVisible ? 'none' : 'block';
-    }
-  },
-
+  // Agrega una fila de módulo en el formulario
   agregarFilaModulo() {
     const contenedor = document.getElementById('contenedor-modulos');
     if (!contenedor) return;
@@ -199,66 +132,23 @@ const UI = {
     const div = document.createElement('div');
     div.className = 'modulo-item-card';
     div.innerHTML = `
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-        <span style="font-size: 0.8rem; font-weight: 600; color: #94a3b8;">Módulo Adicional</span>
-        <button type="button" class="btn btn-danger btn-xs" onclick="UI.eliminarFilaModulo(this)" style="padding: 0.2rem 0.5rem;">✕ Eliminar</button>
-      </div>
       <div class="form-grid-2">
-        <input type="text" class="mod-nombre form-control" placeholder="Nombre del Módulo">
+        <input type="text" class="mod-nombre form-control" placeholder="Nombre del Módulo" required>
         <input type="text" class="mod-codigo form-control" placeholder="Código (Ej: GH 0050)">
       </div>
       <div class="form-grid-2" style="margin-top: 0.75rem;">
         <div>
-          <label style="font-size: 0.75rem; color: #94a3b8;">Inicio</label>
+          <label style="font-size: 0.75rem;">Fecha Inicio</label>
           <input type="date" class="mod-inicio form-control">
         </div>
         <div>
-          <label style="font-size: 0.75rem; color: #94a3b8;">Fin</label>
+          <label style="font-size: 0.75rem;">Fecha Fin</label>
           <input type="date" class="mod-fin form-control">
         </div>
       </div>
     `;
     contenedor.appendChild(div);
-  },
-
-  eliminarFilaModulo(btn) {
-    const card = btn.closest('.modulo-item-card') || btn.closest('.modulo-card');
-    const totalCards = document.querySelectorAll('.modulo-item-card, .modulo-card').length;
-    
-    if (totalCards > 1) {
-      if (card) card.remove();
-    } else {
-      if (typeof Swal !== 'undefined') {
-        Swal.fire({
-          icon: 'info',
-          title: 'Atención',
-          text: 'Debe haber al menos un módulo por trayecto.',
-          confirmButtonColor: '#2563eb'
-        });
-      }
-    }
-  },
-
-  toggleInscripcionesBox() {
-    const rolEl = document.getElementById('user-rol');
-    const box = document.getElementById('box-inscripciones');
-    const lbl = document.getElementById('lbl-inscripciones');
-
-    if (!rolEl || !box) return;
-
-    const rol = rolEl.value;
-    if (rol === 'admin') {
-      box.style.display = 'none';
-    } else {
-      box.style.display = 'block';
-      if (lbl) lbl.innerText = rol === 'estudiante' ? 'Asignar a Trayectos:' : 'Asignar como Docente en:';
-    }
   }
 };
 
-// Inicialización de componentes al cargar el DOM
-document.addEventListener('DOMContentLoaded', () => {
-  if (typeof Trayectos !== 'undefined' && Trayectos.cargarTrayectos) {
-    Trayectos.cargarTrayectos();
-  }
-});
+window.UI = UI;
