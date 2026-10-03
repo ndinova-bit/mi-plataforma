@@ -1,4 +1,10 @@
-// Muestra la vista pública
+/* ==========================================================================
+   INTERFAZ DE USUARIO Y NAVEGACIÓN (UI)
+   Archivo: js/ui.js
+   ========================================================================== */
+
+const UI = {
+  // Muestra la vista pública
   showLanding() {
     const landing = document.getElementById('landing-screen') || document.querySelector('.public-landing');
     const login = document.getElementById('login-screen');
@@ -68,7 +74,7 @@
     }
   },
 
-  // Manejo de solapas dentro del Dashboard (Actualizado para el nuevo diseño)
+  // Manejo de solapas dentro del Dashboard
   showTab(tabId) {
     // Quitar 'active' de todos los botones de la barra lateral
     document.querySelectorAll('.sidebar .nav-item-btn, .sidebar button').forEach(btn => {
@@ -194,7 +200,10 @@
       box.style.display = 'block';
       if (lbl) lbl.innerText = rol === 'estudiante' ? 'Asignar a Trayectos:' : 'Asignar como Docente en:';
     }
-    // Cargar trayectos desde Supabase al iniciar la página
+  }
+};
+
+// Cargar trayectos desde Supabase al iniciar la página
 document.addEventListener('DOMContentLoaded', () => {
   if (typeof Trayectos !== 'undefined' && Trayectos.cargarTrayectos) {
     Trayectos.cargarTrayectos();
