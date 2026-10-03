@@ -11,49 +11,47 @@
 
   // Muestra el Panel de Control / Dashboard según rol
   mostrarDashboard(perfil) {
-    const landing = document.getElementById('landing-screen') || document.querySelector('header');
-    const login = document.getElementById('login-screen');
-    const app = document.getElementById('app-screen');
+  const landing = document.getElementById('landing-screen') || document.getElementById('public-landing');
+  const login = document.getElementById('login-screen');
+  const app = document.getElementById('app-screen');
 
-    // Ocultar Landing y Login por completo
-    if (landing) landing.style.display = 'none';
-    if (login) login.style.display = 'none';
+  // Ocultar contenedores principales
+  if (landing) landing.style.setProperty('display', 'none', 'important');
+  if (login) login.style.setProperty('display', 'none', 'important');
 
-    // Ocultar cualquier sección previa de la landing pública
-    document.querySelectorAll('.public-section, header, footer').forEach(el => {
-      if (!el.closest('#app-screen')) {
-        el.style.display = 'none';
-      }
-    });
+  // Ocultar cualquier header, footer o sección fuera del dashboard
+  document.querySelectorAll('body > header, body > footer, body > section, body > div:not(#app-screen)').forEach(el => {
+    el.style.setProperty('display', 'none', 'important');
+  });
 
-    // Mostrar solo el Panel Administrativo
-    if (app) app.style.display = 'flex'; 
+  // Mostrar el Panel Administrativo
+  if (app) app.style.setProperty('display', 'flex', 'important'); 
 
-    const displayUsername = document.getElementById('display-username');
-    const displayRole = document.getElementById('display-role');
+  const displayUsername = document.getElementById('display-username');
+  const displayRole = document.getElementById('display-role');
 
-    if (displayUsername) displayUsername.innerText = perfil.nombre || perfil.usuario;
-    if (displayRole) displayRole.innerText = (perfil.rol || '').toUpperCase();
+  if (displayUsername) displayUsername.innerText = perfil.nombre || perfil.usuario;
+  if (displayRole) displayRole.innerText = (perfil.rol || '').toUpperCase();
 
-    // Gestión de permisos según ROL
-    const isAdmin = perfil.rol === 'admin';
-    const isDocente = perfil.rol === 'docente';
+  // Gestión de permisos según ROL
+  const isAdmin = perfil.rol === 'admin';
+  const isDocente = perfil.rol === 'docente';
 
-    document.querySelectorAll('.admin-only').forEach(el => {
-      el.style.display = isAdmin ? (el.tagName === 'BUTTON' ? 'flex' : 'block') : 'none';
-    });
+  document.querySelectorAll('.admin-only').forEach(el => {
+    el.style.display = isAdmin ? (el.tagName === 'BUTTON' ? 'flex' : 'block') : 'none';
+  });
 
-    document.querySelectorAll('.docente-only').forEach(el => {
-      el.style.display = isDocente ? (el.tagName === 'BUTTON' ? 'flex' : 'block') : 'none';
-    });
+  document.querySelectorAll('.docente-only').forEach(el => {
+    el.style.display = isDocente ? (el.tagName === 'BUTTON' ? 'flex' : 'block') : 'none';
+  });
 
-    document.querySelectorAll('.docente-or-admin').forEach(el => {
-      el.style.display = (isDocente || isAdmin) ? (el.tagName === 'BUTTON' ? 'flex' : 'block') : 'none';
-    });
+  document.querySelectorAll('.docente-or-admin').forEach(el => {
+    el.style.display = (isDocente || isAdmin) ? (el.tagName === 'BUTTON' ? 'flex' : 'block') : 'none';
+  });
 
-    this.actualizarContadoresDashboard();
-    this.showTab('dashboard');
-  },
+  this.actualizarContadoresDashboard();
+  this.showTab('dashboard');
+},
 
   // Alterna entre la pestaña Ingresar y Solicitar Cuenta
   toggleAuthTab(tab) {
