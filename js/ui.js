@@ -140,6 +140,7 @@ const UI = {
   },
 
   // Método seguro para abrir el modal de Alta de Usuario
+  // Método seguro para abrir el modal de Alta de Usuario
   abrirModalNuevoUsuario() {
     const modal = document.getElementById('modal-alta-usuario');
     if (modal) {
@@ -147,6 +148,18 @@ const UI = {
       modal.style.setProperty('z-index', '999999', 'important');
       modal.style.setProperty('opacity', '1', 'important');
       modal.style.setProperty('visibility', 'visible', 'important');
+      modal.style.setProperty('pointer-events', 'auto', 'important');
+
+      // Forzar interacciones directas en la caja y los inputs
+      const panel = modal.querySelector('.card-panel');
+      if (panel) {
+        panel.style.setProperty('pointer-events', 'auto', 'important');
+      }
+
+      modal.querySelectorAll('input, select, button').forEach(el => {
+        el.style.setProperty('pointer-events', 'auto', 'important');
+        el.removeAttribute('disabled');
+      });
     } else {
       alert('Error: No se encontró el elemento HTML con id "modal-alta-usuario"');
     }
