@@ -302,24 +302,26 @@ body:has(#app-screen[style*="display: flex"]) .main-footer {
    ESTILOS Y MANEJO DE OVERLAY / MODAL (#modal-alta-usuario)
    ========================================================== */
 
-/* Overlay base (oculto por defecto) */
+/* Overlay base (oculto por defecto y deshabilitado para clics) */
 .modal-overlay,
 #modal-alta-usuario {
   display: none;
+  pointer-events: none !important;
+  visibility: hidden !important;
   position: fixed !important;
   inset: 0 !important;
   width: 100vw !important;
   height: 100vh !important;
   background: rgba(0, 0, 0, 0.8) !important;
   backdrop-filter: blur(4px);
-  z-index: 99999 !important;
+  z-index: -9999 !important;
   align-items: center !important;
   justify-content: center !important;
   padding: 1rem !important;
   box-sizing: border-box;
 }
 
-/* Estado visible (activado por JS agregando estilo display: flex o la clase .open/.active) */
+/* Estado visible (activado por JS agregando estilo display: flex o clase .open/.active) */
 .modal-overlay.open,
 .modal-overlay.active,
 #modal-alta-usuario.open,
@@ -328,6 +330,8 @@ body:has(#app-screen[style*="display: flex"]) .main-footer {
 #modal-alta-usuario[style*="display:flex"] {
   display: flex !important;
   pointer-events: auto !important;
+  visibility: visible !important;
+  z-index: 99999 !important;
 }
 
 /* Contenedor del panel dentro del modal */
