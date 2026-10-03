@@ -315,7 +315,7 @@ body:has(#app-screen[style*="display: flex"]) .main-footer {
   justify-content: center !important;
 }
 
-/* 2. SOLO VISIBLE CUANDO JS LO ACTIVA */
+/* 2. SOLO VISIBLE CUANDO JS LO ACTIVA O TIENE DISPLAY FLEX */
 #modal-alta-usuario[style*="display: flex"],
 #modal-alta-usuario.active,
 .modal-overlay.active {
