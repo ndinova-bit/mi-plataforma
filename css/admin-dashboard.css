@@ -296,35 +296,44 @@ body:has(#app-screen[style*="display: flex"]) .main-footer {
   .main-content-body {
     padding: 1rem;
   }
-   /* ==========================================
-   DESBLOQUEO TOTAL DE MODAL Y CAMPOS
-   ========================================== */
-.modal {
+   /* ==========================================================
+   DESBLOQUEO TOTAL DEL MODAL DE USUARIOS (#modal-alta-usuario)
+   ========================================================== */
+#modal-alta-usuario,
+.modal-overlay {
   position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
+  inset: 0 !important;
   background: rgba(0, 0, 0, 0.75) !important;
+  z-index: 99999 !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  z-index: 99999 !important;
   pointer-events: auto !important;
 }
 
-.modal-content, 
-.modal-body, 
-.modal * {
-  pointer-events: auto !important;
-}
-
-.modal input, 
-.modal select, 
-.modal button, 
-.modal textarea {
+#modal-alta-usuario .card-panel {
   position: relative !important;
   z-index: 100000 !important;
   pointer-events: auto !important;
+  background: #0f172a !important;
+  max-height: 90vh !important;
+  overflow-y: auto !important;
+}
+
+/* Habilita interacción explícita en todos los inputs y selects */
+#modal-alta-usuario input,
+#modal-alta-usuario select,
+#modal-alta-usuario button,
+#modal-alta-usuario label,
+#usr-alta-trayectos,
+#usr-alta-trayectos input[type="checkbox"] {
+  pointer-events: auto !important;
   user-select: text !important;
-}}
+  cursor: pointer !important;
+}
+
+#modal-alta-usuario input[type="text"],
+#modal-alta-usuario input[type="email"],
+#modal-alta-usuario input[type="date"] {
+  cursor: text !important;
+}
