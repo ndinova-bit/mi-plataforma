@@ -15,6 +15,20 @@ const UI = {
     if (app) app.style.setProperty('display', 'none', 'important');
   },
 
+  // Muestra la pantalla / modal de login cuando se presiona "Ingresar / Registrarse"
+  showLoginScreen() {
+    const landing = document.getElementById('landing-screen') || document.querySelector('.public-landing');
+    const login = document.getElementById('login-screen');
+    const app = document.getElementById('app-screen');
+
+    if (landing) landing.style.setProperty('display', 'none', 'important');
+    if (app) app.style.setProperty('display', 'none', 'important');
+    if (login) {
+      login.style.setProperty('display', 'block', 'important');
+      this.toggleAuthTab('login');
+    }
+  },
+
   // Muestra el Panel Administrativo y OCULTA la vista pública
   mostrarDashboard(perfil) {
     const landing = document.getElementById('landing-screen') || document.querySelector('.public-landing');
