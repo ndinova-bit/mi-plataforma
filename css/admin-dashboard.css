@@ -16,12 +16,12 @@
   box-sizing: border-box;
 }
 
-/* 2. REGLA DE OCULTAMIENTO AUTOMÁTICO DE LA LANDING */
-#app-screen:not([style*="display: none"]) ~ #landing-screen,
-body:has(#app-screen:not([style*="display: none"])) #landing-screen,
-body:has(#app-screen:not([style*="display: none"])) .public-landing,
-body:has(#app-screen:not([style*="display: none"])) .main-header,
-body:has(#app-screen:not([style*="display: none"])) .main-footer {
+/* 2. OCULTAR LANDING SOLO CUANDO EL DASHBOARD ESTÁ VISIBLE (DISPLAY: FLEX) */
+#app-screen[style*="display: flex"] ~ #landing-screen,
+body:has(#app-screen[style*="display: flex"]) #landing-screen,
+body:has(#app-screen[style*="display: flex"]) .public-landing,
+body:has(#app-screen[style*="display: flex"]) .main-header,
+body:has(#app-screen[style*="display: flex"]) .main-footer {
   display: none !important;
 }
 
