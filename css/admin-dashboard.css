@@ -292,7 +292,7 @@ body:has(#app-screen[style*="display: flex"]) .main-footer {
     border-right: none;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   }
-
+}
   .main-content-body {
     padding: 1rem;
   }
