@@ -224,9 +224,12 @@ const UI = {
   }
 };
 
-// Cargar trayectos desde Supabase al iniciar la página
+// Cargar trayectos y usuarios desde Supabase al iniciar la página
 document.addEventListener('DOMContentLoaded', () => {
   if (typeof Trayectos !== 'undefined' && Trayectos.cargarTrayectos) {
     Trayectos.cargarTrayectos();
+  }
+  if (typeof Usuarios !== 'undefined' && Usuarios.cargarUsuarios) {
+    Usuarios.cargarUsuarios();
   }
 });
