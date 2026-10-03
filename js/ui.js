@@ -115,9 +115,14 @@ const UI = {
     if (headerTitle) {
       headerTitle.textContent = titleMap[tabId] || 'Panel Administrativo';
     }
+
+    // Recargar datos desde Supabase al abrir la pestaña "Trayectos Formativos"
+    if (tabId === 'trayectos' && typeof Trayectos !== 'undefined' && Trayectos.cargarTrayectos) {
+      Trayectos.cargarTrayectos();
+    }
   },
 
-  // Actualiza contadores numéricos del Dashboard con datos reales
+  // Actualiza contadores numéricos del Dashboard con datos reales de Supabase
   actualizarContadoresDashboard() {
     const elTrayectos = document.getElementById('stat-count-trayectos');
     const elModulos = document.getElementById('stat-count-modulos');
