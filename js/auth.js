@@ -33,19 +33,7 @@ const Auth = {
       }
 
       if (perfil.estado === 'pendiente') {
-        // ✅ Forma correcta (vía objeto):
-        
-// OPCIÓN 1 (Recomendada):
-Swal.fire({
-  icon: 'success',
-  title: '¡Sesión Iniciada!',
-  text: `¡Bienvenido/a ${usuario.nombre}!`,
-  timer: 2000,
-  showConfirmButton: false
-});
-
-// ✅ O de forma abreviada: Swal.fire(título, texto, icono)
-Swal.fire('¡Éxito!', '¡Bienvenido/a NICOLAS DINOVA!', 'success');
+        alertError('Cuenta pendiente', 'Tu cuenta está pendiente de aprobación por un administrador.');
         await supabase.auth.signOut();
         return;
       }
