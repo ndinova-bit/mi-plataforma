@@ -4,7 +4,7 @@ const UsuariosAdmin = {
   abrirModal() {
     const modal = document.getElementById('modal-alta-usuario');
     if (modal) {
-      modal.classList.add('open');
+      modal.classList.add('open', 'active');
       modal.style.display = 'flex';
       this.cargarTrayectosEnModal();
     }
@@ -14,7 +14,7 @@ const UsuariosAdmin = {
   cerrarModal() {
     const modal = document.getElementById('modal-alta-usuario');
     if (modal) {
-      modal.classList.remove('open');
+      modal.classList.remove('open', 'active');
       modal.style.display = 'none';
       document.getElementById('form-alta-usuario')?.reset();
     }
@@ -235,9 +235,14 @@ const UsuariosAdmin = {
   }
 };
 
-// Alias para garantizar compatibilidad con ui.js
+// Alias y funciones globales para garantizar compatibilidad con HTML Inline
 UsuariosAdmin.cargarTrayectosModal = UsuariosAdmin.cargarTrayectosEnModal;
 UsuariosAdmin.cargarTrayectos = UsuariosAdmin.cargarTrayectosEnModal;
 
 window.UsuariosAdmin = UsuariosAdmin;
 window.Usuarios = UsuariosAdmin;
+
+// Mapeo global directo para eventos HTML onclick / onsubmit
+window.crearUsuarioManual = () => UsuariosAdmin.crearUsuarioManual();
+window.cerrarModal = () => UsuariosAdmin.cerrarModal();
+window.abrirModal = () => UsuariosAdmin.abrirModal();
