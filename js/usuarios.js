@@ -1,5 +1,25 @@
 // js/usuarios.js - Gestión de Usuarios, Roles, Altas Manuales y Matriculación
 const UsuariosAdmin = {
+  // Abrir modal de alta
+  abrirModal() {
+    const modal = document.getElementById('modal-alta-usuario');
+    if (modal) {
+      modal.classList.add('open');
+      modal.style.display = 'flex';
+      this.cargarTrayectosEnModal();
+    }
+  },
+
+  // Cerrar modal de alta
+  cerrarModal() {
+    const modal = document.getElementById('modal-alta-usuario');
+    if (modal) {
+      modal.classList.remove('open');
+      modal.style.display = 'none';
+      document.getElementById('form-alta-usuario')?.reset();
+    }
+  },
+
   // Cargar lista de usuarios registrados
   async cargarUsuarios() {
     const tbody = document.getElementById('tabla-usuarios');
@@ -171,10 +191,7 @@ const UsuariosAdmin = {
 
       if (typeof notify === 'function') notify('success', `Usuario ${nombre} ${apellido} creado con éxito. Usuario y Clave: ${dni}`);
       
-      document.getElementById('form-alta-usuario')?.reset();
-      const modal = document.getElementById('modal-alta-usuario');
-      if (modal) modal.style.display = 'none';
-
+      this.cerrarModal();
       this.cargarUsuarios();
     } catch (err) {
       console.error('Error al crear usuario:', err);
@@ -224,5 +241,3 @@ UsuariosAdmin.cargarTrayectos = UsuariosAdmin.cargarTrayectosEnModal;
 
 window.UsuariosAdmin = UsuariosAdmin;
 window.Usuarios = UsuariosAdmin;
-
-
