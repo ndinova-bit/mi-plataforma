@@ -17,7 +17,7 @@ const UsuariosAdmin = {
       const { data: usuarios, error } = await supabase
         .from('usuarios')
         .select('*')
-        .order('id', { ascending: false }); // <-- CAMBIAR AQUÍ (de created_at a id)
+        .order('id', { ascending: false });
 
       if (error) throw error;
 
@@ -76,7 +76,7 @@ const UsuariosAdmin = {
       }).join('');
     } catch (err) {
       console.error('Error al cargar usuarios:', err);
-      notify('error', 'No se pudieron cargar los usuarios.');
+      if (typeof notify === 'function') notify('error', 'No se pudieron cargar los usuarios.');
     }
   },
 
@@ -125,7 +125,7 @@ const UsuariosAdmin = {
     const nacionalidad = document.getElementById('usr-alta-nacionalidad')?.value.trim() || 'Argentina';
 
     if (!nombre || !apellido || !dni) {
-      notify('error', 'Por favor completá Nombre, Apellido y DNI.');
+      if (typeof notify === 'function') notify('error', 'Por favor completá Nombre, Apellido y DNI.');
       return;
     }
 
@@ -134,11 +134,11 @@ const UsuariosAdmin = {
         nombre: nombre,
         apellido: apellido,
         dni: dni,
-        usuario: dni, // DNI como usuario de acceso
-        pass: dni,    // DNI como contraseña inicial por defecto
+        usuario: dni,
+        pass: dni,
         email: email,
         rol: rol,
-        estado: 'activo', // Las altas directas por el admin nacen activas
+        estado: 'activo',
         fecha_nacimiento: fechaNac,
         domicilio: domicilio,
         ciudad: ciudad,
@@ -154,11 +154,9 @@ const UsuariosAdmin = {
 
       if (errUsr) throw errUsr;
 
-      // Obtener trayectos marcados en el checkbox
       const checkboxes = document.querySelectorAll('input[name="trayectos_seleccionados"]:checked');
       const trayectoIds = Array.from(checkboxes).map(cb => cb.value);
 
-      // Guardar inscripciones si se seleccionaron trayectos
       if (trayectoIds.length > 0 && usrCreado && usrCreado[0]) {
         const inscripciones = trayectoIds.map(tId => ({
           usuario_id: usrCreado[0].id,
@@ -171,9 +169,8 @@ const UsuariosAdmin = {
         if (errInsc) console.error('Error guardando inscripciones:', errInsc);
       }
 
-      notify('success', `Usuario ${nombre} ${apellido} creado con éxito. Usuario y Clave: ${dni}`);
+      if (typeof notify === 'function') notify('success', `Usuario ${nombre} ${apellido} creado con éxito. Usuario y Clave: ${dni}`);
       
-      // Limpiar formulario y cerrar modal
       document.getElementById('form-alta-usuario')?.reset();
       const modal = document.getElementById('modal-alta-usuario');
       if (modal) modal.style.display = 'none';
@@ -181,11 +178,11 @@ const UsuariosAdmin = {
       this.cargarUsuarios();
     } catch (err) {
       console.error('Error al crear usuario:', err);
-      notify('error', 'Error al guardar usuario en Supabase. Verificá si el DNI ya existe.');
+      if (typeof notify === 'function') notify('error', 'Error al guardar usuario en Supabase. Verificá si el DNI ya existe.');
     }
   },
 
-  // Cambiar estado (Activo / Inactivo)
+  // Cambiar estado
   async cambiarEstado(dni, nuevoEstado) {
     try {
       const { error } = await supabase
@@ -195,15 +192,15 @@ const UsuariosAdmin = {
 
       if (error) throw error;
 
-      notify('success', `Estado actualizado a ${nuevoEstado.toUpperCase()}`);
+      if (typeof notify === 'function') notify('success', `Estado actualizado a ${nuevoEstado.toUpperCase()}`);
       this.cargarUsuarios();
     } catch (err) {
       console.error('Error al actualizar estado:', err);
-      notify('error', 'Error al cambiar el estado');
+      if (typeof notify === 'function') notify('error', 'Error al cambiar el estado');
     }
   },
 
-  // Cambiar rol (Estudiante / Docente / Admin)
+  // Cambiar rol
   async cambiarRol(dni, nuevoRol) {
     try {
       const { error } = await supabase
@@ -213,13 +210,17 @@ const UsuariosAdmin = {
 
       if (error) throw error;
 
-      notify('success', `Rol actualizado a ${nuevoRol.toUpperCase()}`);
+      if (typeof notify === 'function') notify('success', `Rol actualizado a ${nuevoRol.toUpperCase()}`);
     } catch (err) {
       console.error('Error al actualizar rol:', err);
-      notify('error', 'Error al cambiar rol');
+      if (typeof notify === 'function') notify('error', 'Error al cambiar rol');
     }
   }
 };
+
+// Alias para garantizar compatibilidad con ui.js
+UsuariosAdmin.cargarTrayectosModal = UsuariosAdmin.cargarTrayectosEnModal;
+UsuariosAdmin.cargarTrayectos = UsuariosAdmin.cargarTrayectosEnModal;
 
 window.UsuariosAdmin = UsuariosAdmin;
 window.Usuarios = UsuariosAdmin;
