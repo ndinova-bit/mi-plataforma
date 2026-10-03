@@ -24,102 +24,118 @@ const Trayectos = {
   },
 
   renderizarTrayectos() {
-    const contenedor = document.getElementById('lista-trayectos-cards');
-    if (!contenedor) return;
+    // Busca los contenedores del público y del panel admin
+    const contenedores = [
+      document.getElementById('lista-trayectos-cards'),
+      document.getElementById('lista-trayectos-admin')
+    ].filter(el => el !== null);
 
-    contenedor.innerHTML = '';
+    if (contenedores.length === 0) return;
 
-    if (this.listaTrayectos.length === 0) {
-      contenedor.innerHTML = `
-        <div class="empty-state-card fade-in">
-          <div class="empty-state-icon">
-            <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-            </svg>
-          </div>
-          <h3 class="empty-state-title">No hay trayectos publicados aún</h3>
-          <p class="empty-state-text">
-            Estamos preparando la nueva oferta académica. Volvé a consultar pronto para conocer los próximos cursos e inscripciones.
-          </p>
-        </div>
-      `;
-      return;
-    }
+    contenedores.forEach(contenedor => {
+      contenedor.innerHTML = '';
 
-    const grid = document.createElement('div');
-    grid.className = 'trayectos-grid';
-
-    this.listaTrayectos.forEach(trayecto => {
-      const card = document.createElement('div');
-      card.className = 'course-card fade-in';
-
-      let modulosHTML = '';
-      if (trayecto.modulos && trayecto.modulos.length > 0) {
-        modulosHTML = trayecto.modulos.map(m => `
-          <div class="modulo-card" style="margin-top: 0.5rem; background: rgba(15, 20, 28, 0.6); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem;">
-            <strong style="color: var(--text-main); font-size: 0.9rem;">${m.nombre}</strong> 
-            <span style="color: var(--accent-gold); font-size: 0.8rem;">(${m.codigo || 'S/C'})</span>
-            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">
-              📅 Inicio: ${m.fecha_inicio || 'A definir'} | Fin: ${m.fecha_fin || 'A definir'}
-            </div>
-          </div>
-        `).join('');
-      } else {
-        modulosHTML = '<small style="color: var(--text-muted);">Sin módulos asignados</small>';
-      }
-
-      const cantidadModulos = trayecto.modulos ? trayecto.modulos.length : 0;
-
-      card.innerHTML = `
-        <div>
-          <div class="course-header">
-            <div class="course-icon">
-              <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/>
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/>
+      if (this.listaTrayectos.length === 0) {
+        contenedor.innerHTML = `
+          <div class="empty-state-card fade-in">
+            <div class="empty-state-icon">
+              <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
               </svg>
             </div>
-            <div>
-              <h3 class="course-title">${trayecto.nombre}</h3>
-              <span style="font-size: 0.8rem; color: var(--text-gold); font-weight: 600;">
-                Sector: ${trayecto.sector || 'General'}
-              </span>
+            <h3 class="empty-state-title">No hay trayectos publicados aún</h3>
+            <p class="empty-state-text">
+              Estamos preparando la nueva oferta académica. Volvé a consultar pronto para conocer los próximos cursos e inscripciones.
+            </p>
+          </div>
+        `;
+        return;
+      }
+
+      const grid = document.createElement('div');
+      grid.className = 'trayectos-grid';
+
+      this.listaTrayectos.forEach(trayecto => {
+        const card = document.createElement('div');
+        card.className = 'course-card fade-in';
+
+        let modulosHTML = '';
+        if (trayecto.modulos && trayecto.modulos.length > 0) {
+          modulosHTML = trayecto.modulos.map(m => `
+            <div class="modulo-card" style="margin-top: 0.5rem; background: rgba(15, 20, 28, 0.6); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem;">
+              <strong style="color: var(--text-main); font-size: 0.9rem;">${m.nombre}</strong> 
+              <span style="color: var(--accent-gold); font-size: 0.8rem;">(${m.codigo || 'S/C'})</span>
+              <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">
+                📅 Inicio: ${m.fecha_inicio || 'A definir'} | Fin: ${m.fecha_fin || 'A definir'}
+              </div>
+            </div>
+          `).join('');
+        } else {
+          modulosHTML = '<small style="color: var(--text-muted);">Sin módulos asignados</small>';
+        }
+
+        const cantidadModulos = trayecto.modulos ? trayecto.modulos.length : 0;
+
+        card.innerHTML = `
+          <div>
+            <div class="course-header">
+              <div class="course-icon">
+                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/>
+                </svg>
+              </div>
+              <div>
+                <h3 class="course-title">${trayecto.nombre}</h3>
+                <span style="font-size: 0.8rem; color: var(--text-gold); font-weight: 600;">
+                  Sector: ${trayecto.sector || 'General'}
+                </span>
+              </div>
+            </div>
+
+            ${trayecto.certificacion || trayecto.resolucion ? `
+              <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+                📜 <strong>Certificación:</strong> ${trayecto.certificacion || 'S/D'}<br>
+                📑 <strong>Resolución:</strong> ${trayecto.resolucion || 'S/D'}
+              </div>
+            ` : ''}
+
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.75rem; line-height: 1.5;">
+              ${trayecto.descripcion || 'Sin descripción disponible.'}
+            </p>
+
+            ${trayecto.requisitos ? `
+              <div style="background: rgba(234, 179, 8, 0.08); border-left: 3px solid var(--accent-gold); padding: 0.5rem 0.75rem; border-radius: 4px; margin-bottom: 1rem;">
+                <strong style="color: var(--text-gold); font-size: 0.8rem; display: block;">📋 Requisitos:</strong>
+                <span style="color: var(--text-main); font-size: 0.825rem;">${trayecto.requisitos}</span>
+              </div>
+            ` : ''}
+
+            <div class="course-meta">
+              <span>📚 ${cantidadModulos} Módulo(s)</span>
+            </div>
+
+            <div style="margin-top: 1rem;">
+              <h4 style="font-size: 0.85rem; color: var(--text-main); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem;">
+                Módulos del Trayecto:
+              </h4>
+              ${modulosHTML}
             </div>
           </div>
+        `;
 
-          <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.75rem; line-height: 1.5;">
-            ${trayecto.descripcion || 'Sin descripción disponible.'}
-          </p>
+        grid.appendChild(card);
+      });
 
-          ${trayecto.requisitos ? `
-            <div style="background: rgba(234, 179, 8, 0.08); border-left: 3px solid var(--accent-gold); padding: 0.5rem 0.75rem; border-radius: 4px; margin-bottom: 1rem;">
-              <strong style="color: var(--text-gold); font-size: 0.8rem; display: block;">📋 Requisitos:</strong>
-              <span style="color: var(--text-main); font-size: 0.825rem;">${trayecto.requisitos}</span>
-            </div>
-          ` : ''}
-
-          <div class="course-meta">
-            <span>📚 ${cantidadModulos} Módulo(s)</span>
-          </div>
-
-          <div style="margin-top: 1rem;">
-            <h4 style="font-size: 0.85rem; color: var(--text-main); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem;">
-              Módulos del Trayecto:
-            </h4>
-            ${modulosHTML}
-          </div>
-        </div>
-      `;
-
-      grid.appendChild(card);
+      contenedor.appendChild(grid);
     });
-
-    contenedor.appendChild(grid);
   },
 
   async guardarTrayecto() {
     const nombre = document.getElementById('trayecto-nombre').value.trim();
     const sector = document.getElementById('trayecto-sector').value.trim();
+    const certificacion = document.getElementById('trayecto-certificacion') ? document.getElementById('trayecto-certificacion').value.trim() : '';
+    const resolucion = document.getElementById('trayecto-resolucion') ? document.getElementById('trayecto-resolucion').value.trim() : '';
     const descripcion = document.getElementById('trayecto-descripcion').value.trim();
     const requisitos = document.getElementById('trayecto-requisitos') ? document.getElementById('trayecto-requisitos').value.trim() : '';
 
@@ -133,7 +149,7 @@ const Trayectos = {
     try {
       const { data: trayectoGuardado, error: errTrayecto } = await supabase
         .from('trayectos')
-        .insert([{ nombre, sector, descripcion, requisitos }])
+        .insert([{ nombre, sector, certificacion, resolucion, descripcion, requisitos }])
         .select()
         .single();
 
@@ -171,7 +187,6 @@ const Trayectos = {
         alertSuccess('¡Éxito!', 'El trayecto y sus módulos fueron registrados correctamente.');
       }
       
-      // Limpiar formulario y restablecer vista de módulos
       const form = document.getElementById('form-trayecto');
       if (form) form.reset();
 
@@ -181,15 +196,12 @@ const Trayectos = {
         UI.agregarFilaModulo();
       }
 
-      // 1. Recargar lista desde Supabase
       await this.cargarTrayectos();
 
-      // 2. Actualizar estadísticas del Dashboard si la función existe
       if (typeof UI !== 'undefined' && UI.actualizarContadoresDashboard) {
         UI.actualizarContadoresDashboard();
       }
 
-      // 3. Redirigir a la pestaña "Trayectos Formativos"
       if (typeof UI !== 'undefined' && UI.showTab) {
         UI.showTab('trayectos');
       }
