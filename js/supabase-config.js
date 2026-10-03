@@ -13,34 +13,51 @@ if (typeof window.supabaseClient === 'undefined') {
 window.supabase = window.supabaseClient;
 
 // Funciones globales de alertas
-function alertError(mensaje) {
+function alertError(titulo, mensaje) {
+  const text = mensaje || titulo;
+  const title = mensaje ? titulo : 'Error';
   if (typeof Swal !== 'undefined') {
-    Swal.fire({ icon: 'error', title: 'Error', text: mensaje });
+    Swal.fire({ icon: 'error', title: title, text: text, confirmButtonColor: '#2563eb' });
   } else {
-    alert('Error: ' + mensaje);
+    alert(`${title}: ${text}`);
   }
 }
 
-function alertSuccess(mensaje) {
+function alertSuccess(titulo, mensaje) {
+  const text = mensaje || titulo;
+  const title = mensaje ? titulo : '¡Éxito!';
   if (typeof Swal !== 'undefined') {
-    Swal.fire({ icon: 'success', title: '¡Éxito!', text: mensaje });
+    Swal.fire({ icon: 'success', title: title, text: text, confirmButtonColor: '#2563eb' });
   } else {
-    alert('¡Éxito!: ' + mensaje);
+    alert(`${title}: ${text}`);
   }
 }
 
-// Definimos notify para que auth.js muestre los mensajes sin fallar
-function notify(mensaje, tipo = 'error') {
+// Función notify compatible con notify(tipo, mensaje) o notify(mensaje)
+function notify(tipoOrMensaje, mensaje) {
+  const icon = mensaje ? tipoOrMensaje : 'info';
+  const text = mensaje || tipoOrMensaje;
+
   if (typeof Swal !== 'undefined') {
-    Swal.fire({
-      icon: tipo,
-      title: tipo === 'error' ? 'Atención' : '¡Éxito!',
-      text: mensaje
+    const Toast = Swal.mixin({
+      toast: true,
+      position: 'top-end',
+      showConfirmButton: false,
+      timer: 3000,
+      timerProgressBar: true
+    });
+
+    Toast.fire({
+      icon: ['success', 'error', 'warning', 'info', 'question'].includes(icon) ? icon : 'info',
+      title: text
     });
   } else {
-    alert(mensaje);
+    alert(text);
   }
 }
 
 // Exportamos globalmente
+window.alertError = alertError;
+window.alertSuccess = alertSuccess;
+window.windowNotify = notify;
 window.notify = notify;
