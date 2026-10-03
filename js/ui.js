@@ -15,7 +15,7 @@ const UI = {
     if (app) app.style.setProperty('display', 'none', 'important');
   },
 
- // Muestra la pantalla / modal de login centrada
+  // Muestra la pantalla / modal de login centrada
   showLoginScreen() {
     const landing = document.getElementById('landing-screen') || document.querySelector('.public-landing');
     const login = document.getElementById('login-screen');
@@ -31,6 +31,7 @@ const UI = {
       this.toggleAuthTab('login');
     }
   },
+
   // Muestra el Panel Administrativo y OCULTA la vista pública
   mostrarDashboard(perfil) {
     const landing = document.getElementById('landing-screen') || document.querySelector('.public-landing');
@@ -114,13 +115,13 @@ const UI = {
       sec.classList.add('active');
     }
 
-   // Actualizar título en el Header Superior
+    // Actualizar título en el Header Superior
     const titleMap = {
       'dashboard': 'Dashboard General',
       'trayectos': 'Trayectos Formativos',
       'nuevo-trayecto': 'Cargar Nuevo Trayecto',
       'certificados': 'Emisión de Certificados',
-      'usuarios': 'Gestión de Usuarios y Solicitudes' // <-- AGREGAR ESTA LÍNEA
+      'usuarios': 'Gestión de Usuarios y Solicitudes'
     };
     const headerTitle = document.getElementById('current-section-title');
     if (headerTitle) {
@@ -131,7 +132,8 @@ const UI = {
     if (tabId === 'trayectos' && typeof Trayectos !== 'undefined' && Trayectos.cargarTrayectos) {
       Trayectos.cargarTrayectos();
     }
-     // <-- AGREGAR ESTA CONDICIÓN
+    
+    // Recargar datos desde Supabase al abrir la pestaña "Gestión de Usuarios"
     if (tabId === 'usuarios' && typeof Usuarios !== 'undefined' && Usuarios.cargarUsuarios) {
       Usuarios.cargarUsuarios();
     }
@@ -224,12 +226,9 @@ const UI = {
   }
 };
 
-// Cargar trayectos y usuarios desde Supabase al iniciar la página
+// Inicialización de componentes al cargar el DOM
 document.addEventListener('DOMContentLoaded', () => {
   if (typeof Trayectos !== 'undefined' && Trayectos.cargarTrayectos) {
     Trayectos.cargarTrayectos();
-  }
-  if (typeof Usuarios !== 'undefined' && Usuarios.cargarUsuarios) {
-    Usuarios.cargarUsuarios();
   }
 });
