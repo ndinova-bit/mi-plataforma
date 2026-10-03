@@ -15,7 +15,7 @@ const UI = {
     if (app) app.style.setProperty('display', 'none', 'important');
   },
 
-  // Muestra la pantalla / modal de login cuando se presiona "Ingresar / Registrarse"
+ // Muestra la pantalla / modal de login centrada
   showLoginScreen() {
     const landing = document.getElementById('landing-screen') || document.querySelector('.public-landing');
     const login = document.getElementById('login-screen');
@@ -24,11 +24,13 @@ const UI = {
     if (landing) landing.style.setProperty('display', 'none', 'important');
     if (app) app.style.setProperty('display', 'none', 'important');
     if (login) {
-      login.style.setProperty('display', 'block', 'important');
+      login.style.setProperty('display', 'flex', 'important');
+      login.style.setProperty('justify-content', 'center', 'important');
+      login.style.setProperty('align-items', 'center', 'important');
+      login.style.setProperty('min-height', '100vh', 'important');
       this.toggleAuthTab('login');
     }
   },
-
   // Muestra el Panel Administrativo y OCULTA la vista pública
   mostrarDashboard(perfil) {
     const landing = document.getElementById('landing-screen') || document.querySelector('.public-landing');
