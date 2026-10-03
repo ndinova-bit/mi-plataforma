@@ -337,3 +337,17 @@ body:has(#app-screen[style*="display: flex"]) .main-footer {
 #modal-alta-usuario input[type="date"] {
   cursor: text !important;
 }
+
+/* Bloquea la interacción con el fondo mientras el modal está activo */
+body:has(#modal-alta-usuario[style*="display: flex"]) .main-wrapper,
+body:has(#modal-alta-usuario[style*="display: flex"]) .sidebar {
+  pointer-events: none !important;
+}
+
+#modal-alta-usuario {
+  pointer-events: auto !important;
+}
+
+#modal-alta-usuario .card-panel {
+  pointer-events: auto !important;
+}
