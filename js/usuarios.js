@@ -1,6 +1,6 @@
-// js/usuarios.js - Código corregido con prevención de doble clic y dobles envíos
-
 const UsuariosAdmin = {
+  estaProcesando: false,
+
   abrirModal() {
     const modal = document.getElementById('modal-alta-usuario');
     if (modal) {
@@ -15,8 +15,10 @@ const UsuariosAdmin = {
     if (modal) {
       modal.classList.remove('open', 'active');
       modal.style.display = 'none';
-      document.getElementById('form-alta-usuario')?.reset();
+      const form = document.getElementById('form-alta-usuario');
+      if (form) form.reset();
     }
+    this.estaProcesando = false;
   },
 
   async cargarUsuarios() {
@@ -129,12 +131,8 @@ const UsuariosAdmin = {
   async crearUsuarioManual(e) {
     if (e && typeof e.preventDefault === 'function') e.preventDefault();
 
-    // Buscar botón de guardado para deshabilitarlo temporalmente (evita doble click)
-    const btnGuardar = document.querySelector('#modal-alta-usuario button[type="submit"]') || 
-                       document.querySelector('#modal-alta-usuario .btn-primary') ||
-                       document.querySelector('#modal-alta-usuario button:not(.btn-close)');
-
-    if (btnGuardar && btnGuardar.disabled) return; // Si ya está guardando, salir
+    if (this.estaProcesando) return;
+    this.estaProcesando = true;
 
     const apellido = document.getElementById('usr-alta-apellido')?.value.trim().toUpperCase();
     const nombre = document.getElementById('usr-alta-nombre')?.value.trim().toUpperCase();
@@ -144,17 +142,11 @@ const UsuariosAdmin = {
 
     if (!nombre || !apellido || !dniVal) {
       alert('Por favor completá Nombre, Apellido y DNI.');
+      this.estaProcesando = false;
       return;
     }
 
     try {
-      if (btnGuardar) {
-        btnGuardar.disabled = true;
-        btnGuardar.dataset.originalText = btnGuardar.textContent;
-        btnGuardar.textContent = 'Guardando...';
-      }
-
-      // 1. Crear Usuario
       const nuevoUsuario = {
         nombre: nombre,
         apellido: apellido,
@@ -172,11 +164,11 @@ const UsuariosAdmin = {
         .select();
 
       if (errUsr) {
-        alert('Error al crear usuario en la BD: ' + errUsr.message);
+        alert('Error al crear usuario: ' + errUsr.message);
+        this.estaProcesando = false;
         return;
       }
 
-      // 2. Crear Inscripciones
       const checkboxes = document.querySelectorAll('input[name="trayectos_seleccionados"]:checked');
       const trayectoIds = Array.from(checkboxes).map(cb => cb.value);
 
@@ -191,23 +183,21 @@ const UsuariosAdmin = {
           .insert(inscripciones);
 
         if (errInsc) {
-          alert('⚠️ Usuario creado pero FALLÓ la vinculación: ' + errInsc.message);
+          alert('⚠️ Usuario creado pero falló la inscripción: ' + errInsc.message);
+          this.estaProcesando = false;
           return;
         }
       }
 
-      alert(`✅ Usuario ${nombre} ${apellido} creado e inscripto correctamente.`);
+      alert(`✅ Usuario ${nombre} ${apellido} guardado correctamente.`);
       this.cerrarModal();
-      if (typeof this.cargarUsuarios === 'function') this.cargarUsuarios();
+      this.cargarUsuarios();
 
     } catch (err) {
       console.error('Error general:', err);
       alert('Error inesperado: ' + (err.message || 'Consulte la consola.'));
     } finally {
-      if (btnGuardar) {
-        btnGuardar.disabled = false;
-        btnGuardar.textContent = btnGuardar.dataset.originalText || 'Guardar Usuario';
-      }
+      this.estaProcesando = false;
     }
   },
 
@@ -238,6 +228,14 @@ const UsuariosAdmin = {
     }
   }
 };
+
+// Escuchador global del submit para conectar con la vista HTML existente
+document.addEventListener('submit', function(e) {
+  if (e.target && e.target.id === 'form-alta-usuario') {
+    e.preventDefault();
+    UsuariosAdmin.crearUsuarioManual(e);
+  }
+});
 
 UsuariosAdmin.cargarTrayectosModal = UsuariosAdmin.cargarTrayectosEnModal;
 UsuariosAdmin.cargarTrayectos = UsuariosAdmin.cargarTrayectosEnModal;
