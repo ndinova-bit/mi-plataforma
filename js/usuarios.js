@@ -54,9 +54,9 @@ const UsuariosAdmin = {
 
       tbody.innerHTML = usuarios.map(u => {
         const estadoRaw = String(u.estado || 'PENDIENTE').toUpperCase();
-        const esActivo = estadoRaw === 'ACTIVO' || estadoRaw === 'ACTIVA' || estadoRaw === 'HABILITADO';
+        const esActivo = estadoRaw === 'ACTIVO' || estadoRaw === 'ACTIVA' || estadoRaw === 'HABILITADO' || estadoRaw === 'APROBADO';
         const nombreCompleto = u.apellido ? `${u.apellido}, ${u.nombre}` : (u.nombre || 'Sin Nombre');
-        const usrIdentificador = u.usuario || u.id;
+        const usrIdentificador = u.usuario || u.dni || u.id;
 
         return `
           <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
@@ -130,7 +130,7 @@ const UsuariosAdmin = {
     }
   },
 
-  // Alta manual de usuario con conversión a MAYÚSCULAS y omitiendo "estado"
+  // Alta manual de usuario
   async crearUsuarioManual() {
     const apellido = document.getElementById('usr-alta-apellido')?.value.trim().toUpperCase();
     const nombre = document.getElementById('usr-alta-nombre')?.value.trim().toUpperCase();
@@ -147,10 +147,11 @@ const UsuariosAdmin = {
       const nuevoUsuario = {
         nombre: nombre,
         apellido: apellido,
+        dni: dniVal,
         usuario: dniVal,
         pass: dniVal,
-        rol: rol
-        // Omitimos 'estado' para dejar que Supabase use el valor por defecto de la base de datos
+        rol: rol,
+        estado: 'ACTIVO' // Se guarda como ACTIVO de una vez
       };
 
       if (email) nuevoUsuario.email = email;
@@ -167,6 +168,7 @@ const UsuariosAdmin = {
 
       if (trayectoIds.length > 0) {
         const inscripciones = trayectoIds.map(tId => ({
+          estudiante_user: dniVal, // Guarda ambas columnas para que siempre coincida
           usuario_dni: dniVal,
           trayecto_id: tId,
           estado: 'cursando'
