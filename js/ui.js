@@ -197,9 +197,9 @@ async cargarTrayectosDelUsuario() {
 
       // 1. Consultar inscripciones que coincidan con DNI, Usuario O Nombre
       const { data: inscripciones, error: errInsc } = await supabase
-        .from('inscripciones')
-        .select('trayecto_id')
-        .or(condiciones.join(','));
+  .from('inscripciones')
+  .select('trayecto_id')
+  .or(`estudiante_user.eq.${usrVal},estudiante_user.eq.${dniVal},estudiante_user.eq.${nomVal}`);
 
       if (errInsc) throw errInsc;
 
