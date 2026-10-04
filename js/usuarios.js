@@ -1,6 +1,5 @@
 // js/usuarios.js - Gestión de Usuarios y Altas Manuales
 const UsuariosAdmin = {
-  // Abrir modal de alta
   abrirModal() {
     const modal = document.getElementById('modal-alta-usuario');
     if (modal) {
@@ -10,7 +9,6 @@ const UsuariosAdmin = {
     }
   },
 
-  // Cerrar modal de alta
   cerrarModal() {
     const modal = document.getElementById('modal-alta-usuario');
     if (modal) {
@@ -20,7 +18,6 @@ const UsuariosAdmin = {
     }
   },
 
-  // Cargar lista de usuarios registrados
   async cargarUsuarios() {
     const tbody = document.getElementById('tabla-usuarios');
     if (!tbody) return;
@@ -54,9 +51,9 @@ const UsuariosAdmin = {
 
       tbody.innerHTML = usuarios.map(u => {
         const estadoRaw = String(u.estado || 'PENDIENTE').toUpperCase();
-        const esActivo = estadoRaw === 'ACTIVO' || estadoRaw === 'ACTIVA' || estadoRaw === 'HABILITADO' || estadoRaw === 'APROBADO';
+        const esActivo = estadoRaw === 'ACTIVO' || estadoRaw === 'HABILITADO' || estadoRaw === 'APROBADO';
         const nombreCompleto = u.apellido ? `${u.apellido}, ${u.nombre}` : (u.nombre || 'Sin Nombre');
-        const usrIdentificador = u.usuario || u.dni || u.id;
+        const usrIdentificador = u.usuario || u.id;
 
         return `
           <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
@@ -99,7 +96,6 @@ const UsuariosAdmin = {
     }
   },
 
-  // Cargar lista de trayectos activos dentro del modal
   async cargarTrayectosEnModal() {
     const contenedor = document.getElementById('usr-alta-trayectos');
     if (!contenedor) return;
@@ -130,7 +126,6 @@ const UsuariosAdmin = {
     }
   },
 
-  // Alta manual de usuario
   async crearUsuarioManual() {
     const apellido = document.getElementById('usr-alta-apellido')?.value.trim().toUpperCase();
     const nombre = document.getElementById('usr-alta-nombre')?.value.trim().toUpperCase();
@@ -147,11 +142,10 @@ const UsuariosAdmin = {
       const nuevoUsuario = {
         nombre: nombre,
         apellido: apellido,
-        dni: dniVal,
         usuario: dniVal,
         pass: dniVal,
         rol: rol,
-        estado: 'ACTIVO' // Se guarda como ACTIVO de una vez
+        estado: 'ACTIVO'
       };
 
       if (email) nuevoUsuario.email = email;
@@ -168,10 +162,8 @@ const UsuariosAdmin = {
 
       if (trayectoIds.length > 0) {
         const inscripciones = trayectoIds.map(tId => ({
-          estudiante_user: dniVal, // Guarda ambas columnas para que siempre coincida
-          usuario_dni: dniVal,
-          trayecto_id: tId,
-          estado: 'cursando'
+          estudiante_user: dniVal,
+          trayecto_id: String(tId) // Convertir ID a String compatible
         }));
 
         const { error: errInsc } = await supabase.from('inscripciones').insert(inscripciones);
@@ -197,7 +189,6 @@ const UsuariosAdmin = {
     }
   },
 
-  // Cambiar estado
   async cambiarEstado(identificador, nuevoEstado) {
     try {
       const { error } = await supabase
@@ -215,7 +206,6 @@ const UsuariosAdmin = {
     }
   },
 
-  // Cambiar rol
   async cambiarRol(identificador, nuevoRol) {
     try {
       const { error } = await supabase
@@ -233,7 +223,6 @@ const UsuariosAdmin = {
   }
 };
 
-// Aliases y exposición global
 UsuariosAdmin.cargarTrayectosModal = UsuariosAdmin.cargarTrayectosEnModal;
 UsuariosAdmin.cargarTrayectos = UsuariosAdmin.cargarTrayectosEnModal;
 
