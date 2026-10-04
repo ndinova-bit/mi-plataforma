@@ -154,19 +154,23 @@ const UI = {
     }
   },
 
- // Carga únicamente los trayectos vinculados al estudiante que inició sesión
-  async cargarTrayectosDelUsuario() {
+async cargarTrayectosDelUsuario() {
     const contenedorAdmin = document.getElementById('lista-trayectos-admin');
     const perfilRaw = localStorage.getItem('usuario_actual');
     if (!perfilRaw) return;
     
     let perfil = JSON.parse(perfilRaw);
-    const isAdmin = (perfil.rol || '').toLowerCase().trim() === 'admin';
+    
+    // Normalización flexible del rol
+    const rolUsuario = String(perfil.rol || '').toLowerCase().trim();
+    const isAdmin = rolUsuario === 'admin' || rolUsuario === 'administrador';
 
-    // Si es ADMIN, delega el renderizado general
+    // Si es ADMIN, ejecuta SIEMPRE el render de administración
     if (isAdmin) {
       if (window.TrayectosAdmin && typeof window.TrayectosAdmin.cargarTrayectos === 'function') {
         window.TrayectosAdmin.cargarTrayectos();
+      } else {
+        console.warn('TrayectosAdmin no está disponible aún.');
       }
       return;
     }
