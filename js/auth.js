@@ -7,7 +7,15 @@ const Auth = {
     const perfilRaw = localStorage.getItem('usuario_actual');
     if (perfilRaw) {
       try {
-        const perfil = JSON.parse(perfilRaw);
+        let perfil = JSON.parse(perfilRaw);
+        
+        // Limpiar DNI persistido para eliminar sufijos residuales
+        if (perfil) {
+          if (perfil.usuario) perfil.usuario = String(perfil.usuario).split(':')[0].replace(/\D/g, '');
+          if (perfil.dni) perfil.dni = String(perfil.dni).split(':')[0].replace(/\D/g, '');
+          localStorage.setItem('usuario_actual', JSON.stringify(perfil));
+        }
+
         this.usuarioActual = perfil;
         if (typeof UI !== 'undefined' && typeof UI.mostrarDashboard === 'function') {
           UI.mostrarDashboard(perfil);
@@ -20,17 +28,23 @@ const Auth = {
   },
 
   async iniciarSesion() {
-    const userVal = document.getElementById('login-user').value.trim();
+    const userValRaw = document.getElementById('login-user').value.trim();
     const passVal = document.getElementById('login-pass').value.trim();
     const roleVal = document.getElementById('role-select').value;
 
-    if (!userVal || !passVal) {
+    if (!userValRaw || !passVal) {
       if (typeof alertError === 'function') {
         alertError('Campos incompletos', 'Por favor ingresá tu usuario/DNI y contraseña.');
       } else {
         alert('Por favor ingresá tu usuario/DNI y contraseña.');
       }
       return;
+    }
+
+    // Sanitizar el input de usuario/DNI (elimina sufijos como :1 y caracteres no numéricos salvo emails)
+    let userVal = userValRaw.split(':')[0];
+    if (!userVal.includes('@')) {
+      userVal = userVal.replace(/\D/g, '');
     }
 
     try {
@@ -52,7 +66,11 @@ const Auth = {
         return;
       }
 
-      const perfil = usuarios[0];
+      let perfil = usuarios[0];
+
+      // Sanitización estricta del DNI en el objeto de perfil
+      if (perfil.usuario) perfil.usuario = String(perfil.usuario).split(':')[0].replace(/\D/g, '');
+      if (perfil.dni) perfil.dni = String(perfil.dni).split(':')[0].replace(/\D/g, '');
 
       // 2. Validar estado (ACTIVO / HABILITADO)
       const estado = String(perfil.estado || '').toUpperCase();
@@ -75,7 +93,7 @@ const Auth = {
         return;
       }
 
-      // 4. Guardar sesión y activar vista
+      // 4. Guardar sesión limpia y activar vista
       this.usuarioActual = perfil;
       localStorage.setItem('usuario_actual', JSON.stringify(perfil));
 
@@ -101,13 +119,15 @@ const Auth = {
 
   async solicitarRegistro() {
     const nombre = document.getElementById('reg-nombre')?.value.trim().toUpperCase();
-    const dni = document.getElementById('reg-dni')?.value.trim();
+    const dniRaw = document.getElementById('reg-dni')?.value.trim();
     const pass = document.getElementById('reg-pass')?.value.trim();
     const rol = document.getElementById('reg-rol')?.value || 'estudiante';
 
-    if (!nombre || !dni || !pass) {
+    const dniLimpio = String(dniRaw || '').split(':')[0].replace(/\D/g, '');
+
+    if (!nombre || !dniLimpio || !pass) {
       if (typeof alertError === 'function') {
-        alertError('Campos incompletos', 'Todos los campos son obligatorios.');
+        alertError('Campos incompletos', 'Todos los campos son obligatorios y el DNI debe contener solo números.');
       } else {
         alert('Todos los campos son obligatorios.');
       }
@@ -119,7 +139,7 @@ const Auth = {
         .from('usuarios')
         .insert([{
           nombre: nombre,
-          usuario: dni,
+          usuario: dniLimpio,
           pass: pass,
           rol: rol,
           estado: 'PENDIENTE'
