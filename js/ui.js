@@ -167,21 +167,22 @@ const UI = {
     contenedorAdmin.innerHTML = '<p style="color: #94a3b8; text-align: center; padding: 2rem;">Cargando tus trayectos vinculados...</p>';
 
     try {
-      // Limpiar el DNI extrayendo únicamente los dígitos numéricos
+      // Limpiar DNI eliminando caracteres no numéricos
       const rawVal = String(perfil.usuario || perfil.dni || '');
-      const dniUsr = rawVal.replace(/\D/g, ''); 
+      const dniUsr = rawVal.replace(/\D/g, '');
 
       if (!dniUsr) {
-        contenedorAdmin.innerHTML = '<p style="color: #f87171; text-align: center;">No se encontró un DNI válido para consultar los trayectos.</p>';
+        contenedorAdmin.innerHTML = '<p style="color: #f87171; text-align: center;">No se encontró un DNI válido.</p>';
         return;
       }
 
-      const { data: inscripciones, error } = await supabase
+      // 1. Consultar únicamente las inscripciones del estudiante
+      const { data: inscripciones, error: errInsc } = await supabase
         .from('inscripciones')
-        .select('trayecto_id, estado, trayectos(id, nombre, descripcion)')
+        .select('trayecto_id, estado')
         .eq('usuario_dni', dniUsr);
 
-      if (error) throw error;
+      if (errInsc) throw errInsc;
 
       if (!inscripciones || inscripciones.length === 0) {
         contenedorAdmin.innerHTML = `
@@ -193,8 +194,26 @@ const UI = {
         return;
       }
 
+      // 2. Traer la información de los trayectos asociados por ID
+      const idsTrayectos = inscripciones.map(i => i.trayecto_id).filter(Boolean);
+
+      let trayectosMap = {};
+      if (idsTrayectos.length > 0) {
+        const { data: trayectos, error: errTray } = await supabase
+          .from('trayectos')
+          .select('id, nombre, descripcion')
+          .in('id', idsTrayectos);
+
+        if (!errTray && trayectos) {
+          trayectos.forEach(t => {
+            trayectosMap[t.id] = t;
+          });
+        }
+      }
+
+      // 3. Renderizar en la pantalla del Estudiante
       contenedorAdmin.innerHTML = inscripciones.map(i => {
-        const trayecto = i.trayectos || {};
+        const trayecto = trayectosMap[i.trayecto_id] || {};
         return `
           <div style="background: #1e293b; border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem; border: 1px solid rgba(255,255,255,0.1);">
             <div style="display: flex; justify-content: space-between; align-items: center;">
