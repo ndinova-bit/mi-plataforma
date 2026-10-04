@@ -147,7 +147,7 @@ const UI = {
     }
   },
 
-  // Carga únicamente los trayectos vinculados al estudiante que inició sesión
+ // Carga únicamente los trayectos vinculados al estudiante que inició sesión
   async cargarTrayectosDelUsuario() {
     const contenedorAdmin = document.getElementById('lista-trayectos-admin');
     const perfilRaw = localStorage.getItem('usuario_actual');
@@ -168,20 +168,20 @@ const UI = {
     contenedorAdmin.innerHTML = '<p style="color: #94a3b8; text-align: center; padding: 2rem;">Cargando tus trayectos vinculados...</p>';
 
     try {
-      // 1. Extraer sólo los números del DNI, limpiando dos puntos u otros caracteres
+      // Extraer únicamente los dígitos numéricos del DNI
       const stringBruto = String(perfil.usuario || perfil.dni || perfil.usuario_dni || '');
-      const dniLimpio = stringBruto.split(':')[0].replace(/\D/g, '');
+      const dniLimpio = stringBruto.replace(/\D/g, '');
 
       if (!dniLimpio) {
         contenedorAdmin.innerHTML = '<p style="color: #f87171; text-align: center;">No se encontró un DNI válido para la consulta.</p>';
         return;
       }
 
-      // 2. Consultar inscripciones probando como string y como número
+      // 1. Consultar inscripciones usando .in() con el DNI en formato string y en formato numérico
       const { data: inscripciones, error: errInsc } = await supabase
         .from('inscripciones')
         .select('trayecto_id, estado')
-        .or(`usuario_dni.eq.${dniLimpio},usuario_dni.eq.${Number(dniLimpio)}`);
+        .in('usuario_dni', [dniLimpio, Number(dniLimpio)]);
 
       if (errInsc) throw errInsc;
 
@@ -195,7 +195,7 @@ const UI = {
         return;
       }
 
-      // 3. Traer detalles de los trayectos
+      // 2. Traer detalles de los trayectos
       const idsTrayectos = inscripciones.map(i => i.trayecto_id).filter(Boolean);
       let trayectosMap = {};
 
@@ -212,7 +212,7 @@ const UI = {
         }
       }
 
-      // 4. Mostrar las tarjetas al alumno
+      // 3. Renderizar las tarjetas
       contenedorAdmin.innerHTML = inscripciones.map(i => {
         const trayecto = trayectosMap[i.trayecto_id] || {};
         return `
@@ -235,7 +235,6 @@ const UI = {
       contenedorAdmin.innerHTML = '<p style="color: #f87171; text-align: center;">Error al obtener tus trayectos.</p>';
     }
   },
-
   // Abre el modal para dar de alta a un usuario
   abrirModalNuevoUsuario() {
     const modal = document.getElementById('modal-alta-usuario');
