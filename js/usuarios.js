@@ -166,11 +166,10 @@ const UsuariosAdmin = {
       const trayectoIds = Array.from(checkboxes).map(cb => cb.value);
 
       if (trayectoIds.length > 0) {
-        const inscripciones = trayectoIds.map(tId => ({
-          estudiante_user: String(dniVal),
-          trayecto_id: String(tId)
-        }));
-
+  const inscripciones = trayectoIds.map(tId => ({
+    estudiante_user: String(dniVal),
+    trayecto_id: Number(tId) // o parseInt(tId)
+  }));
         const { error: errInsc } = await supabase
           .from('inscripciones')
           .insert(inscripciones);
