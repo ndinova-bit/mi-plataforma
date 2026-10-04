@@ -161,11 +161,11 @@ async cargarTrayectosDelUsuario() {
     
     let perfil = JSON.parse(perfilRaw);
     
-    // Normalización flexible del rol
+    // Normalización del rol
     const rolUsuario = String(perfil.rol || '').toLowerCase().trim();
     const isAdmin = rolUsuario === 'admin' || rolUsuario === 'administrador';
 
-    // Si es ADMIN, ejecuta SIEMPRE el render de administración
+    // Si es ADMIN, ejecuta vista de administración
     if (isAdmin) {
       if (window.TrayectosAdmin && typeof window.TrayectosAdmin.cargarTrayectos === 'function') {
         window.TrayectosAdmin.cargarTrayectos();
@@ -179,19 +179,27 @@ async cargarTrayectosDelUsuario() {
     contenedorAdmin.innerHTML = '<p style="color: #94a3b8; text-align: center; padding: 2rem;">Cargando tus trayectos vinculados...</p>';
 
     try {
-      // Identificador del usuario (ej: "22222222" o "PJUAN")
-      const usuarioId = String(perfil.usuario || perfil.dni || '').trim();
+      // Extract de todas las variantes del identificador del estudiante
+      const usrVal = String(perfil.usuario || '').trim();
+      const dniVal = String(perfil.dni || '').trim();
+      const nomVal = String(perfil.nombre || '').trim();
 
-      if (!usuarioId) {
+      // Construcción dinámica del filtro de búsqueda OR en Supabase
+      const condiciones = [];
+      if (usrVal) condiciones.push(`estudiante_user.eq.${usrVal}`);
+      if (dniVal) condiciones.push(`estudiante_user.eq.${dniVal}`);
+      if (nomVal) condiciones.push(`estudiante_user.eq.${nomVal}`);
+
+      if (condiciones.length === 0) {
         contenedorAdmin.innerHTML = '<p style="color: #f87171; text-align: center;">No se encontró un usuario válido.</p>';
         return;
       }
 
-      // 1. Consultar inscripciones usando la columna EXACTA 'estudiante_user'
+      // 1. Consultar inscripciones que coincidan con DNI, Usuario O Nombre
       const { data: inscripciones, error: errInsc } = await supabase
         .from('inscripciones')
         .select('trayecto_id')
-        .eq('estudiante_user', usuarioId);
+        .or(condiciones.join(','));
 
       if (errInsc) throw errInsc;
 
