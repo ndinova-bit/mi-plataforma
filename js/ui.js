@@ -153,7 +153,7 @@ const UI = {
     }
   },
 
-  // Carga los trayectos vinculados al usuario actual
+  // Carga los trayectos vinculados al estudiante
   async cargarTrayectosDelUsuario() {
     const contenedorAdmin = document.getElementById('lista-trayectos-admin');
     const perfilRaw = localStorage.getItem('usuario_actual');
