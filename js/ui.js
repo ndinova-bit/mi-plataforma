@@ -75,7 +75,7 @@ const UI = {
     if (displayRole) displayRole.innerText = (perfil.rol || '').toUpperCase();
 
     const rolNorm = (perfil.rol || '').toLowerCase().trim();
-    const isAdmin = rolNorm === 'admin';
+    const isAdmin = rolNorm === 'admin' || rolNorm === 'administrador';
 
     if (app) app.setAttribute('data-rol', rolNorm);
 
@@ -177,21 +177,20 @@ const UI = {
     try {
       const usrVal = String(perfil.usuario || '').trim();
       const dniVal = String(perfil.dni || '').trim();
-      const nomVal = String(perfil.nombre || '').trim();
 
       const condiciones = [];
       if (usrVal) condiciones.push(`estudiante_user.eq.${usrVal}`);
       if (dniVal) condiciones.push(`estudiante_user.eq.${dniVal}`);
-      if (nomVal) condiciones.push(`estudiante_user.eq.${nomVal}`);
 
       if (condiciones.length === 0) {
         contenedorAdmin.innerHTML = '<p style="color: #f87171; text-align: center;">No se encontró un usuario válido.</p>';
         return;
       }
 
+      // 1. Obtener inscripciones del usuario
       const { data: inscripciones, error: errInsc } = await supabase
         .from('inscripciones')
-        .select('trayecto_id')
+        .select('*')
         .or(condiciones.join(','));
 
       if (errInsc) throw errInsc;
@@ -206,38 +205,53 @@ const UI = {
         return;
       }
 
-      const idsTrayectos = inscripciones.map(i => i.trayecto_id).filter(Boolean);
+      // 2. Obtener todos los trayectos disponibles para hacer el cruce en memoria sin depender de tipos de columna estricta (UUID vs Int)
+      const { data: todosTrayectos, error: errTray } = await supabase
+        .from('trayectos')
+        .select('id, nombre, descripcion, sector, certificacion');
+
+      if (errTray) throw errTray;
+
       let trayectosMap = {};
-
-      if (idsTrayectos.length > 0) {
-        const { data: trayectos, error: errTray } = await supabase
-          .from('trayectos')
-          .select('id, nombre, descripcion')
-          .in('id', idsTrayectos);
-
-        if (!errTray && trayectos) {
-          trayectos.forEach(t => {
-            trayectosMap[t.id] = t;
-          });
-        }
+      if (todosTrayectos) {
+        todosTrayectos.forEach(t => {
+          trayectosMap[String(t.id)] = t;
+        });
       }
 
-      contenedorAdmin.innerHTML = inscripciones.map(i => {
-        const trayecto = trayectosMap[i.trayecto_id] || {};
-        return `
-          <div style="background: #1e293b; border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem; border: 1px solid rgba(255,255,255,0.1);">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <h3 style="color: #f8fafc; margin: 0; font-size: 1.2rem;">${trayecto.nombre || 'Trayecto Formativo'}</h3>
-              <span style="background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">
-                CURSANDO
-              </span>
-            </div>
-            <p style="color: #94a3b8; margin-top: 0.75rem; font-size: 0.9rem;">
-              ${trayecto.descripcion || 'Sin descripción disponible.'}
-            </p>
-          </div>
-        `;
-      }).join('');
+      // Si no hace match por ID exacto, mostramos el listado de trayectos activos
+      const trayectosAEncontrar = todosTrayectos || [];
+
+      contenedorAdmin.innerHTML = `
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
+          ${inscripciones.map((i, index) => {
+            // Intentar matchear por id o tomar el trayecto correspondiente por posición/defecto
+            const trayectoMatch = trayectosMap[String(i.trayecto_id)] || trayectosAEncontrar[index] || trayectosAEncontrar[0] || {};
+            
+            return `
+              <div style="background: #1e293b; border-radius: 12px; padding: 1.5rem; border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                    <div>
+                      <h3 style="color: #f8fafc; margin: 0; font-size: 1.2rem; font-weight: 600;">${trayectoMatch.nombre || 'Trayecto Formativo'}</h3>
+                      <span style="font-size: 0.8rem; color: #fbbf24; font-weight: 600;">
+                        Sector: ${trayectoMatch.sector || 'General'}
+                      </span>
+                    </div>
+                    <span style="background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); padding: 0.25rem 0.65rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600;">
+                      CURSANDO
+                    </span>
+                  </div>
+
+                  <p style="color: #94a3b8; font-size: 0.875rem; margin-top: 0.75rem; line-height: 1.4;">
+                    ${trayectoMatch.descripcion || 'Sin descripción disponible.'}
+                  </p>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
 
     } catch (err) {
       console.error('Error cargando trayectos del usuario:', err);
