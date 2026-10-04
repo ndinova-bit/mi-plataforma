@@ -154,7 +154,7 @@ const UI = {
     }
   },
 
- // Carga los trayectos formativos para la vista del estudiante
+ // Carga únicamente los trayectos vinculados al estudiante que inició sesión
   async cargarTrayectosDelUsuario() {
     const contenedorAdmin = document.getElementById('lista-trayectos-admin');
     const perfilRaw = localStorage.getItem('usuario_actual');
@@ -172,45 +172,74 @@ const UI = {
     }
 
     if (!contenedorAdmin) return;
-    contenedorAdmin.innerHTML = '<p style="color: #94a3b8; text-align: center; padding: 2rem;">Cargando trayectos...</p>';
+    contenedorAdmin.innerHTML = '<p style="color: #94a3b8; text-align: center; padding: 2rem;">Cargando tus trayectos vinculados...</p>';
 
     try {
-      // Consulta directa a la tabla 'trayectos'
-      const { data: trayectos, error: errTray } = await supabase
-        .from('trayectos')
-        .select('*')
-        .order('created_at', { ascending: false });
+      // Identificador del usuario (ej: "22222222" o "PJUAN")
+      const usuarioId = String(perfil.usuario || perfil.dni || '').trim();
 
-      if (errTray) throw errTray;
+      if (!usuarioId) {
+        contenedorAdmin.innerHTML = '<p style="color: #f87171; text-align: center;">No se encontró un usuario válido.</p>';
+        return;
+      }
 
-      if (!trayectos || trayectos.length === 0) {
+      // 1. Consultar inscripciones usando la columna EXACTA 'estudiante_user'
+      const { data: inscripciones, error: errInsc } = await supabase
+        .from('inscripciones')
+        .select('trayecto_id')
+        .eq('estudiante_user', usuarioId);
+
+      if (errInsc) throw errInsc;
+
+      // Si no tiene registros en la tabla 'inscripciones'
+      if (!inscripciones || inscripciones.length === 0) {
         contenedorAdmin.innerHTML = `
           <div style="text-align: center; padding: 3rem; background: rgba(30,41,59,0.5); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
-            <h3 style="color: #f8fafc; margin-bottom: 0.5rem;">No hay trayectos disponibles</h3>
-            <p style="color: #94a3b8;">Próximamente se publicará la oferta académica.</p>
+            <h3 style="color: #f8fafc; margin-bottom: 0.5rem;">No estás vinculado a ningún trayecto</h3>
+            <p style="color: #94a3b8;">Ponete en contacto con la administración del CFP para habilitar tu inscripción.</p>
           </div>
         `;
         return;
       }
 
-      // Renderizado directo de las tarjetas de trayectos
-      contenedorAdmin.innerHTML = trayectos.map(t => `
-        <div style="background: #1e293b; border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem; border: 1px solid rgba(255,255,255,0.1);">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h3 style="color: #f8fafc; margin: 0; font-size: 1.2rem;">${t.nombre || 'Trayecto Formativo'}</h3>
-            <span style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">
-              ${t.sector || 'GENERAL'}
-            </span>
+      // 2. Obtener la información de los trayectos correspondientes
+      const idsTrayectos = inscripciones.map(i => i.trayecto_id).filter(Boolean);
+      let trayectosMap = {};
+
+      if (idsTrayectos.length > 0) {
+        const { data: trayectos, error: errTray } = await supabase
+          .from('trayectos')
+          .select('id, nombre, descripcion')
+          .in('id', idsTrayectos);
+
+        if (!errTray && trayectos) {
+          trayectos.forEach(t => {
+            trayectosMap[t.id] = t;
+          });
+        }
+      }
+
+      // 3. Renderizar las tarjetas de los cursos inscriptos
+      contenedorAdmin.innerHTML = inscripciones.map(i => {
+        const trayecto = trayectosMap[i.trayecto_id] || {};
+        return `
+          <div style="background: #1e293b; border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem; border: 1px solid rgba(255,255,255,0.1);">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <h3 style="color: #f8fafc; margin: 0; font-size: 1.2rem;">${trayecto.nombre || 'Trayecto Formativo'}</h3>
+              <span style="background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">
+                CURSANDO
+              </span>
+            </div>
+            <p style="color: #94a3b8; margin-top: 0.75rem; font-size: 0.9rem;">
+              ${trayecto.descripcion || 'Sin descripción disponible.'}
+            </p>
           </div>
-          <p style="color: #94a3b8; margin-top: 0.75rem; font-size: 0.9rem;">
-            ${t.descripcion || 'Sin descripción disponible.'}
-          </p>
-        </div>
-      `).join('');
+        `;
+      }).join('');
 
     } catch (err) {
-      console.error('Error cargando trayectos:', err);
-      contenedorAdmin.innerHTML = '<p style="color: #f87171; text-align: center;">Error al obtener los trayectos.</p>';
+      console.error('Error cargando trayectos del usuario:', err);
+      contenedorAdmin.innerHTML = '<p style="color: #f87171; text-align: center;">Error al obtener tus trayectos.</p>';
     }
   },
   // Cierra el modal de alta de usuario
