@@ -1,6 +1,16 @@
-// js/auth.js - Autenticación con tabla propia de usuarios
+// js/auth.js - Autenticación limpia para Admins y Estudiantes
 const Auth = {
   usuarioActual: null,
+
+  // Sanitizador inteligente: quita sufijos tipo ":1" sin destruir usuarios con texto
+  limpiarIdentificador(val) {
+    if (!val) return '';
+    let str = String(val).trim();
+    if (str.includes(':')) {
+      str = str.split(':')[0];
+    }
+    return str;
+  },
 
   // Inicializa y verifica la sesión persistida al cargar
   init() {
@@ -9,10 +19,9 @@ const Auth = {
       try {
         let perfil = JSON.parse(perfilRaw);
         
-        // Limpiar DNI persistido para eliminar sufijos residuales
         if (perfil) {
-          if (perfil.usuario) perfil.usuario = String(perfil.usuario).split(':')[0].replace(/\D/g, '');
-          if (perfil.dni) perfil.dni = String(perfil.dni).split(':')[0].replace(/\D/g, '');
+          if (perfil.usuario) perfil.usuario = this.limpiarIdentificador(perfil.usuario);
+          if (perfil.dni) perfil.dni = this.limpiarIdentificador(perfil.dni);
           localStorage.setItem('usuario_actual', JSON.stringify(perfil));
         }
 
@@ -30,7 +39,7 @@ const Auth = {
   async iniciarSesion() {
     const userValRaw = document.getElementById('login-user').value.trim();
     const passVal = document.getElementById('login-pass').value.trim();
-    const roleVal = document.getElementById('role-select').value;
+    const roleVal = document.getElementById('role-select')?.value || '';
 
     if (!userValRaw || !passVal) {
       if (typeof alertError === 'function') {
@@ -41,11 +50,8 @@ const Auth = {
       return;
     }
 
-    // Sanitizar el input de usuario/DNI (elimina sufijos como :1 y caracteres no numéricos salvo emails)
-    let userVal = userValRaw.split(':')[0];
-    if (!userVal.includes('@')) {
-      userVal = userVal.replace(/\D/g, '');
-    }
+    // Sanitizar sin romper nombres de usuario como "admin"
+    const userVal = this.limpiarIdentificador(userValRaw);
 
     try {
       // 1. Consultar en la tabla 'usuarios'
@@ -68,13 +74,15 @@ const Auth = {
 
       let perfil = usuarios[0];
 
-      // Sanitización estricta del DNI en el objeto de perfil
-      if (perfil.usuario) perfil.usuario = String(perfil.usuario).split(':')[0].replace(/\D/g, '');
-      if (perfil.dni) perfil.dni = String(perfil.dni).split(':')[0].replace(/\D/g, '');
+      // Sanitizar datos del objeto de perfil reteniendo el valor original
+      if (perfil.usuario) perfil.usuario = this.limpiarIdentificador(perfil.usuario);
+      if (perfil.dni) perfil.dni = this.limpiarIdentificador(perfil.dni);
 
-      // 2. Validar estado (ACTIVO / HABILITADO)
+      // 2. Validar estado (ACTIVO / HABILITADO / O si es ADMIN)
       const estado = String(perfil.estado || '').toUpperCase();
-      if (estado !== 'ACTIVO' && estado !== 'HABILITADO') {
+      const rolNorm = String(perfil.rol || '').toLowerCase().trim();
+
+      if (rolNorm !== 'admin' && estado !== 'ACTIVO' && estado !== 'HABILITADO') {
         if (typeof alertError === 'function') {
           alertError('Cuenta pendiente', 'Tu cuenta está pendiente de aprobación por un administrador.');
         } else {
@@ -83,8 +91,8 @@ const Auth = {
         return;
       }
 
-      // 3. Validar rol seleccionado
-      if (roleVal && perfil.rol.toLowerCase() !== roleVal.toLowerCase()) {
+      // 3. Validar rol si el usuario seleccionó uno específico en el login
+      if (roleVal && rolNorm !== roleVal.toLowerCase()) {
         if (typeof alertError === 'function') {
           alertError('Rol incorrecto', `Tu usuario no está registrado como ${roleVal.toUpperCase()}.`);
         } else {
@@ -93,12 +101,12 @@ const Auth = {
         return;
       }
 
-      // 4. Guardar sesión limpia y activar vista
+      // 4. Guardar sesión y mostrar el dashboard
       this.usuarioActual = perfil;
       localStorage.setItem('usuario_actual', JSON.stringify(perfil));
 
       if (typeof notify === 'function') {
-        notify('success', `¡Bienvenido/a ${perfil.nombre}!`);
+        notify('success', `¡Bienvenido/a ${perfil.nombre || perfil.usuario}!`);
       }
 
       if (typeof UI !== 'undefined' && typeof UI.mostrarDashboard === 'function') {
@@ -123,11 +131,11 @@ const Auth = {
     const pass = document.getElementById('reg-pass')?.value.trim();
     const rol = document.getElementById('reg-rol')?.value || 'estudiante';
 
-    const dniLimpio = String(dniRaw || '').split(':')[0].replace(/\D/g, '');
+    const dniLimpio = this.limpiarIdentificador(dniRaw);
 
     if (!nombre || !dniLimpio || !pass) {
       if (typeof alertError === 'function') {
-        alertError('Campos incompletos', 'Todos los campos son obligatorios y el DNI debe contener solo números.');
+        alertError('Campos incompletos', 'Todos los campos son obligatorios.');
       } else {
         alert('Todos los campos son obligatorios.');
       }
@@ -182,7 +190,6 @@ const Auth = {
   }
 };
 
-// Autoejecutar inicialización cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
   Auth.init();
 });
