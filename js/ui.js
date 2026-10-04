@@ -152,6 +152,7 @@ const UI = {
     const contenedorAdmin = document.getElementById('lista-trayectos-admin');
     const perfilRaw = localStorage.getItem('usuario_actual');
     if (!perfilRaw) return;
+    
     const perfil = JSON.parse(perfilRaw);
     const isAdmin = (perfil.rol || '').toLowerCase().trim() === 'admin';
 
@@ -167,20 +168,20 @@ const UI = {
     contenedorAdmin.innerHTML = '<p style="color: #94a3b8; text-align: center; padding: 2rem;">Cargando tus trayectos vinculados...</p>';
 
     try {
-      // Limpiar DNI eliminando caracteres no numéricos
-      const rawVal = String(perfil.usuario || perfil.dni || '');
-      const dniUsr = rawVal.replace(/\D/g, '');
+      // 1. Extraer sólo los números del DNI, limpiando dos puntos u otros caracteres
+      const stringBruto = String(perfil.usuario || perfil.dni || perfil.usuario_dni || '');
+      const dniLimpio = stringBruto.split(':')[0].replace(/\D/g, '');
 
-      if (!dniUsr) {
-        contenedorAdmin.innerHTML = '<p style="color: #f87171; text-align: center;">No se encontró un DNI válido.</p>';
+      if (!dniLimpio) {
+        contenedorAdmin.innerHTML = '<p style="color: #f87171; text-align: center;">No se encontró un DNI válido para la consulta.</p>';
         return;
       }
 
-      // 1. Consultar únicamente las inscripciones del estudiante
+      // 2. Consultar inscripciones probando como string y como número
       const { data: inscripciones, error: errInsc } = await supabase
         .from('inscripciones')
         .select('trayecto_id, estado')
-        .eq('usuario_dni', dniUsr);
+        .or(`usuario_dni.eq.${dniLimpio},usuario_dni.eq.${Number(dniLimpio)}`);
 
       if (errInsc) throw errInsc;
 
@@ -194,10 +195,10 @@ const UI = {
         return;
       }
 
-      // 2. Traer la información de los trayectos asociados por ID
+      // 3. Traer detalles de los trayectos
       const idsTrayectos = inscripciones.map(i => i.trayecto_id).filter(Boolean);
-
       let trayectosMap = {};
+
       if (idsTrayectos.length > 0) {
         const { data: trayectos, error: errTray } = await supabase
           .from('trayectos')
@@ -211,7 +212,7 @@ const UI = {
         }
       }
 
-      // 3. Renderizar en la pantalla del Estudiante
+      // 4. Mostrar las tarjetas al alumno
       contenedorAdmin.innerHTML = inscripciones.map(i => {
         const trayecto = trayectosMap[i.trayecto_id] || {};
         return `
