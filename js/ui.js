@@ -163,12 +163,18 @@ const UI = {
       return;
     }
 
-    // Si es ESTUDIANTE, buscar únicamente sus inscripciones
     if (!contenedorAdmin) return;
     contenedorAdmin.innerHTML = '<p style="color: #94a3b8; text-align: center; padding: 2rem;">Cargando tus trayectos vinculados...</p>';
 
     try {
-      const dniUsr = perfil.usuario || perfil.dni;
+      // Limpiar el DNI extrayendo únicamente los dígitos numéricos
+      const rawVal = String(perfil.usuario || perfil.dni || '');
+      const dniUsr = rawVal.replace(/\D/g, ''); 
+
+      if (!dniUsr) {
+        contenedorAdmin.innerHTML = '<p style="color: #f87171; text-align: center;">No se encontró un DNI válido para consultar los trayectos.</p>';
+        return;
+      }
 
       const { data: inscripciones, error } = await supabase
         .from('inscripciones')
