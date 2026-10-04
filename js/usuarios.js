@@ -1,4 +1,4 @@
-// js/usuarios.js - Gestión de Usuarios y Altas Manuales
+// js/usuarios.js - Gestión de Usuarios y Altas Manuales con Vinculación Real
 const UsuariosAdmin = {
   abrirModal() {
     const modal = document.getElementById('modal-alta-usuario');
@@ -105,7 +105,7 @@ const UsuariosAdmin = {
     try {
       const { data: trayectos, error } = await supabase
         .from('trayectos')
-        .select('id, nombre');
+        .select('*');
 
       if (error) throw error;
 
@@ -134,11 +134,12 @@ const UsuariosAdmin = {
     const rol = document.getElementById('usr-alta-rol')?.value || 'estudiante';
 
     if (!nombre || !apellido || !dniVal) {
-      if (typeof notify === 'function') notify('error', 'Por favor completá Nombre, Apellido y DNI.');
+      alert('Por favor completá Nombre, Apellido y DNI.');
       return;
     }
 
     try {
+      // 1. Guardar en la tabla 'usuarios'
       const nuevoUsuario = {
         nombre: nombre,
         apellido: apellido,
@@ -150,42 +151,43 @@ const UsuariosAdmin = {
 
       if (email) nuevoUsuario.email = email;
 
-      const { error: errUsr } = await supabase
+      const { data: usrCreado, error: errUsr } = await supabase
         .from('usuarios')
-        .insert([nuevoUsuario]);
+        .insert([nuevoUsuario])
+        .select();
 
-      if (errUsr) throw errUsr;
+      if (errUsr) {
+        console.error('Error al insertar usuario:', errUsr);
+        alert('Error al crear usuario: ' + errUsr.message);
+        return;
+      }
 
-      // Inscribir en trayectos seleccionados
+      // 2. Guardar inscripciones en la tabla 'inscripciones'
       const checkboxes = document.querySelectorAll('input[name="trayectos_seleccionados"]:checked');
       const trayectoIds = Array.from(checkboxes).map(cb => cb.value);
 
       if (trayectoIds.length > 0) {
         const inscripciones = trayectoIds.map(tId => ({
           estudiante_user: dniVal,
-          trayecto_id: String(tId) // Convertir ID a String compatible
+          trayecto_id: tId
         }));
 
-        const { error: errInsc } = await supabase.from('inscripciones').insert(inscripciones);
-        if (errInsc) console.error('Error guardando inscripciones:', errInsc);
+        const { error: errInsc } = await supabase
+          .from('inscripciones')
+          .insert(inscripciones);
+
+        if (errInsc) {
+          console.error('Error insertando en inscripciones:', errInsc);
+          alert('El usuario se creó, pero falló la vinculación al trayecto: ' + errInsc.message);
+        }
       }
 
-      if (typeof notify === 'function') {
-        notify('success', `Usuario ${nombre} ${apellido} creado con éxito.`);
-      } else {
-        alert(`Usuario ${nombre} ${apellido} creado con éxito.`);
-      }
-
+      alert(`Usuario ${nombre} ${apellido} creado e inscripto correctamente.`);
       this.cerrarModal();
       this.cargarUsuarios();
     } catch (err) {
-      console.error('Error al crear usuario:', err);
-      const msgError = err.message || 'Error al guardar usuario en Supabase.';
-      if (typeof notify === 'function') {
-        notify('error', msgError);
-      } else {
-        alert('Error al guardar: ' + msgError);
-      }
+      console.error('Error general al crear usuario:', err);
+      alert('Error inesperado: ' + (err.message || 'Consulte la consola.'));
     }
   },
 
@@ -197,12 +199,9 @@ const UsuariosAdmin = {
         .eq('usuario', identificador);
 
       if (error) throw error;
-
-      if (typeof notify === 'function') notify('success', `Estado actualizado a ${nuevoEstado.toUpperCase()}`);
       this.cargarUsuarios();
     } catch (err) {
       console.error('Error al actualizar estado:', err);
-      if (typeof notify === 'function') notify('error', 'Error al cambiar el estado');
     }
   },
 
@@ -214,11 +213,8 @@ const UsuariosAdmin = {
         .eq('usuario', identificador);
 
       if (error) throw error;
-
-      if (typeof notify === 'function') notify('success', `Rol actualizado a ${nuevoRol.toUpperCase()}`);
     } catch (err) {
       console.error('Error al actualizar rol:', err);
-      if (typeof notify === 'function') notify('error', 'Error al cambiar rol');
     }
   }
 };
