@@ -175,7 +175,7 @@ const UI = {
     contenedorAdmin.innerHTML = '<p style="color: #94a3b8; text-align: center; padding: 2rem;">Cargando tus trayectos vinculados...</p>';
 
     try {
-      // 1. Extraer el DNI y limpiar exhaustivamente
+      // 1. Extraer DNI numérico limpio
       let dniBruto = String(perfil.usuario || perfil.dni || perfil.usuario_dni || '');
       if (dniBruto.includes(':')) {
         dniBruto = dniBruto.split(':')[0];
@@ -187,13 +187,33 @@ const UI = {
         return;
       }
 
-      // 2. Consultar inscripciones (solo trayecto_id para evitar error si no existe la columna 'estado')
-      const { data: inscripciones, error: errInsc } = await supabase
+      // 2. Probar consulta a inscripciones por 'dni' o 'usuario'
+      let inscripciones = null;
+      let errInsc = null;
+
+      // Intento 1: usando columna 'dni'
+      const resDni = await supabase
         .from('inscripciones')
         .select('trayecto_id')
-        .eq('usuario_dni', dniLimpio);
+        .eq('dni', dniLimpio);
 
-      if (errInsc) throw errInsc;
+      if (!resDni.error) {
+        inscripciones = resDni.data;
+      } else {
+        // Intento 2: usando columna 'usuario'
+        const resUsuario = await supabase
+          .from('inscripciones')
+          .select('trayecto_id')
+          .eq('usuario', dniLimpio);
+
+        if (!resUsuario.error) {
+          inscripciones = resUsuario.data;
+        } else {
+          errInsc = resUsuario.error;
+        }
+      }
+
+      if (errInsc && !inscripciones) throw errInsc;
 
       if (!inscripciones || inscripciones.length === 0) {
         contenedorAdmin.innerHTML = `
@@ -243,16 +263,6 @@ const UI = {
     } catch (err) {
       console.error('Error cargando trayectos del usuario:', err);
       contenedorAdmin.innerHTML = '<p style="color: #f87171; text-align: center;">Error al obtener tus trayectos.</p>';
-    }
-  },
-
-  // Abre el modal para dar de alta a un usuario
-  abrirModalNuevoUsuario() {
-    const modal = document.getElementById('modal-alta-usuario');
-    if (modal) {
-      modal.classList.add('open', 'active');
-      modal.style.display = 'flex';
-      if (window.UsuariosAdmin) window.UsuariosAdmin.cargarTrayectosEnModal();
     }
   },
 
