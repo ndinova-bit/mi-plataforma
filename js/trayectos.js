@@ -6,20 +6,68 @@
 const Trayectos = {
   listaTrayectos: [],
 
-  // Carga los trayectos junto a sus módulos desde Supabase
+  // Carga los trayectos según el rol del usuario (Administrador vs Estudiante)
   async cargarTrayectos() {
     try {
-      const { data, error } = await supabase
-        .from('trayectos')
-        .select(`
-          *,
-          modulos (*)
-        `)
-        .order('created_at', { ascending: false });
+      const perfilRaw = localStorage.getItem('usuario_actual');
+      const perfil = perfilRaw ? JSON.parse(perfilRaw) : {};
+      const rolNorm = String(perfil.rol || '').toLowerCase().trim();
+      const esEstudiante = rolNorm === 'estudiante';
 
-      if (error) throw error;
+      // Si el usuario es Estudiante, traemos solo los trayectos a los que está inscripto
+      if (esEstudiante) {
+        const idEstudiante = perfil.usuario || perfil.dni || perfil.id;
 
-      this.listaTrayectos = data || [];
+        if (!idEstudiante) {
+          console.warn('No se detectó un usuario válido en la sesión.');
+          this.listaTrayectos = [];
+          this.renderizarTrayectos();
+          return;
+        }
+
+        // 1. Consultar inscripciones del estudiante
+        const { data: inscripciones, error: errInsc } = await supabase
+          .from('inscripciones')
+          .select('trayecto_id')
+          .eq('estudiante_user', String(idEstudiante));
+
+        if (errInsc) throw errInsc;
+
+        if (!inscripciones || inscripciones.length === 0) {
+          this.listaTrayectos = [];
+          this.renderizarTrayectos();
+          return;
+        }
+
+        // 2. Traer la información completa de esos trayectos y sus módulos
+        const idsTrayectos = inscripciones.map(i => i.trayecto_id);
+
+        const { data: trayectosEstudiante, error: errTray } = await supabase
+          .from('trayectos')
+          .select(`
+            *,
+            modulos (*)
+          `)
+          .in('id', idsTrayectos)
+          .order('created_at', { ascending: false });
+
+        if (errTray) throw errTray;
+
+        this.listaTrayectos = trayectosEstudiante || [];
+      } else {
+        // Para visitantes públicos o Admins, cargar toda la oferta académica
+        const { data, error } = await supabase
+          .from('trayectos')
+          .select(`
+            *,
+            modulos (*)
+          `)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        this.listaTrayectos = data || [];
+      }
+
       this.renderizarTrayectos();
     } catch (err) {
       console.error('Error al cargar trayectos:', err);
@@ -29,11 +77,13 @@ const Trayectos = {
     }
   },
 
-  // Renderiza las tarjetas de trayectos tanto para la Landing pública como para la vista Admin
+  // Renderiza las tarjetas de trayectos
   renderizarTrayectos() {
     const contenedores = [
       document.getElementById('lista-trayectos-cards'),
-      document.getElementById('lista-trayectos-admin')
+      document.getElementById('lista-trayectos-admin'),
+      document.getElementById('contenedor-trayectos-estudiante'),
+      document.getElementById('contenedor-trayectos')
     ].filter(el => el !== null);
 
     if (contenedores.length === 0) return;
@@ -49,11 +99,11 @@ const Trayectos = {
 
       if (this.listaTrayectos.length === 0) {
         contenedor.innerHTML = `
-          <div class="empty-state-card fade-in" style="text-align: center; padding: 3rem; background: rgba(30,41,59,0.5); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+          <div class="empty-state-card fade-in" style="text-align: center; padding: 3rem; background: rgba(30,41,59,0.5); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); grid-column: 1 / -1;">
             <div class="empty-state-icon" style="font-size: 2rem; margin-bottom: 0.5rem;">📚</div>
-            <h3 class="empty-state-title" style="color: #f8fafc; margin-bottom: 0.5rem;">No hay trayectos publicados aún</h3>
+            <h3 class="empty-state-title" style="color: #f8fafc; margin-bottom: 0.5rem;">No estás vinculado a ningún trayecto</h3>
             <p class="empty-state-text" style="color: #94a3b8;">
-              Estamos preparando la nueva oferta académica. Volvé a consultar pronto para conocer los próximos cursos e inscripciones.
+              Ponate en contacto con la administración del CFP para habilitar tu inscripción.
             </p>
           </div>
         `;
@@ -65,6 +115,7 @@ const Trayectos = {
       grid.style.display = 'grid';
       grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(320px, 1fr))';
       grid.style.gap = '1.5rem';
+      grid.style.width = '100%';
 
       this.listaTrayectos.forEach(trayecto => {
         const card = document.createElement('div');
@@ -96,8 +147,8 @@ const Trayectos = {
 
         // Botones exclusivos de gestión para administradores
         const accionesAdmin = isAdmin ? `
-          <div style="margin-top: 1.25rem; pt-3; border-top: 1px solid rgba(255,255,255,0.08); display: flex; gap: 0.5rem; justify-content: flex-end;">
-            <button class="btn btn-outline" style="padding: 0.3rem 0.7rem; font-size: 0.8rem;" onclick="Trayectos.eliminarTrayecto(${trayecto.id})">
+          <div style="margin-top: 1.25rem; padding-top: 0.75rem; border-top: 1px solid rgba(255,255,255,0.08); display: flex; gap: 0.5rem; justify-content: flex-end;">
+            <button class="btn btn-outline" style="padding: 0.3rem 0.7rem; font-size: 0.8rem;" onclick="Trayectos.eliminarTrayecto('${trayecto.id}')">
               🗑️ Eliminar
             </button>
           </div>
