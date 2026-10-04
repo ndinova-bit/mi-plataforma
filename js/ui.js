@@ -54,6 +54,13 @@ const UI = {
 
   // Muestra la plataforma adaptada estrictamente al rol del usuario
   mostrarDashboard(perfil) {
+    // Sanitizar perfil cargado en localStorage para corregir identificadores corruptos (ej: "11111111:1")
+    if (perfil) {
+      if (perfil.usuario) perfil.usuario = String(perfil.usuario).split(':')[0].replace(/\D/g, '');
+      if (perfil.dni) perfil.dni = String(perfil.dni).split(':')[0].replace(/\D/g, '');
+      localStorage.setItem('usuario_actual', JSON.stringify(perfil));
+    }
+
     const landing = document.getElementById('landing-screen') || document.querySelector('.public-landing');
     const login = document.getElementById('login-screen');
     const app = document.getElementById('app-screen');
@@ -147,7 +154,7 @@ const UI = {
     }
   },
 
- // Carga únicamente los trayectos vinculados al estudiante que inició sesión
+  // Carga únicamente los trayectos vinculados al estudiante que inició sesión
   async cargarTrayectosDelUsuario() {
     const contenedorAdmin = document.getElementById('lista-trayectos-admin');
     const perfilRaw = localStorage.getItem('usuario_actual');
@@ -168,16 +175,16 @@ const UI = {
     contenedorAdmin.innerHTML = '<p style="color: #94a3b8; text-align: center; padding: 2rem;">Cargando tus trayectos vinculados...</p>';
 
     try {
-      // 1. Obtener y limpiar DNI (solo números)
-      const rawDni = String(perfil.usuario || perfil.dni || perfil.usuario_dni || '');
-      const dniLimpio = rawDni.replace(/\D/g, '');
+      // Extraer y limpiar exhaustivamente el DNI cortando cualquier subcadena con dos puntos
+      const rawString = String(perfil.usuario || perfil.dni || perfil.usuario_dni || '');
+      const dniLimpio = rawString.split(':')[0].replace(/\D/g, '');
 
       if (!dniLimpio) {
         contenedorAdmin.innerHTML = '<p style="color: #f87171; text-align: center;">No se encontró un DNI válido.</p>';
         return;
       }
 
-      // 2. Consultar inscripciones usando .eq simple
+      // 1. Consultar únicamente las inscripciones asociadas al DNI del estudiante
       const { data: inscripciones, error: errInsc } = await supabase
         .from('inscripciones')
         .select('trayecto_id, estado')
@@ -195,7 +202,7 @@ const UI = {
         return;
       }
 
-      // 3. Obtener detalles de cada trayecto por su ID
+      // 2. Traer la información de los trayectos mediante IDs
       const idsTrayectos = inscripciones.map(i => i.trayecto_id).filter(Boolean);
       let trayectosMap = {};
 
@@ -212,7 +219,7 @@ const UI = {
         }
       }
 
-      // 4. Renderizar tarjetas del estudiante
+      // 3. Renderizar resultados en pantalla
       contenedorAdmin.innerHTML = inscripciones.map(i => {
         const trayecto = trayectosMap[i.trayecto_id] || {};
         return `
@@ -235,6 +242,7 @@ const UI = {
       contenedorAdmin.innerHTML = '<p style="color: #f87171; text-align: center;">Error al obtener tus trayectos.</p>';
     }
   },
+
   // Abre el modal para dar de alta a un usuario
   abrirModalNuevoUsuario() {
     const modal = document.getElementById('modal-alta-usuario');
