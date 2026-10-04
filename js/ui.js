@@ -160,7 +160,7 @@ const UI = {
     const perfilRaw = localStorage.getItem('usuario_actual');
     if (!perfilRaw) return;
     
-    const perfil = JSON.parse(perfilRaw);
+    let perfil = JSON.parse(perfilRaw);
     const isAdmin = (perfil.rol || '').toLowerCase().trim() === 'admin';
 
     // Si es ADMIN, delega el renderizado general
@@ -175,16 +175,19 @@ const UI = {
     contenedorAdmin.innerHTML = '<p style="color: #94a3b8; text-align: center; padding: 2rem;">Cargando tus trayectos vinculados...</p>';
 
     try {
-      // Extraer y limpiar exhaustivamente el DNI cortando cualquier subcadena con dos puntos
-      const rawString = String(perfil.usuario || perfil.dni || perfil.usuario_dni || '');
-      const dniLimpio = rawString.split(':')[0].replace(/\D/g, '');
+      // 1. Extraer el DNI y CORTAR en el primer ':' para eliminar sufijos como ':1'
+      let dniBruto = String(perfil.usuario || perfil.dni || perfil.usuario_dni || '');
+      if (dniBruto.includes(':')) {
+        dniBruto = dniBruto.split(':')[0];
+      }
+      const dniLimpio = dniBruto.replace(/\D/g, '');
 
       if (!dniLimpio) {
         contenedorAdmin.innerHTML = '<p style="color: #f87171; text-align: center;">No se encontró un DNI válido.</p>';
         return;
       }
 
-      // 1. Consultar únicamente las inscripciones asociadas al DNI del estudiante
+      // 2. Consultar inscripciones usando el DNI numérico/limpio
       const { data: inscripciones, error: errInsc } = await supabase
         .from('inscripciones')
         .select('trayecto_id, estado')
@@ -202,7 +205,7 @@ const UI = {
         return;
       }
 
-      // 2. Traer la información de los trayectos mediante IDs
+      // 3. Traer la información de los trayectos asociados por ID
       const idsTrayectos = inscripciones.map(i => i.trayecto_id).filter(Boolean);
       let trayectosMap = {};
 
@@ -219,7 +222,7 @@ const UI = {
         }
       }
 
-      // 3. Renderizar resultados en pantalla
+      // 4. Renderizar tarjetas en pantalla
       contenedorAdmin.innerHTML = inscripciones.map(i => {
         const trayecto = trayectosMap[i.trayecto_id] || {};
         return `
