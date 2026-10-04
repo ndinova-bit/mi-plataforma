@@ -168,20 +168,20 @@ const UI = {
     contenedorAdmin.innerHTML = '<p style="color: #94a3b8; text-align: center; padding: 2rem;">Cargando tus trayectos vinculados...</p>';
 
     try {
-      // Extraer únicamente los dígitos numéricos del DNI
-      const stringBruto = String(perfil.usuario || perfil.dni || perfil.usuario_dni || '');
-      const dniLimpio = stringBruto.replace(/\D/g, '');
+      // 1. Obtener y limpiar DNI (solo números)
+      const rawDni = String(perfil.usuario || perfil.dni || perfil.usuario_dni || '');
+      const dniLimpio = rawDni.replace(/\D/g, '');
 
       if (!dniLimpio) {
-        contenedorAdmin.innerHTML = '<p style="color: #f87171; text-align: center;">No se encontró un DNI válido para la consulta.</p>';
+        contenedorAdmin.innerHTML = '<p style="color: #f87171; text-align: center;">No se encontró un DNI válido.</p>';
         return;
       }
 
-      // 1. Consultar inscripciones usando .in() con el DNI en formato string y en formato numérico
+      // 2. Consultar inscripciones usando .eq simple
       const { data: inscripciones, error: errInsc } = await supabase
         .from('inscripciones')
         .select('trayecto_id, estado')
-        .in('usuario_dni', [dniLimpio, Number(dniLimpio)]);
+        .eq('usuario_dni', dniLimpio);
 
       if (errInsc) throw errInsc;
 
@@ -195,7 +195,7 @@ const UI = {
         return;
       }
 
-      // 2. Traer detalles de los trayectos
+      // 3. Obtener detalles de cada trayecto por su ID
       const idsTrayectos = inscripciones.map(i => i.trayecto_id).filter(Boolean);
       let trayectosMap = {};
 
@@ -212,7 +212,7 @@ const UI = {
         }
       }
 
-      // 3. Renderizar las tarjetas
+      // 4. Renderizar tarjetas del estudiante
       contenedorAdmin.innerHTML = inscripciones.map(i => {
         const trayecto = trayectosMap[i.trayecto_id] || {};
         return `
