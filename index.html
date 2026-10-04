@@ -568,18 +568,17 @@
         <button type="button" class="btn btn-outline" onclick="if(window.UsuariosAdmin && UsuariosAdmin.cerrarModal) { UsuariosAdmin.cerrarModal(); } else { document.getElementById('modal-alta-usuario').classList.remove('open'); document.getElementById('modal-alta-usuario').style.display='none'; }" style="padding: 0.2rem 0.6rem;">✕</button>
       </div>
 
-      <form id="form-alta-usuario" onsubmit="event.preventDefault(); if(window.UsuariosAdmin && UsuariosAdmin.crearUsuarioManual) { UsuariosAdmin.crearUsuarioManual(); }">
-        <div class="form-grid-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-          <div class="form-group">
-            <label for="usr-alta-apellido">Apellido *</label>
-            <input type="text" id="usr-alta-apellido" class="form-control" required>
-          </div>
-          <div class="form-group">
-            <label for="usr-alta-nombre">Nombre *</label>
-            <input type="text" id="usr-alta-nombre" class="form-control" required>
-          </div>
-        </div>
-
+      <form id="form-alta-usuario">
+  <div class="form-grid-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+    <div class="form-group">
+      <label for="usr-alta-apellido">Apellido *</label>
+      <input type="text" id="usr-alta-apellido" class="form-control" required>
+    </div>
+    <div class="form-group">
+      <label for="usr-alta-nombre">Nombre *</label>
+      <input type="text" id="usr-alta-nombre" class="form-control" required>
+    </div>
+  </div>
         <div class="form-grid-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.75rem;">
           <div class="form-group">
             <label for="usr-alta-dni">DNI / Documento *</label>
