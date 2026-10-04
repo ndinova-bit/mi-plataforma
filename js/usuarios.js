@@ -1,4 +1,4 @@
-// js/usuarios.js - Código corregido y sin errores de sintaxis
+// js/usuarios.js - Código corregido con prevención de doble clic y dobles envíos
 
 const UsuariosAdmin = {
   abrirModal() {
@@ -126,7 +126,16 @@ const UsuariosAdmin = {
     }
   },
 
-  async crearUsuarioManual() {
+  async crearUsuarioManual(e) {
+    if (e && typeof e.preventDefault === 'function') e.preventDefault();
+
+    // Buscar botón de guardado para deshabilitarlo temporalmente (evita doble click)
+    const btnGuardar = document.querySelector('#modal-alta-usuario button[type="submit"]') || 
+                       document.querySelector('#modal-alta-usuario .btn-primary') ||
+                       document.querySelector('#modal-alta-usuario button:not(.btn-close)');
+
+    if (btnGuardar && btnGuardar.disabled) return; // Si ya está guardando, salir
+
     const apellido = document.getElementById('usr-alta-apellido')?.value.trim().toUpperCase();
     const nombre = document.getElementById('usr-alta-nombre')?.value.trim().toUpperCase();
     const dniVal = document.getElementById('usr-alta-dni')?.value.trim();
@@ -139,6 +148,12 @@ const UsuariosAdmin = {
     }
 
     try {
+      if (btnGuardar) {
+        btnGuardar.disabled = true;
+        btnGuardar.dataset.originalText = btnGuardar.textContent;
+        btnGuardar.textContent = 'Guardando...';
+      }
+
       // 1. Crear Usuario
       const nuevoUsuario = {
         nombre: nombre,
@@ -166,10 +181,11 @@ const UsuariosAdmin = {
       const trayectoIds = Array.from(checkboxes).map(cb => cb.value);
 
       if (trayectoIds.length > 0) {
-  const inscripciones = trayectoIds.map(tId => ({
-    estudiante_user: String(dniVal),
-    trayecto_id: Number(tId) // o parseInt(tId)
-  }));
+        const inscripciones = trayectoIds.map(tId => ({
+          estudiante_user: String(dniVal),
+          trayecto_id: Number(tId)
+        }));
+
         const { error: errInsc } = await supabase
           .from('inscripciones')
           .insert(inscripciones);
@@ -187,6 +203,11 @@ const UsuariosAdmin = {
     } catch (err) {
       console.error('Error general:', err);
       alert('Error inesperado: ' + (err.message || 'Consulte la consola.'));
+    } finally {
+      if (btnGuardar) {
+        btnGuardar.disabled = false;
+        btnGuardar.textContent = btnGuardar.dataset.originalText || 'Guardar Usuario';
+      }
     }
   },
 
@@ -223,6 +244,6 @@ UsuariosAdmin.cargarTrayectos = UsuariosAdmin.cargarTrayectosEnModal;
 
 window.UsuariosAdmin = UsuariosAdmin;
 window.Usuarios = UsuariosAdmin;
-window.crearUsuarioManual = () => UsuariosAdmin.crearUsuarioManual();
+window.crearUsuarioManual = (e) => UsuariosAdmin.crearUsuarioManual(e);
 window.cerrarModal = () => UsuariosAdmin.cerrarModal();
 window.abrirModal = () => UsuariosAdmin.abrirModal();
