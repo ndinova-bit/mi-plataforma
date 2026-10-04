@@ -11,42 +11,49 @@ const Auth = {
       return;
     }
 
-    const email = userVal.includes('@') ? userVal : `${userVal}@cfp403.edu.ar`;
-
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: email,
-        password: passVal
-      });
+      // 1. Consultar directamente en tu tabla 'usuarios'
+      const { data: usuarios, error } = await supabase
+        .from('usuarios')
+        .select('*')
+        .or(`usuario.eq.${userVal},email.ilike.${userVal}`)
+        .eq('pass', passVal);
 
       if (error) throw error;
 
-      const { data: perfil, error: perfilError } = await supabase
-        .from('usuarios')
-        .select('*')
-        .eq('id', data.user.id)
-        .single();
-
-      if (perfilError || !perfil) {
-        alertError('Error de acceso', 'No se encontró un perfil registrado asociado a esta cuenta.');
+      if (!usuarios || usuarios.length === 0) {
+        alertError('Error al ingresar', 'Usuario, DNI o contraseña incorrectos.');
         return;
       }
 
-      if (perfil.estado === 'pendiente') {
+      const perfil = usuarios[0];
+
+      // 2. Validar estado (soporta 'ACTIVO', 'activo', etc.)
+      const estado = String(perfil.estado || '').toUpperCase();
+      if (estado !== 'ACTIVO' && estado !== 'HABILITADO') {
         alertError('Cuenta pendiente', 'Tu cuenta está pendiente de aprobación por un administrador.');
-        await supabase.auth.signOut();
         return;
       }
 
-      if (perfil.rol !== roleVal) {
+      // 3. Validar rol seleccionado
+      if (roleVal && perfil.rol.toLowerCase() !== roleVal.toLowerCase()) {
         alertError('Rol incorrecto', `Tu usuario no está registrado como ${roleVal.toUpperCase()}.`);
-        await supabase.auth.signOut();
         return;
       }
 
+      // 4. Guardar usuario actual y mostrar pantalla correspondiente
       this.usuarioActual = perfil;
-      notify('success', `¡Bienvenido/a ${perfil.nombre}!`);
-      UI.mostrarDashboard(perfil);
+      localStorage.setItem('usuario_actual', JSON.stringify(perfil));
+
+      if (typeof notify === 'function') {
+        notify('success', `¡Bienvenido/a ${perfil.nombre}!`);
+      }
+
+      if (typeof UI !== 'undefined' && typeof UI.mostrarDashboard === 'function') {
+        UI.mostrarDashboard(perfil);
+      } else {
+        window.location.reload();
+      }
 
     } catch (err) {
       console.error('Error Auth:', err);
@@ -55,7 +62,7 @@ const Auth = {
   },
 
   async solicitarRegistro() {
-    const nombre = document.getElementById('reg-nombre').value.trim();
+    const nombre = document.getElementById('reg-nombre').value.trim().toUpperCase();
     const dni = document.getElementById('reg-dni').value.trim();
     const pass = document.getElementById('reg-pass').value.trim();
     const rol = document.getElementById('reg-rol').value;
@@ -65,31 +72,26 @@ const Auth = {
       return;
     }
 
-    const email = `${dni}@cfp403.edu.ar`;
-
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email: email,
-        password: pass
-      });
-
-      if (error) throw error;
-
+      // Registro directo en la tabla 'usuarios' sin pasar por auth.users
       const { error: dbError } = await supabase
         .from('usuarios')
         .insert([{
-          id: data.user.id,
           nombre: nombre,
           usuario: dni,
+          pass: pass,
           rol: rol,
-          estado: 'pendiente'
+          estado: 'PENDIENTE'
         }]);
 
       if (dbError) throw dbError;
 
       alertSuccess('Solicitud Enviada', 'Tu registro ha sido enviado. Un administrador deberá aprobar tu cuenta antes de que puedas ingresar.');
-      document.getElementById('form-register').reset();
-      UI.toggleAuthTab('login');
+      document.getElementById('form-register')?.reset();
+      
+      if (typeof UI !== 'undefined' && typeof UI.toggleAuthTab === 'function') {
+        UI.toggleAuthTab('login');
+      }
 
     } catch (err) {
       console.error('Error Registro:', err);
@@ -98,9 +100,14 @@ const Auth = {
   },
 
   async cerrarSesion() {
-    await supabase.auth.signOut();
     this.usuarioActual = null;
-    notify('info', 'Sesión cerrada');
-    UI.showLanding();
+    localStorage.removeItem('usuario_actual');
+    
+    if (typeof notify === 'function') notify('info', 'Sesión cerrada');
+    if (typeof UI !== 'undefined' && typeof UI.showLanding === 'function') {
+      UI.showLanding();
+    } else {
+      window.location.reload();
+    }
   }
 };
