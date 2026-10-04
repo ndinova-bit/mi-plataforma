@@ -126,70 +126,73 @@ const UsuariosAdmin = {
     }
   },
 
-  async crearUsuarioManual() {
-    const apellido = document.getElementById('usr-alta-apellido')?.value.trim().toUpperCase();
-    const nombre = document.getElementById('usr-alta-nombre')?.value.trim().toUpperCase();
-    const dniVal = document.getElementById('usr-alta-dni')?.value.trim();
-    const email = document.getElementById('usr-alta-email')?.value.trim().toUpperCase();
-    const rol = document.getElementById('usr-alta-rol')?.value || 'estudiante';
+ async crearUsuarioManual() {
+  const apellido = document.getElementById('usr-alta-apellido')?.value.trim().toUpperCase();
+  const nombre = document.getElementById('usr-alta-nombre')?.value.trim().toUpperCase();
+  const dniVal = document.getElementById('usr-alta-dni')?.value.trim();
+  const email = document.getElementById('usr-alta-email')?.value.trim().toUpperCase();
+  const rol = document.getElementById('usr-alta-rol')?.value || 'estudiante';
 
-    if (!nombre || !apellido || !dniVal) {
-      alert('Por favor completá Nombre, Apellido y DNI.');
+  if (!nombre || !apellido || !dniVal) {
+    alert('Por favor completá Nombre, Apellido y DNI.');
+    return;
+  }
+
+  try {
+    // 1. Guardar en la tabla 'usuarios'
+    const nuevoUsuario = {
+      nombre: nombre,
+      apellido: apellido,
+      usuario: dniVal,
+      pass: dniVal,
+      rol: rol,
+      estado: 'ACTIVO'
+    };
+
+    if (email) nuevoUsuario.email = email;
+
+    const { data: usrCreado, error: errUsr } = await supabase
+      .from('usuarios')
+      .insert([nuevoUsuario])
+      .select();
+
+    if (errUsr) {
+      console.error('Error al insertar usuario:', errUsr);
+      alert('Error al crear usuario en la BD: ' + errUsr.message);
       return;
     }
 
-    try {
-      // 1. Guardar en la tabla 'usuarios'
-      const nuevoUsuario = {
-        nombre: nombre,
-        apellido: apellido,
-        usuario: dniVal,
-        pass: dniVal,
-        rol: rol,
-        estado: 'ACTIVO'
-      };
+    // 2. Guardar inscripciones en la tabla 'inscripciones'
+    const checkboxes = document.querySelectorAll('input[name="trayectos_seleccionados"]:checked');
+    const trayectoIds = Array.from(checkboxes).map(cb => cb.value);
 
-      if (email) nuevoUsuario.email = email;
+    if (trayectoIds.length > 0) {
+      // Mapeamos los IDs asegurando que se envíen en el formato exacto que espera la BD
+      const inscripciones = trayectoIds.map(tId => ({
+        estudiante_user: String(dniVal),
+        trayecto_id: String(tId)
+      }));
 
-      const { data: usrCreado, error: errUsr } = await supabase
-        .from('usuarios')
-        .insert([nuevoUsuario])
-        .select();
+      const { error: errInsc } = await supabase
+        .from('inscripciones')
+        .insert(inscripciones);
 
-      if (errUsr) {
-        console.error('Error al insertar usuario:', errUsr);
-        alert('Error al crear usuario: ' + errUsr.message);
-        return;
+      if (errInsc) {
+        console.error('Error insertando en inscripciones:', errInsc);
+        alert('⚠️ ATENCIÓN: El usuario se creó, pero la vinculación al trayecto FALLÓ por este error de Supabase:\n\n' + errInsc.message);
+        return; // Detenemos para no decir que todo salió bien
       }
-
-      // 2. Guardar inscripciones en la tabla 'inscripciones'
-      const checkboxes = document.querySelectorAll('input[name="trayectos_seleccionados"]:checked');
-      const trayectoIds = Array.from(checkboxes).map(cb => cb.value);
-
-      if (trayectoIds.length > 0) {
-        const inscripciones = trayectoIds.map(tId => ({
-          estudiante_user: dniVal,
-          trayecto_id: tId
-        }));
-
-        const { error: errInsc } = await supabase
-          .from('inscripciones')
-          .insert(inscripciones);
-
-        if (errInsc) {
-          console.error('Error insertando en inscripciones:', errInsc);
-          alert('El usuario se creó, pero falló la vinculación al trayecto: ' + errInsc.message);
-        }
-      }
-
-      alert(`Usuario ${nombre} ${apellido} creado e inscripto correctamente.`);
-      this.cerrarModal();
-      this.cargarUsuarios();
-    } catch (err) {
-      console.error('Error general al crear usuario:', err);
-      alert('Error inesperado: ' + (err.message || 'Consulte la consola.'));
     }
-  },
+
+    alert(`✅ Usuario ${nombre} ${apellido} (DNI: ${dniVal}) creado e inscripto correctamente.`);
+    this.cerrarModal();
+    if (typeof this.cargarUsuarios === 'function') this.cargarUsuarios();
+
+  } catch (err) {
+    console.error('Error general al crear usuario:', err);
+    alert('Error inesperado: ' + (err.message || 'Consulte la consola.'));
+  }
+}
 
   async cambiarEstado(identificador, nuevoEstado) {
     try {
