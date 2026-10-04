@@ -154,7 +154,7 @@ const UI = {
     }
   },
 
-  // Carga únicamente los trayectos vinculados al estudiante que inició sesión
+ // Carga únicamente los trayectos vinculados al estudiante que inició sesión
   async cargarTrayectosDelUsuario() {
     const contenedorAdmin = document.getElementById('lista-trayectos-admin');
     const perfilRaw = localStorage.getItem('usuario_actual');
@@ -175,7 +175,7 @@ const UI = {
     contenedorAdmin.innerHTML = '<p style="color: #94a3b8; text-align: center; padding: 2rem;">Cargando tus trayectos vinculados...</p>';
 
     try {
-      // 1. Extraer el DNI y CORTAR en el primer ':' para eliminar sufijos como ':1'
+      // 1. Extraer el DNI y limpiar exhaustivamente
       let dniBruto = String(perfil.usuario || perfil.dni || perfil.usuario_dni || '');
       if (dniBruto.includes(':')) {
         dniBruto = dniBruto.split(':')[0];
@@ -187,10 +187,10 @@ const UI = {
         return;
       }
 
-      // 2. Consultar inscripciones usando el DNI numérico/limpio
+      // 2. Consultar inscripciones (solo trayecto_id para evitar error si no existe la columna 'estado')
       const { data: inscripciones, error: errInsc } = await supabase
         .from('inscripciones')
-        .select('trayecto_id, estado')
+        .select('trayecto_id')
         .eq('usuario_dni', dniLimpio);
 
       if (errInsc) throw errInsc;
@@ -230,7 +230,7 @@ const UI = {
             <div style="display: flex; justify-content: space-between; align-items: center;">
               <h3 style="color: #f8fafc; margin: 0; font-size: 1.2rem;">${trayecto.nombre || 'Trayecto Formativo'}</h3>
               <span style="background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">
-                ${(i.estado || 'CURSANDO').toUpperCase()}
+                CURSANDO
               </span>
             </div>
             <p style="color: #94a3b8; margin-top: 0.75rem; font-size: 0.9rem;">
