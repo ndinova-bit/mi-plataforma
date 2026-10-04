@@ -1,3 +1,4 @@
+// js/auth.js - Autenticación con tabla propia de usuarios
 const Auth = {
   usuarioActual: null,
 
@@ -7,7 +8,11 @@ const Auth = {
     const roleVal = document.getElementById('role-select').value;
 
     if (!userVal || !passVal) {
-      alertError('Campos incompletos', 'Por favor ingresá tu usuario/DNI y contraseña.');
+      if (typeof alertError === 'function') {
+        alertError('Campos incompletos', 'Por favor ingresá tu usuario/DNI y contraseña.');
+      } else {
+        alert('Por favor ingresá tu usuario/DNI y contraseña.');
+      }
       return;
     }
 
@@ -22,22 +27,34 @@ const Auth = {
       if (error) throw error;
 
       if (!usuarios || usuarios.length === 0) {
-        alertError('Error al ingresar', 'Usuario, DNI o contraseña incorrectos.');
+        if (typeof alertError === 'function') {
+          alertError('Error al ingresar', 'Usuario, DNI o contraseña incorrectos.');
+        } else {
+          alert('Usuario, DNI o contraseña incorrectos.');
+        }
         return;
       }
 
       const perfil = usuarios[0];
 
-      // 2. Validar estado (soporta 'ACTIVO', 'activo', etc.)
+      // 2. Validar estado (soporta 'ACTIVO', 'activo', 'HABILITADO')
       const estado = String(perfil.estado || '').toUpperCase();
       if (estado !== 'ACTIVO' && estado !== 'HABILITADO') {
-        alertError('Cuenta pendiente', 'Tu cuenta está pendiente de aprobación por un administrador.');
+        if (typeof alertError === 'function') {
+          alertError('Cuenta pendiente', 'Tu cuenta está pendiente de aprobación por un administrador.');
+        } else {
+          alert('Tu cuenta está pendiente de aprobación por un administrador.');
+        }
         return;
       }
 
       // 3. Validar rol seleccionado
       if (roleVal && perfil.rol.toLowerCase() !== roleVal.toLowerCase()) {
-        alertError('Rol incorrecto', `Tu usuario no está registrado como ${roleVal.toUpperCase()}.`);
+        if (typeof alertError === 'function') {
+          alertError('Rol incorrecto', `Tu usuario no está registrado como ${roleVal.toUpperCase()}.`);
+        } else {
+          alert(`Tu usuario no está registrado como ${roleVal.toUpperCase()}.`);
+        }
         return;
       }
 
@@ -57,23 +74,31 @@ const Auth = {
 
     } catch (err) {
       console.error('Error Auth:', err);
-      alertError('Error al ingresar', 'Credenciales inválidas o problema de conexión.');
+      if (typeof alertError === 'function') {
+        alertError('Error al ingresar', 'Credenciales inválidas o problema de conexión.');
+      } else {
+        alert('Credenciales inválidas o problema de conexión.');
+      }
     }
   },
 
   async solicitarRegistro() {
-    const nombre = document.getElementById('reg-nombre').value.trim().toUpperCase();
-    const dni = document.getElementById('reg-dni').value.trim();
-    const pass = document.getElementById('reg-pass').value.trim();
-    const rol = document.getElementById('reg-rol').value;
+    const nombre = document.getElementById('reg-nombre')?.value.trim().toUpperCase();
+    const dni = document.getElementById('reg-dni')?.value.trim();
+    const pass = document.getElementById('reg-pass')?.value.trim();
+    const rol = document.getElementById('reg-rol')?.value || 'estudiante';
 
     if (!nombre || !dni || !pass) {
-      alertError('Campos incompletos', 'Todos los campos son obligatorios.');
+      if (typeof alertError === 'function') {
+        alertError('Campos incompletos', 'Todos los campos son obligatorios.');
+      } else {
+        alert('Todos los campos son obligatorios.');
+      }
       return;
     }
 
     try {
-      // Registro directo en la tabla 'usuarios' sin pasar por auth.users
+      // Registro directo en la tabla 'usuarios'
       const { error: dbError } = await supabase
         .from('usuarios')
         .insert([{
@@ -86,7 +111,12 @@ const Auth = {
 
       if (dbError) throw dbError;
 
-      alertSuccess('Solicitud Enviada', 'Tu registro ha sido enviado. Un administrador deberá aprobar tu cuenta antes de que puedas ingresar.');
+      if (typeof alertSuccess === 'function') {
+        alertSuccess('Solicitud Enviada', 'Tu registro ha sido enviado. Un administrador deberá aprobar tu cuenta antes de que puedas ingresar.');
+      } else {
+        alert('Tu registro ha sido enviado con éxito.');
+      }
+
       document.getElementById('form-register')?.reset();
       
       if (typeof UI !== 'undefined' && typeof UI.toggleAuthTab === 'function') {
@@ -95,7 +125,11 @@ const Auth = {
 
     } catch (err) {
       console.error('Error Registro:', err);
-      alertError('Error de Registro', err.message || 'No se pudo procesar la solicitud.');
+      if (typeof alertError === 'function') {
+        alertError('Error de Registro', err.message || 'No se pudo procesar la solicitud.');
+      } else {
+        alert('Error de Registro: ' + (err.message || 'No se pudo procesar.'));
+      }
     }
   },
 
@@ -111,3 +145,5 @@ const Auth = {
     }
   }
 };
+
+window.Auth = Auth;
