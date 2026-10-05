@@ -79,7 +79,7 @@ const UsuariosAdmin = {
                 ${estadoRaw}
               </span>
             </td>
-            <td style="padding: 0.85rem 0.75rem; text-align: right;">
+            <td style="padding: 0.85rem 0.75rem; text-align: right; display: flex; gap: 0.4rem; justify-content: flex-end; align-items: center;">
               ${!esActivo ? `
                 <button class="btn btn-gold" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;" onclick="UsuariosAdmin.cambiarEstado('${usrIdentificador}', 'ACTIVO')">
                   ✓ Aprobar
@@ -89,6 +89,9 @@ const UsuariosAdmin = {
                   🔒 Inhabilitar
                 </button>
               `}
+              <button title="Eliminar definitivamente" style="padding: 0.35rem 0.6rem; font-size: 0.8rem; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #f87171; border-radius: 6px; cursor: pointer;" onclick="UsuariosAdmin.eliminarUsuario('${usrIdentificador}', '${nombreCompleto.replace(/'/g, "\\'")}')">
+                🗑️
+              </button>
             </td>
           </tr>
         `;
