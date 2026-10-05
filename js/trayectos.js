@@ -97,8 +97,8 @@ const Trayectos = {
     contenedores.forEach(contenedor => {
       contenedor.innerHTML = '';
 
-      // Si es el contenedor público de la web, activamos el modo simplificado
-      const esVistaPublica = contenedor.id === 'contenedor-trayectos' || contenedor.id === 'lista-trayectos-cards';
+      // ÚNICAMENTE la landing pública (sin sesión de usuario) usará la vista simplificada
+      const esVistaPublica = contenedor.id === 'contenedor-trayectos' && !perfil.rol;
 
       if (this.listaTrayectos.length === 0) {
         contenedor.innerHTML = `
@@ -140,7 +140,7 @@ const Trayectos = {
         ` : '';
 
         if (esVistaPublica) {
-          // --- TARJETA SIMPLIFICADA PARA LA PÁGINA WEB PÚBLICA ---
+          // --- TARJETA CORTA (Solo para la Web pública antes de ingresar) ---
           card.innerHTML = `
             <div>
               <div style="margin-bottom: 0.75rem;">
@@ -161,7 +161,7 @@ const Trayectos = {
             ${accionesAdmin}
           `;
         } else {
-          // --- TARJETA COMPLETA PARA EL PANEL INTERNO (ADMIN / ESTUDIANTE) ---
+          // --- TARJETA COMPLETA (Para Admin y Estudiantes dentro de la plataforma) ---
           let modulosHTML = '';
           if (trayecto.modulos && trayecto.modulos.length > 0) {
             modulosHTML = trayecto.modulos.map(m => `
