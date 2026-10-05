@@ -229,22 +229,26 @@ const UsuariosAdmin = {
     } catch (err) {
       console.error('Error al actualizar rol:', err);
     }
-  }, // <-- Kaypi comata churanki
+  },
 
   async eliminarUsuario(identificador, nombreMostrar) {
     const confirmar = confirm(`⚠️ ¿Estás seguro de que querés eliminar definitivamente a "${nombreMostrar}"?\nEsta acción no se puede deshacer.`);
     if (!confirmar) return;
 
     try {
+      const idStr = String(identificador);
+
+      // 1. Limpiar inscripciones vinculadas
       await supabase
         .from('inscripciones')
         .delete()
-        .eq('estudiante_user', String(identificador));
+        .or(`estudiante_user.eq.${idStr}`);
 
+      // 2. Eliminar el usuario por usuario o por id en Supabase
       const { error } = await supabase
         .from('usuarios')
         .delete()
-        .eq('usuario', String(identificador));
+        .or(`usuario.eq.${idStr},id.eq.${idStr}`);
 
       if (error) throw error;
 
