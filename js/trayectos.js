@@ -98,8 +98,8 @@ const Trayectos = {
       contenedor.innerHTML = '';
 
       // ÚNICAMENTE la landing pública (sin sesión de usuario) usará la vista simplificada
-      const esVistaPublica = contenedor.id === 'contenedor-trayectos' && !perfil.rol;
-
+      const esVistaPublica = contenedor.id === 'lista-trayectos-cards' || contenedor.id === 'contenedor-trayectos';
+       
       if (this.listaTrayectos.length === 0) {
         contenedor.innerHTML = `
           <div class="empty-state-card fade-in" style="text-align: center; padding: 3rem; background: rgba(30,41,59,0.5); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); grid-column: 1 / -1;">
