@@ -68,10 +68,21 @@ const UI = {
     if (login) login.style.setProperty('display', 'none', 'important');
     if (app) app.style.setProperty('display', 'flex', 'important'); 
 
-    const displayUsername = document.getElementById('display-username');
+   const displayUsername = document.getElementById('display-username');
     const displayRole = document.getElementById('display-role');
 
-    if (displayUsername) displayUsername.innerText = perfil.nombre || perfil.usuario;
+    // Muestra Apellido, Nombre (o lo que esté disponible)
+    if (displayUsername) {
+      let nombreMostrar = perfil.nombre || perfil.usuario || 'USUARIO';
+      if (perfil.apellido && perfil.nombre) {
+        nombreMostrar = `${perfil.apellido}, ${perfil.nombre}`;
+      } else if (perfil.apellido) {
+        nombreMostrar = perfil.apellido;
+      }
+      displayUsername.innerText = nombreMostrar;
+    }
+
+    // Muestra el Rol (se mantiene tal cual)
     if (displayRole) displayRole.innerText = (perfil.rol || '').toUpperCase();
 
     const rolNorm = (perfil.rol || '').toLowerCase().trim();
