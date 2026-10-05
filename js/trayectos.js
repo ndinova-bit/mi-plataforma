@@ -332,13 +332,21 @@ const Trayectos = {
 
       if (error) throw error;
 
-      if (typeof notify === 'function') notify('success', 'Trayecto eliminado correctamente');
+    if (typeof notify === 'function') notify('success', 'Trayecto eliminado correctamente');
       await this.cargarTrayectos();
     } catch (err) {
       console.error('Error al eliminar trayecto:', err);
       if (typeof alertError === 'function') alertError('Error', 'No se pudo eliminar el trayecto.');
     }
   }
+}; // <-- Esta llave cierra la clase/objeto Trayectos
+
+// Evento fuera del objeto Trayectos
+document.addEventListener('DOMContentLoaded', () => {
+  if (typeof Trayectos !== 'undefined' && Trayectos.cargarTrayectos) {
+    Trayectos.cargarTrayectos();
+  }
+});
 };
 
 // Exportación global doble para garantizar retrocompatibilidad
