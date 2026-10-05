@@ -226,6 +226,31 @@ const UsuariosAdmin = {
     } catch (err) {
       console.error('Error al actualizar rol:', err);
     }
+  }, // <-- Kaypi comata churanki
+
+  async eliminarUsuario(identificador, nombreMostrar) {
+    const confirmar = confirm(`⚠️ ¿Estás seguro de que querés eliminar definitivamente a "${nombreMostrar}"?\nEsta acción no se puede deshacer.`);
+    if (!confirmar) return;
+
+    try {
+      await supabase
+        .from('inscripciones')
+        .delete()
+        .eq('estudiante_user', String(identificador));
+
+      const { error } = await supabase
+        .from('usuarios')
+        .delete()
+        .eq('usuario', String(identificador));
+
+      if (error) throw error;
+
+      alert(`🗑️ Usuario "${nombreMostrar}" eliminado correctamente.`);
+      this.cargarUsuarios();
+    } catch (err) {
+      console.error('Error al eliminar usuario:', err);
+      alert('Error al eliminar usuario: ' + (err.message || 'Ocurrió un error inesperado.'));
+    }
   }
 };
 
