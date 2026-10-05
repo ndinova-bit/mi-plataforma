@@ -97,13 +97,16 @@ const Trayectos = {
     contenedores.forEach(contenedor => {
       contenedor.innerHTML = '';
 
+      // Si es el contenedor público de la web, activamos el modo simplificado
+      const esVistaPublica = contenedor.id === 'contenedor-trayectos' || contenedor.id === 'lista-trayectos-cards';
+
       if (this.listaTrayectos.length === 0) {
         contenedor.innerHTML = `
           <div class="empty-state-card fade-in" style="text-align: center; padding: 3rem; background: rgba(30,41,59,0.5); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); grid-column: 1 / -1;">
             <div class="empty-state-icon" style="font-size: 2rem; margin-bottom: 0.5rem;">📚</div>
-            <h3 class="empty-state-title" style="color: #f8fafc; margin-bottom: 0.5rem;">No estás vinculado a ningún trayecto</h3>
+            <h3 class="empty-state-title" style="color: #f8fafc; margin-bottom: 0.5rem;">No hay trayectos disponibles</h3>
             <p class="empty-state-text" style="color: #94a3b8;">
-              Ponate en contacto con la administración del CFP para habilitar tu inscripción.
+              Ponate en contacto con la administración del CFP para más información.
             </p>
           </div>
         `;
@@ -128,24 +131,6 @@ const Trayectos = {
         card.style.flexDirection = 'column';
         card.style.justifyContent = 'space-between';
 
-        let modulosHTML = '';
-        if (trayecto.modulos && trayecto.modulos.length > 0) {
-          modulosHTML = trayecto.modulos.map(m => `
-            <div class="modulo-card" style="margin-top: 0.5rem; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 0.6rem 0.8rem;">
-              <strong style="color: #f8fafc; font-size: 0.85rem;">${m.nombre}</strong> 
-              <span style="color: #fbbf24; font-size: 0.75rem;">(${m.codigo || 'S/C'})</span>
-              <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 0.2rem;">
-                📅 ${m.fecha_inicio || 'A definir'} | ${m.fecha_fin || 'A definir'}
-              </div>
-            </div>
-          `).join('');
-        } else {
-          modulosHTML = '<small style="color: #94a3b8;">Sin módulos asignados</small>';
-        }
-
-        const cantidadModulos = trayecto.modulos ? trayecto.modulos.length : 0;
-
-        // Botones exclusivos de gestión para administradores
         const accionesAdmin = isAdmin ? `
           <div style="margin-top: 1.25rem; padding-top: 0.75rem; border-top: 1px solid rgba(255,255,255,0.08); display: flex; gap: 0.5rem; justify-content: flex-end;">
             <button class="btn btn-outline" style="padding: 0.3rem 0.7rem; font-size: 0.8rem;" onclick="Trayectos.eliminarTrayecto('${trayecto.id}')">
@@ -154,25 +139,86 @@ const Trayectos = {
           </div>
         ` : '';
 
-        card.innerHTML = `
-          <div>
-            <div style="margin-bottom: 0.75rem;">
-              <h3 style="color: #f8fafc; margin: 0; font-size: 1.2rem; font-weight: 600;">${trayecto.nombre}</h3>
-            </div>
-
-            <p style="color: #94a3b8; font-size: 0.875rem; margin-bottom: 0.75rem; line-height: 1.4;">
-              ${trayecto.descripcion || 'Sin descripción disponible.'}
-            </p>
-
-            ${trayecto.requisitos ? `
-              <div style="background: rgba(251, 191, 36, 0.08); border-left: 3px solid #fbbf24; padding: 0.5rem 0.75rem; border-radius: 4px;">
-                <strong style="color: #fbbf24; font-size: 0.75rem; display: block;">📋 Requisitos:</strong>
-                <span style="color: #f8fafc; font-size: 0.8rem;">${trayecto.requisitos}</span>
+        if (esVistaPublica) {
+          // --- TARJETA SIMPLIFICADA PARA LA PÁGINA WEB PÚBLICA ---
+          card.innerHTML = `
+            <div>
+              <div style="margin-bottom: 0.75rem;">
+                <h3 style="color: #f8fafc; margin: 0; font-size: 1.2rem; font-weight: 600;">${trayecto.nombre}</h3>
               </div>
-            ` : ''}
-          </div>
-          ${accionesAdmin}
-        `;
+
+              <p style="color: #94a3b8; font-size: 0.875rem; margin-bottom: 0.75rem; line-height: 1.4;">
+                ${trayecto.descripcion || 'Sin descripción disponible.'}
+              </p>
+
+              ${trayecto.requisitos ? `
+                <div style="background: rgba(251, 191, 36, 0.08); border-left: 3px solid #fbbf24; padding: 0.5rem 0.75rem; border-radius: 4px;">
+                  <strong style="color: #fbbf24; font-size: 0.75rem; display: block;">📋 Requisitos:</strong>
+                  <span style="color: #f8fafc; font-size: 0.8rem;">${trayecto.requisitos}</span>
+                </div>
+              ` : ''}
+            </div>
+            ${accionesAdmin}
+          `;
+        } else {
+          // --- TARJETA COMPLETA PARA EL PANEL INTERNO (ADMIN / ESTUDIANTE) ---
+          let modulosHTML = '';
+          if (trayecto.modulos && trayecto.modulos.length > 0) {
+            modulosHTML = trayecto.modulos.map(m => `
+              <div class="modulo-card" style="margin-top: 0.5rem; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 0.6rem 0.8rem;">
+                <strong style="color: #f8fafc; font-size: 0.85rem;">${m.nombre}</strong> 
+                <span style="color: #fbbf24; font-size: 0.75rem;">(${m.codigo || 'S/C'})</span>
+                <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 0.2rem;">
+                  📅 ${m.fecha_inicio || 'A definir'} | ${m.fecha_fin || 'A definir'}
+                </div>
+              </div>
+            `).join('');
+          } else {
+            modulosHTML = '<small style="color: #94a3b8;">Sin módulos asignados</small>';
+          }
+
+          const cantidadModulos = trayecto.modulos ? trayecto.modulos.length : 0;
+
+          card.innerHTML = `
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                <div>
+                  <h3 style="color: #f8fafc; margin: 0; font-size: 1.2rem; font-weight: 600;">${trayecto.nombre}</h3>
+                  <span style="font-size: 0.8rem; color: #fbbf24; font-weight: 600;">
+                    Sector: ${trayecto.sector || 'General'}
+                  </span>
+                </div>
+              </div>
+
+              ${trayecto.certificacion || trayecto.resolucion ? `
+                <div style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 0.75rem; background: rgba(0,0,0,0.2); padding: 0.5rem; border-radius: 6px;">
+                  📜 <strong>Certificación:</strong> ${trayecto.certificacion || 'S/D'}<br>
+                  📑 <strong>Resolución:</strong> ${trayecto.resolucion || 'S/D'}
+                </div>
+              ` : ''}
+
+              <p style="color: #94a3b8; font-size: 0.875rem; margin-bottom: 0.75rem; line-height: 1.4;">
+                ${trayecto.descripcion || 'Sin descripción disponible.'}
+              </p>
+
+              ${trayecto.requisitos ? `
+                <div style="background: rgba(251, 191, 36, 0.08); border-left: 3px solid #fbbf24; padding: 0.5rem 0.75rem; border-radius: 4px; margin-bottom: 0.75rem;">
+                  <strong style="color: #fbbf24; font-size: 0.75rem; display: block;">📋 Requisitos:</strong>
+                  <span style="color: #f8fafc; font-size: 0.8rem;">${trayecto.requisitos}</span>
+                </div>
+              ` : ''}
+
+              <div style="font-size: 0.8rem; color: #38bdf8; font-weight: 600; margin-bottom: 0.5rem;">
+                📚 ${cantidadModulos} Módulo(s)
+              </div>
+
+              <div style="margin-top: 0.5rem;">
+                ${modulosHTML}
+              </div>
+            </div>
+            ${accionesAdmin}
+          `;
+        }
 
         grid.appendChild(card);
       });
