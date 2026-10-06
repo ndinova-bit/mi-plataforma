@@ -1,6 +1,14 @@
 const UsuariosAdmin = {
   estaProcesando: false,
 
+  // Función auxiliar para encriptar claves
+  hashPassword(pass) {
+    if (!pass) return '';
+    return typeof CryptoJS !== 'undefined' 
+      ? CryptoJS.SHA256(pass).toString() 
+      : pass;
+  },
+
   abrirModal() {
     const modal = document.getElementById('modal-alta-usuario');
     if (modal) {
@@ -34,9 +42,10 @@ const UsuariosAdmin = {
     `;
 
     try {
+      // Excluimos la columna 'pass' de la consulta por seguridad
       const { data: usuarios, error } = await supabase
         .from('usuarios')
-        .select('*')
+        .select('id, nombre, apellido, usuario, email, rol, estado')
         .order('id', { ascending: false });
 
       if (error) throw error;
@@ -150,11 +159,14 @@ const UsuariosAdmin = {
     }
 
     try {
+      // Aplicamos el hash SHA-256 sobre el DNI usado como clave inicial
+      const passHash = this.hashPassword(dniVal);
+
       const nuevoUsuario = {
         nombre: nombre,
         apellido: apellido,
         usuario: dniVal,
-        pass: dniVal,
+        pass: passHash, // Se guarda encriptada
         rol: rol,
         estado: 'ACTIVO'
       };
@@ -252,7 +264,7 @@ const UsuariosAdmin = {
 
       if (error) throw error;
 
-      alert(`🗑️ Usuario "${nombreMostrar}" eliminado correctamente.`);
+      alert(`🗑️️ Usuario "${nombreMostrar}" eliminado correctamente.`);
       this.cargarUsuarios();
     } catch (err) {
       console.error('Error al eliminar usuario:', err);
