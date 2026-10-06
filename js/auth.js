@@ -20,7 +20,7 @@ const Auth = {
     return str;
   },
 
-  // Inicializa y verifica la sesión persistida al cargar
+ // Inicializa y verifica la sesión persistida al cargar
   init() {
     const perfilRaw = localStorage.getItem('usuario_actual');
     if (perfilRaw) {
@@ -32,16 +32,18 @@ const Auth = {
           localStorage.setItem('usuario_actual', JSON.stringify(perfil));
         }
 
-        // Guardar sesión de forma segura (sin incluir la contraseña)
-      this.usuarioActual = perfil;
-      localStorage.setItem('usuario_actual', JSON.stringify(perfil));
+        // Guardar sesión de forma segura
+        this.usuarioActual = perfil;
 
-      if (typeof notify === 'function') {
-        notify('success', `¡Bienvenido/a ${perfil.nombre || perfil.usuario}!`);
-      }
+        if (typeof notify === 'function') {
+          notify('success', `¡Bienvenido/a ${perfil.nombre || perfil.usuario}!`);
+        }
 
-      // Recargar la página para que Auth.init() renderice el panel automáticamente
-      window.location.reload();
+        // EN LUGAR DE window.location.reload(), MANDAMOS A MOSTRAR EL DASHBOARD DIRECTO:
+        if (typeof UI !== 'undefined' && typeof UI.mostrarDashboard === 'function') {
+          UI.mostrarDashboard(perfil);
+        }
+
       } catch (e) {
         console.error('Error recuperando sesión:', e);
         this.cerrarSesion();
