@@ -323,8 +323,7 @@ const Trayectos = {
     if (!confirm('¿Estás seguro de que deseas eliminar este trayecto? Esta acción borra también sus módulos asociados.')) {
       return;
     }
-
-    try {
+try {
       const { error } = await supabase
         .from('trayectos')
         .delete()
@@ -332,14 +331,14 @@ const Trayectos = {
 
       if (error) throw error;
 
-    if (typeof notify === 'function') notify('success', 'Trayecto eliminado correctamente');
+      if (typeof notify === 'function') notify('success', 'Trayecto eliminado correctamente');
       await this.cargarTrayectos();
     } catch (err) {
       console.error('Error al eliminar trayecto:', err);
       if (typeof alertError === 'function') alertError('Error', 'No se pudo eliminar el trayecto.');
     }
   }
-}; // <-- Esta llave cierra la clase/objeto Trayectos
+}; // <-- Cierra el objeto Trayectos
 
 // Evento fuera del objeto Trayectos
 document.addEventListener('DOMContentLoaded', () => {
@@ -347,7 +346,6 @@ document.addEventListener('DOMContentLoaded', () => {
     Trayectos.cargarTrayectos();
   }
 });
-};
 
 // Exportación global doble para garantizar retrocompatibilidad
 window.Trayectos = Trayectos;
