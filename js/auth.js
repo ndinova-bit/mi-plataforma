@@ -20,36 +20,35 @@ const Auth = {
     return str;
   },
 
- // Inicializa y verifica la sesión persistida al cargar
-  init() {
-    const perfilRaw = localStorage.getItem('usuario_actual');
-    if (perfilRaw) {
-      try {
-        let perfil = JSON.parse(perfilRaw);
-        
-        if (perfil) {
-          if (perfil.usuario) perfil.usuario = this.limpiarIdentificador(perfil.usuario);
-          localStorage.setItem('usuario_actual', JSON.stringify(perfil));
-        }
-
-        // Guardar sesión de forma segura
-        this.usuarioActual = perfil;
-
-        if (typeof notify === 'function') {
-          notify('success', `¡Bienvenido/a ${perfil.nombre || perfil.usuario}!`);
-        }
-
-        // EN LUGAR DE window.location.reload(), MANDAMOS A MOSTRAR EL DASHBOARD DIRECTO:
-        if (typeof UI !== 'undefined' && typeof UI.mostrarDashboard === 'function') {
-          UI.mostrarDashboard(perfil);
-        }
-
-      } catch (e) {
-        console.error('Error recuperando sesión:', e);
-        this.cerrarSesion();
+   // js/auth.js
+init() {
+  const perfilRaw = localStorage.getItem('usuario_actual');
+  if (perfilRaw) {
+    try {
+      let perfil = JSON.parse(perfilRaw);
+      
+      if (perfil) {
+        if (perfil.usuario) perfil.usuario = this.limpiarIdentificador(perfil.usuario);
+        localStorage.setItem('usuario_actual', JSON.stringify(perfil));
       }
+
+      this.usuarioActual = perfil;
+
+      if (typeof notify === 'function') {
+        notify('success', `¡Bienvenido/a ${perfil.nombre || perfil.usuario}!`);
+      }
+
+      // IMPORTANTE: Pasar 'perfil' a mostrarDashboard y NO recargar
+      if (typeof UI !== 'undefined' && typeof UI.mostrarDashboard === 'function') {
+        UI.mostrarDashboard(perfil);
+      }
+
+    } catch (e) {
+      console.error('Error recuperando sesión:', e);
+      this.cerrarSesion();
     }
-  },
+  }
+}
 
   async iniciarSesion() {
     const userValRaw = document.getElementById('login-user').value.trim();
