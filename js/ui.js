@@ -52,13 +52,23 @@ const UI = {
     }
   },
 
-  // Muestra la plataforma adaptada estrictamente al rol del usuario
+ // Muestra la plataforma adaptada estrictamente al rol del usuario
   mostrarDashboard(perfil) {
+    // Si perfil llega vacío o null, intenta recuperarlo de la memoria
+    if (!perfil) {
+      perfil = Auth.usuarioActual || JSON.parse(localStorage.getItem('usuario_actual'));
+    }
+
+    // Si aún así no hay perfil cargado, frena limpiamente
+    if (!perfil) return;
+
     if (perfil) {
       if (perfil.usuario) perfil.usuario = String(perfil.usuario).split(':')[0].trim();
       if (perfil.dni) perfil.dni = String(perfil.dni).split(':')[0].trim();
       localStorage.setItem('usuario_actual', JSON.stringify(perfil));
     }
+
+    // ... aquí continúa el resto de tu código para mostrar las pantallas y ocultar el login
 
     const landing = document.getElementById('landing-screen') || document.querySelector('.public-landing');
     const login = document.getElementById('login-screen');
