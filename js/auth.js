@@ -32,10 +32,16 @@ const Auth = {
           localStorage.setItem('usuario_actual', JSON.stringify(perfil));
         }
 
-        this.usuarioActual = perfil;
-        if (typeof UI !== 'undefined' && typeof UI.mostrarDashboard === 'function') {
-          UI.mostrarDashboard(perfil);
-        }
+        // Guardar sesión de forma segura (sin incluir la contraseña)
+      this.usuarioActual = perfil;
+      localStorage.setItem('usuario_actual', JSON.stringify(perfil));
+
+      if (typeof notify === 'function') {
+        notify('success', `¡Bienvenido/a ${perfil.nombre || perfil.usuario}!`);
+      }
+
+      // Recargar la página para que Auth.init() renderice el panel automáticamente
+      window.location.reload();
       } catch (e) {
         console.error('Error recuperando sesión:', e);
         this.cerrarSesion();
