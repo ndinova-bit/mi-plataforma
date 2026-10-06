@@ -1,6 +1,14 @@
-// js/auth.js - Autenticación limpia para Admins y Estudiantes
+// js/auth.js - Autenticación limpia con Hash de contraseñas para Admins y Estudiantes
 const Auth = {
   usuarioActual: null,
+
+  // Función interna para generar Hash de contraseña con CryptoJS
+  hashPassword(pass) {
+    if (!pass) return '';
+    return typeof CryptoJS !== 'undefined' 
+      ? CryptoJS.SHA256(pass).toString() 
+      : pass;
+  },
 
   // Sanitizador inteligente: quita sufijos tipo ":1" sin destruir usuarios con texto
   limpiarIdentificador(val) {
@@ -50,16 +58,16 @@ const Auth = {
       return;
     }
 
-    // Sanitizar sin romper nombres de usuario como "admin"
     const userVal = this.limpiarIdentificador(userValRaw);
+    const passHash = this.hashPassword(passVal);
 
     try {
-      // 1. Consultar en la tabla 'usuarios'
+      // 1. Consultar en la tabla 'usuarios' comparando contra la clave encriptada (passHash)
       const { data: usuarios, error } = await supabase
         .from('usuarios')
-        .select('*')
+        .select('id, nombre, usuario, dni, email, rol, estado') // No traemos la columna pass por seguridad
         .or(`usuario.eq.${userVal},email.ilike.${userVal}`)
-        .eq('pass', passVal);
+        .eq('pass', passHash);
 
       if (error) throw error;
 
@@ -74,7 +82,6 @@ const Auth = {
 
       let perfil = usuarios[0];
 
-      // Sanitizar datos del objeto de perfil reteniendo el valor original
       if (perfil.usuario) perfil.usuario = this.limpiarIdentificador(perfil.usuario);
       if (perfil.dni) perfil.dni = this.limpiarIdentificador(perfil.dni);
 
@@ -142,13 +149,16 @@ const Auth = {
       return;
     }
 
+    // Encriptar contraseña antes del insert
+    const passHash = this.hashPassword(pass);
+
     try {
       const { error: dbError } = await supabase
         .from('usuarios')
         .insert([{
           nombre: nombre,
           usuario: dniLimpio,
-          pass: pass,
+          pass: passHash, // Se guarda el Hash SHA-256
           rol: rol,
           estado: 'PENDIENTE'
         }]);
