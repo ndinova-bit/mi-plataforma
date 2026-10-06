@@ -29,7 +29,6 @@ const Auth = {
         
         if (perfil) {
           if (perfil.usuario) perfil.usuario = this.limpiarIdentificador(perfil.usuario);
-          if (perfil.dni) perfil.dni = this.limpiarIdentificador(perfil.dni);
           localStorage.setItem('usuario_actual', JSON.stringify(perfil));
         }
 
@@ -62,10 +61,10 @@ const Auth = {
     const passHash = this.hashPassword(passVal);
 
     try {
-      // 1. Consultar en la tabla 'usuarios' comparando contra la clave encriptada (passHash)
+      // Consultamos solo columnas que existen en la tabla 'usuarios'
       const { data: usuarios, error } = await supabase
         .from('usuarios')
-        .select('id, nombre, usuario, dni, email, rol, estado') // No traemos la columna pass por seguridad
+        .select('id, nombre, apellido, usuario, email, rol, estado')
         .or(`usuario.eq.${userVal},email.ilike.${userVal}`)
         .eq('pass', passHash);
 
@@ -83,13 +82,12 @@ const Auth = {
       let perfil = usuarios[0];
 
       if (perfil.usuario) perfil.usuario = this.limpiarIdentificador(perfil.usuario);
-      if (perfil.dni) perfil.dni = this.limpiarIdentificador(perfil.dni);
 
-      // 2. Validar estado (ACTIVO / HABILITADO / O si es ADMIN)
+      // Validar estado (ACTIVO / HABILITADO / APROBADO O si es ADMIN)
       const estado = String(perfil.estado || '').toUpperCase();
       const rolNorm = String(perfil.rol || '').toLowerCase().trim();
 
-      if (rolNorm !== 'admin' && estado !== 'ACTIVO' && estado !== 'HABILITADO') {
+      if (rolNorm !== 'admin' && estado !== 'ACTIVO' && estado !== 'HABILITADO' && estado !== 'APROBADO') {
         if (typeof alertError === 'function') {
           alertError('Cuenta pendiente', 'Tu cuenta está pendiente de aprobación por un administrador.');
         } else {
@@ -98,7 +96,7 @@ const Auth = {
         return;
       }
 
-      // 3. Validar rol si el usuario seleccionó uno específico en el login
+      // Validar rol si se seleccionó uno específico en el login
       if (roleVal && rolNorm !== roleVal.toLowerCase()) {
         if (typeof alertError === 'function') {
           alertError('Rol incorrecto', `Tu usuario no está registrado como ${roleVal.toUpperCase()}.`);
@@ -108,7 +106,7 @@ const Auth = {
         return;
       }
 
-      // 4. Guardar sesión y mostrar el dashboard
+      // Guardar sesión sin la contraseña
       this.usuarioActual = perfil;
       localStorage.setItem('usuario_actual', JSON.stringify(perfil));
 
@@ -149,7 +147,6 @@ const Auth = {
       return;
     }
 
-    // Encriptar contraseña antes del insert
     const passHash = this.hashPassword(pass);
 
     try {
@@ -158,7 +155,7 @@ const Auth = {
         .insert([{
           nombre: nombre,
           usuario: dniLimpio,
-          pass: passHash, // Se guarda el Hash SHA-256
+          pass: passHash,
           rol: rol,
           estado: 'PENDIENTE'
         }]);
