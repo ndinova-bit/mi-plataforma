@@ -65,19 +65,22 @@ const UsuariosAdmin = {
         const estadoRaw = String(u.estado || 'PENDIENTE').toUpperCase();
         const esActivo = estadoRaw === 'ACTIVO' || estadoRaw === 'HABILITADO' || estadoRaw === 'APROBADO';
         const nombreCompleto = u.apellido ? `${u.apellido}, ${u.nombre}` : (u.nombre || 'Sin Nombre');
-        const usrIdentificador = u.usuario || u.id;
+        
+        // PRIORIDAD: Siempre usar el ID primario (UUID) si existe, sino el usuario/DNI
+        const idPrimario = u.id || u.usuario;
+        const textoMostrarUsuario = u.usuario || u.id;
 
         return `
           <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
             <td style="padding: 0.85rem 0.75rem;">
               <strong style="color: #f8fafc; font-size: 0.95rem;">${nombreCompleto}</strong><br>
-              <span style="font-size: 0.8rem; color: #94a3b8;">Usuario / DNI: ${usrIdentificador}</span>
+              <span style="font-size: 0.8rem; color: #94a3b8;">Usuario / DNI: ${textoMostrarUsuario}</span>
             </td>
             <td style="padding: 0.85rem 0.75rem; font-size: 0.85rem; color: #cbd5e1;">
               ${u.email || 'Sin correo'}
             </td>
             <td style="padding: 0.85rem 0.75rem;">
-              <select class="form-control" style="padding: 0.3rem 0.5rem; font-size: 0.85rem; width: auto;" onchange="UsuariosAdmin.cambiarRol('${usrIdentificador}', this.value)">
+              <select class="form-control" style="padding: 0.3rem 0.5rem; font-size: 0.85rem; width: auto;" onchange="UsuariosAdmin.cambiarRol('${idPrimario}', this.value)">
                 <option value="estudiante" ${u.rol === 'estudiante' ? 'selected' : ''}>Estudiante</option>
                 <option value="docente" ${u.rol === 'docente' ? 'selected' : ''}>Docente</option>
                 <option value="admin" ${u.rol === 'admin' ? 'selected' : ''}>Administrador</option>
@@ -90,15 +93,15 @@ const UsuariosAdmin = {
             </td>
             <td style="padding: 0.85rem 0.75rem; text-align: right; display: flex; gap: 0.4rem; justify-content: flex-end; align-items: center;">
               ${!esActivo ? `
-                <button class="btn btn-gold" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;" onclick="UsuariosAdmin.cambiarEstado('${usrIdentificador}', 'ACTIVO')">
+                <button class="btn btn-gold" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;" onclick="UsuariosAdmin.cambiarEstado('${idPrimario}', 'ACTIVO')">
                   ✓ Aprobar
                 </button>
               ` : `
-                <button class="btn btn-danger" style="padding: 0.35rem 0.75rem; font-size: 0.8rem; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171;" onclick="UsuariosAdmin.cambiarEstado('${usrIdentificador}', 'PENDIENTE')">
+                <button class="btn btn-danger" style="padding: 0.35rem 0.75rem; font-size: 0.8rem; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171;" onclick="UsuariosAdmin.cambiarEstado('${idPrimario}', 'PENDIENTE')">
                   🔒 Inhabilitar
                 </button>
               `}
-              <button title="Eliminar definitivamente" style="padding: 0.35rem 0.6rem; font-size: 0.8rem; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #f87171; border-radius: 6px; cursor: pointer;" onclick="UsuariosAdmin.eliminarUsuario('${usrIdentificador}', '${nombreCompleto.replace(/'/g, "\\'")}')">
+              <button title="Eliminar definitivamente" style="padding: 0.35rem 0.6rem; font-size: 0.8rem; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #f87171; border-radius: 6px; cursor: pointer;" onclick="UsuariosAdmin.eliminarUsuario('${idPrimario}', '${nombreCompleto.replace(/'/g, "\\'")}')">
                 🗑️
               </button>
             </td>
@@ -217,11 +220,13 @@ const UsuariosAdmin = {
 
   async cambiarEstado(identificador, nuevoEstado) {
     try {
-      const { error } = await supabase
-        .from('usuarios')
-        .update({ estado: nuevoEstado })
-        .eq('usuario', identificador);
+      const idStr = String(identificador);
+      const esUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idStr);
 
+      let query = supabase.from('usuarios').update({ estado: nuevoEstado });
+      query = esUUID ? query.eq('id', idStr) : query.eq('usuario', idStr);
+
+      const { error } = await query;
       if (error) throw error;
       this.cargarUsuarios();
     } catch (err) {
@@ -231,11 +236,13 @@ const UsuariosAdmin = {
 
   async cambiarRol(identificador, nuevoRol) {
     try {
-      const { error } = await supabase
-        .from('usuarios')
-        .update({ rol: nuevoRol })
-        .eq('usuario', identificador);
+      const idStr = String(identificador);
+      const esUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idStr);
 
+      let query = supabase.from('usuarios').update({ rol: nuevoRol });
+      query = esUUID ? query.eq('id', idStr) : query.eq('usuario', idStr);
+
+      const { error } = await query;
       if (error) throw error;
     } catch (err) {
       console.error('Error al actualizar rol:', err);
@@ -249,16 +256,16 @@ const UsuariosAdmin = {
     try {
       const idStr = String(identificador);
 
-      // 1. Limpiar inscripciones
+      // 1. Limpiar inscripciones vinculadas
       await supabase
         .from('inscripciones')
         .delete()
-        .eq('estudiante_user', idStr);
+        .or(`estudiante_user.eq.${idStr}`);
 
       // 2. Comprobar si es un UUID válido
       const esUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idStr);
 
-      // 3. Eliminar usuario limpiamente por el campo correcto
+      // 3. Eliminar usuario usando la clave primaria adecuada
       let query = supabase.from('usuarios').delete();
       if (esUUID) {
         query = query.eq('id', idStr);
@@ -277,7 +284,7 @@ const UsuariosAdmin = {
       alert('Error al eliminar usuario: ' + (err.message || 'Ocurrió un error inesperado.'));
     }
   }
-}; // <-- Cierre correcto del objeto UsuariosAdmin
+};
 
 // Escuchador global
 document.addEventListener('submit', function(e) {
