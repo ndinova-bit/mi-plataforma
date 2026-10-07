@@ -256,24 +256,8 @@ const UsuariosAdmin = {
     try {
       const idStr = String(identificador);
 
-      // 1. Limpiar inscripciones vinculadas
-      await supabase
-        .from('inscripciones')
-        .delete()
-        .or(`estudiante_user.eq.${idStr}`);
-
-      // 2. Comprobar si es un UUID válido
-      const esUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idStr);
-
-      // 3. Eliminar usuario usando la clave primaria adecuada
-      let query = supabase.from('usuarios').delete();
-      if (esUUID) {
-        query = query.eq('id', idStr);
-      } else {
-        query = query.eq('usuario', idStr);
-      }
-
-      const { error } = await query;
+      // Llamamos a la función SECURITY DEFINER que creaste en Supabase
+      const { error } = await supabase.rpc('eliminar_usuario_admin', { p_id: idStr });
 
       if (error) throw error;
 
@@ -284,7 +268,6 @@ const UsuariosAdmin = {
       alert('Error al eliminar usuario: ' + (err.message || 'Ocurrió un error inesperado.'));
     }
   }
-};
 
 // Escuchador global
 document.addEventListener('submit', function(e) {
