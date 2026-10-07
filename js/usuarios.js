@@ -255,9 +255,22 @@ const UsuariosAdmin = {
 
     try {
       const idStr = String(identificador);
+      
+      // Obtenemos el hash/pass del admin logueado desde la sesión o localStorage
+      // (Ajustá 'pass_admin' o la clave donde guardás la credencial del admin activo)
+      const adminPass = localStorage.getItem('user_pass') || sessionStorage.getItem('user_pass');
 
-      // Llamamos a la función SECURITY DEFINER que creaste en Supabase
-      const { error } = await supabase.rpc('eliminar_usuario_admin', { p_id: idStr });
+      // Si no hay sesión guardada, te pide confirmación de seguridad
+      const passValidacion = adminPass || prompt("Por seguridad, ingresá tu clave de Administrador:");
+      if (!passValidacion) return;
+
+      const hashPass = this.hashPassword(passValidacion);
+
+      // Enviamos el borrado firmado con las credenciales de admin
+      const { error } = await supabase.rpc('eliminar_usuario_admin', { 
+        p_id: idStr,
+        p_admin_pass: hashPass
+      });
 
       if (error) throw error;
 
