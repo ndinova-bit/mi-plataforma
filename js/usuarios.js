@@ -252,15 +252,25 @@ const UsuariosAdmin = {
 
     try {
       const idStr = String(identificador);
-      
-      const passAdminPrompt = prompt("🔐 Por seguridad, ingresá tu clave de Administrador para confirmar el borrado:");
-      if (!passAdminPrompt) return;
 
-      const hashPass = this.hashPassword(passAdminPrompt);
+      // 1. Obtener los datos del admin logueado desde la sesión activa
+      const sesionGuardada = localStorage.getItem('usuario_logueado') || sessionStorage.getItem('usuario_logueado');
+      const adminUsuario = sesionGuardada ? JSON.parse(sesionGuardada) : null;
 
+      // 2. Si no hay sesión de admin activa, cortamos la ejecución
+      if (!adminUsuario || adminUsuario.rol !== 'admin') {
+        alert('⛔ No tenés permisos de administrador para realizar esta acción.');
+        return;
+      }
+
+      // 3. Tomamos el hash de la contraseña de la sesión del admin
+      // (Ajustá 'pass' o 'passHash' según cómo guardás la contraseña en el login)
+      const passAdmin = adminUsuario.pass || adminUsuario.passHash || this.hashPassword(adminUsuario.usuario || adminUsuario.dni);
+
+      // 4. Invocamos la RPC de Supabase pasando el ID a borrar y la clave del Admin de fondo
       const { error } = await supabase.rpc('eliminar_usuario_admin', { 
         p_id: idStr,
-        p_admin_pass: hashPass
+        p_admin_pass: passAdmin
       });
 
       if (error) throw error;
@@ -269,10 +279,9 @@ const UsuariosAdmin = {
       this.cargarUsuarios();
     } catch (err) {
       console.error('Error al eliminar usuario:', err);
-      alert('Error al eliminar usuario: ' + (err.message || 'Contraseña incorrecta o permisos insuficientes.'));
+      alert('Error al eliminar usuario: ' + (err.message || 'No tenés permisos de administrador o la sesión expiró.'));
     }
   }
-};
 
 document.addEventListener('submit', function(e) {
   if (e.target && e.target.id === 'form-alta-usuario') {
