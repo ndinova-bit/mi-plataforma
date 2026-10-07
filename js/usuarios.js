@@ -257,23 +257,29 @@ const UsuariosAdmin = {
         .delete()
         .or(`estudiante_user.eq.${idStr}`);
 
-      // 2. Eliminar el usuario por usuario o por id en Supabase
-      const { error } = await supabase
-        .from('usuarios')
-        .delete()
-        .or(`usuario.eq.${idStr},id.eq.${idStr}`);
+      // 2. Comprobar si el identificador es un UUID válido (formato 8-4-4-4-12)
+      const esUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idStr);
+
+      // 3. Eliminar usuario usando el campo adecuado según corresponda
+      let query = supabase.from('usuarios').delete();
+      
+      if (esUUID) {
+        query = query.eq('id', idStr);
+      } else {
+        query = query.eq('usuario', idStr);
+      }
+
+      const { error } = await query;
 
       if (error) throw error;
 
-      alert(`🗑️️ Usuario "${nombreMostrar}" eliminado correctamente.`);
+      alert(`🗑 Usuario "${nombreMostrar}" eliminado correctamente.`);
       this.cargarUsuarios();
     } catch (err) {
       console.error('Error al eliminar usuario:', err);
       alert('Error al eliminar usuario: ' + (err.message || 'Ocurrió un error inesperado.'));
     }
   }
-};
-
 // Escuchador global del submit para conectar con la vista HTML existente
 document.addEventListener('submit', function(e) {
   if (e.target && e.target.id === 'form-alta-usuario') {
