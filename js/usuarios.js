@@ -1,7 +1,6 @@
 const UsuariosAdmin = {
   estaProcesando: false,
 
-  
   // Función auxiliar para encriptar claves
   hashPassword(pass) {
     if (!pass) return '';
@@ -255,14 +254,13 @@ const UsuariosAdmin = {
       await supabase
         .from('inscripciones')
         .delete()
-        .or(`estudiante_user.eq.${idStr}`);
+        .eq('estudiante_user', idStr);
 
-      // 2. Comprobar si el identificador es un UUID válido (formato 8-4-4-4-12)
+      // 2. Comprobar si es un UUID válido
       const esUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idStr);
 
-      // 3. Eliminar usuario usando el campo adecuado según corresponda
+      // 3. Eliminar usuario limpiamente por el campo correcto
       let query = supabase.from('usuarios').delete();
-      
       if (esUUID) {
         query = query.eq('id', idStr);
       } else {
@@ -280,6 +278,8 @@ const UsuariosAdmin = {
       alert('Error al eliminar usuario: ' + (err.message || 'Ocurrió un error inesperado.'));
     }
   }
+};
+
 // Escuchador global del submit para conectar con la vista HTML existente
 document.addEventListener('submit', function(e) {
   if (e.target && e.target.id === 'form-alta-usuario') {
