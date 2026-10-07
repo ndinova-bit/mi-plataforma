@@ -1,7 +1,6 @@
 const UsuariosAdmin = {
   estaProcesando: false,
 
-  // Función auxiliar para encriptar claves
   hashPassword(pass) {
     if (!pass) return '';
     return typeof CryptoJS !== 'undefined' 
@@ -42,7 +41,6 @@ const UsuariosAdmin = {
     `;
 
     try {
-      // Excluimos la columna 'pass' de la consulta por seguridad
       const { data: usuarios, error } = await supabase
         .from('usuarios')
         .select('id, nombre, apellido, usuario, email, rol, estado')
@@ -65,8 +63,6 @@ const UsuariosAdmin = {
         const estadoRaw = String(u.estado || 'PENDIENTE').toUpperCase();
         const esActivo = estadoRaw === 'ACTIVO' || estadoRaw === 'HABILITADO' || estadoRaw === 'APROBADO';
         const nombreCompleto = u.apellido ? `${u.apellido}, ${u.nombre}` : (u.nombre || 'Sin Nombre');
-        
-        // PRIORIDAD: Siempre usar el ID primario (UUID) si existe, sino el usuario/DNI
         const idPrimario = u.id || u.usuario;
         const textoMostrarUsuario = u.usuario || u.id;
 
@@ -256,17 +252,11 @@ const UsuariosAdmin = {
     try {
       const idStr = String(identificador);
       
-      // Obtenemos el hash/pass del admin logueado desde la sesión o localStorage
-      // (Ajustá 'pass_admin' o la clave donde guardás la credencial del admin activo)
-      const adminPass = localStorage.getItem('user_pass') || sessionStorage.getItem('user_pass');
+      const passAdminPrompt = prompt("🔐 Por seguridad, ingresá tu clave de Administrador para confirmar el borrado:");
+      if (!passAdminPrompt) return;
 
-      // Si no hay sesión guardada, te pide confirmación de seguridad
-      const passValidacion = adminPass || prompt("Por seguridad, ingresá tu clave de Administrador:");
-      if (!passValidacion) return;
+      const hashPass = this.hashPassword(passAdminPrompt);
 
-      const hashPass = this.hashPassword(passValidacion);
-
-      // Enviamos el borrado firmado con las credenciales de admin
       const { error } = await supabase.rpc('eliminar_usuario_admin', { 
         p_id: idStr,
         p_admin_pass: hashPass
@@ -278,11 +268,11 @@ const UsuariosAdmin = {
       this.cargarUsuarios();
     } catch (err) {
       console.error('Error al eliminar usuario:', err);
-      alert('Error al eliminar usuario: ' + (err.message || 'Ocurrió un error inesperado.'));
+      alert('Error al eliminar usuario: ' + (err.message || 'Contraseña incorrecta o permisos insuficientes.'));
     }
   }
+};
 
-// Escuchador global
 document.addEventListener('submit', function(e) {
   if (e.target && e.target.id === 'form-alta-usuario') {
     e.preventDefault();
