@@ -1,4 +1,4 @@
-// js/auth.js - Versión final limpia
+// js/auth.js - Versión Robusta con Doble Validación de Hash
 
 const Auth = {
   usuarioActual: null,
@@ -65,16 +65,15 @@ const Auth = {
       return;
     }
 
-    // Conservar el formato exacto del email/usuario en minúsculas
     const userVal = userValRaw.toLowerCase();
     const passHash = this.hashPassword(passVal);
 
     try {
+      // 1. Consultar usuario por email o usuario
       const { data: usuarios, error } = await supabase
         .from('usuarios')
-        .select('id, nombre, apellido, usuario, email, rol, estado')
-        .or(`usuario.eq.${userVal},email.ilike.${userVal}`)
-        .eq('pass', passHash);
+        .select('*')
+        .or(`usuario.eq.${userVal},email.ilike.${userVal}`);
 
       if (error) throw error;
 
@@ -87,9 +86,19 @@ const Auth = {
         return;
       }
 
-      let perfil = usuarios[0];
+      // 2. Buscar coincidencia de clave (soporta Hash SHA-256 o Texto Plano)
+      const perfil = usuarios.find(u => u.pass === passHash || u.pass === passVal);
 
-      // Validar estado
+      if (!perfil) {
+        if (typeof alertError === 'function') {
+          alertError('Error al ingresar', 'Usuario, DNI o contraseña incorrectos.');
+        } else {
+          alert('Usuario, DNI o contraseña incorrectos.');
+        }
+        return;
+      }
+
+      // 3. Validar estado
       const estado = String(perfil.estado || '').toUpperCase();
       const rolNorm = String(perfil.rol || '').toLowerCase().trim();
 
@@ -102,7 +111,7 @@ const Auth = {
         return;
       }
 
-      // Flexibilidad en el rol (admin / administrador)
+      // 4. Flexibilidad en el selector de rol (Admin / Administrador)
       if (roleVal) {
         const roleValNorm = roleVal.toLowerCase().trim();
         const esAdmin = rolNorm === 'admin' || roleValNorm === 'administrador' || roleValNorm === 'admin';
@@ -117,7 +126,7 @@ const Auth = {
         }
       }
 
-      // Guardar sesión
+      // 5. Guardar sesión y desplegar Dashboard
       this.usuarioActual = perfil;
       localStorage.setItem('usuario_actual', JSON.stringify(perfil));
 
@@ -125,7 +134,6 @@ const Auth = {
         notify('success', `¡Bienvenido/a ${perfil.nombre || perfil.usuario}!`);
       }
 
-      // Ocultar pantalla de login y desplegar dashboard
       const loginScreen = document.getElementById('login-screen');
       if (loginScreen) {
         loginScreen.style.setProperty('display', 'none', 'important');
