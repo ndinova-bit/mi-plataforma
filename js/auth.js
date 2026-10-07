@@ -51,7 +51,7 @@ const Auth = {
     console.log("Solicitando registro...");
   },
 
-  iniciarSesion: async function() {
+iniciarSesion: async function() {
     const userValRaw = document.getElementById('login-user')?.value?.trim() || '';
     const passVal = document.getElementById('login-pass')?.value?.trim() || '';
     const roleVal = document.getElementById('role-select')?.value || '';
@@ -66,7 +66,20 @@ const Auth = {
     }
 
     const userVal = userValRaw.toLowerCase();
-    const passHash = this.hashPassword(passVal);
+
+    // Generador SHA-256 infalible
+    async function obtenerSHA256(texto) {
+      if (typeof CryptoJS !== 'undefined' && CryptoJS.SHA256) {
+        return CryptoJS.SHA256(texto).toString();
+      }
+      const msgBuffer = new TextEncoder().encode(texto);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    // Convertir la contraseña ingresada a SHA-256
+    const passHash = await obtenerSHA256(passVal);
 
     try {
       // 1. Consultar usuario por email o usuario
@@ -86,7 +99,7 @@ const Auth = {
         return;
       }
 
-      // 2. Buscar coincidencia de clave (soporta Hash SHA-256 o Texto Plano)
+      // 2. Buscar coincidencia (compara contra el Hash generado o contra Texto Plano como backup)
       const perfil = usuarios.find(u => u.pass === passHash || u.pass === passVal);
 
       if (!perfil) {
