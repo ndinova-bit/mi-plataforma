@@ -50,7 +50,7 @@ init() {
   }
 }
 
-  async iniciarSesion() {
+ iniciarSesion: async function() {
     const userValRaw = document.getElementById('login-user').value.trim();
     const passVal = document.getElementById('login-pass').value.trim();
     const roleVal = document.getElementById('role-select')?.value || '';
@@ -123,8 +123,6 @@ init() {
 
       if (typeof UI !== 'undefined' && typeof UI.mostrarDashboard === 'function') {
         UI.mostrarDashboard(perfil);
-      } else {
-        window.location.reload();
       }
 
     } catch (err) {
