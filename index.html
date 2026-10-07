@@ -1,660 +1,297 @@
-<!DOCTYPE html>
+const UsuariosAdmin = {
+  estaProcesando: false,
 
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CFP N° 403 - Plataforma</title>
+  // Función auxiliar para encriptar claves
+  hashPassword(pass) {
+    if (!pass) return '';
+    return typeof CryptoJS !== 'undefined' 
+      ? CryptoJS.SHA256(pass).toString() 
+      : pass;
+  },
 
-  <!-- Soporte App Móvil PWA -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0b111e">
+  abrirModal() {
+    const modal = document.getElementById('modal-alta-usuario');
+    if (modal) {
+      modal.classList.add('open', 'active');
+      modal.style.display = 'flex';
+      this.cargarTrayectosEnModal();
+    }
+  },
 
-  <!-- Fuente Inter -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  cerrarModal() {
+    const modal = document.getElementById('modal-alta-usuario');
+    if (modal) {
+      modal.classList.remove('open', 'active');
+      modal.style.display = 'none';
+      const form = document.getElementById('form-alta-usuario');
+      if (form) form.reset();
+    }
+    this.estaProcesando = false;
+  },
 
-  <!-- 1. Variables globales -->
-  <link rel="stylesheet" href="css/variables.css">
+  async cargarUsuarios() {
+    const tbody = document.getElementById('tabla-usuarios');
+    if (!tbody) return;
 
-  <!-- 2. Hojas de estilo modulares -->
-  <link rel="stylesheet" href="css/header.css">
-  <link rel="stylesheet" href="css/hero.css">
-  <link rel="stylesheet" href="css/courses.css">
-  <link rel="stylesheet" href="css/footer.css">
-  <link rel="stylesheet" href="css/animations.css">
-  <link rel="stylesheet" href="css/sections.css">
-  <link rel="stylesheet" href="css/pdf-lab.css">
-  <link rel="stylesheet" href="css/auth.css">
-  
-  <!-- 3. CSS principal base -->
-  <link rel="stylesheet" href="css/styles.css">
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5" style="text-align: center; padding: 2rem; color: #94a3b8;">
+          Cargando usuarios...
+        </td>
+      </tr>
+    `;
 
-  <!-- 4. CSS Panel de Administración -->
-  <link rel="stylesheet" href="css/admin-dashboard.css?v=100">
-</head>
-<body>
+    try {
+      // Excluimos la columna 'pass' de la consulta por seguridad
+      const { data: usuarios, error } = await supabase
+        .from('usuarios')
+        .select('id, nombre, apellido, usuario, email, rol, estado')
+        .order('id', { ascending: false });
 
-  <!-- 1. VISTA PÚBLICA / LANDING -->
-  <div id="landing-screen" class="public-landing fade-in">
-    
-    <header class="main-header">
-      <div class="header-brand-center">
-        <div class="header-top-brand">
-          <img src="logo.png" alt="CFP N° 403 Logo" class="header-logo-xl">
-          <div>
-            <h1 class="header-title-lg">CFP N° 403 "OSCAR SMITH"</h1>
-            <span style="font-size: 0.85rem; color: var(--text-muted);">LUJÁN, BUENOS AIRES</span>
-          </div>
-        </div>
-        
-        <!-- Barra de Navegación -->
-        <nav class="main-nav">
-          <a href="#inicio" class="nav-link">Inicio</a>
-          <a href="#cursos" class="nav-link">Cursos</a>
-          <a href="#por-que" class="nav-link">¿Por qué el 403?</a>
-          <a href="#inscripcion" class="nav-link">¿Cómo inscribirse?</a>
-          <a href="#noticias" class="nav-link">Noticias</a>
-          <a href="#contacto" class="nav-link">Contacto</a>
-        </nav>
-      </div>
+      if (error) throw error;
 
-      <div class="header-action-right">
-        <a href="#" onclick="UI.showLoginScreen(); return false;" class="btn-header-login">
-          🔓 Ingresar / Registrarse
-        </a>
-      </div>
-    </header>
+      if (!usuarios || usuarios.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="5" style="text-align: center; padding: 2rem; color: #94a3b8;">
+              No hay usuarios registrados aún.
+            </td>
+          </tr>
+        `;
+        return;
+      }
 
-    <!-- CONTENIDO PRINCIPAL DE LA LANDING -->
-    <main class="public-container">
+      tbody.innerHTML = usuarios.map(u => {
+        const estadoRaw = String(u.estado || 'PENDIENTE').toUpperCase();
+        const esActivo = estadoRaw === 'ACTIVO' || estadoRaw === 'HABILITADO' || estadoRaw === 'APROBADO';
+        const nombreCompleto = u.apellido ? `${u.apellido}, ${u.nombre}` : (u.nombre || 'Sin Nombre');
+        const usrIdentificador = u.usuario || u.id;
 
-      <!-- 1. HERO BANNER -->
-      <section id="inicio" class="hero-banner">
-        <span class="hero-badge">Formación Profesional Gratuita</span>
-        <h1 class="hero-title">Encontrá tu próxima formación profesional</h1>
-        <p class="hero-subtitle">
-          Capacitate con certificados oficiales avalados por la DGCyE de la Provincia de Buenos Aires.
-        </p>
-        <div style="margin-top: 1.5rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-          <a href="#cursos" class="btn btn-gold">Ver Cursos</a>
-          <a href="#inscripcion" class="btn btn-outline">¿Cómo inscribirme?</a>
-        </div>
-      </section>
-
-      <!-- 2. CATÁLOGO Y BÚSQUEDA DE CURSOS PÚBLICO -->
-      <section id="cursos" style="margin-bottom: 3.5rem;">
-        <div class="section-heading">
-          <h2 class="section-title">Oferta Académica</h2>
-        </div>
-        <div id="lista-trayectos-cards" class="features-grid">
-          <!-- Trayectos insertados por trayectos.js -->
-        </div>
-      </section>
-
-      <!-- 3. ¿POR QUÉ ELEGIR EL CFP 403? -->
-      <section id="por-que" class="value-props-grid">
-        <div class="prop-card">
-          <div class="prop-icon">📜</div>
-          <div>
-            <h3 class="prop-title">Títulos Oficiales</h3>
-            <p class="prop-desc">Certificación avalada por DGCyE de Buenos Aires.</p>
-          </div>
-        </div>
-        <div class="prop-card">
-          <div class="prop-icon">🎓</div>
-          <div>
-            <h3 class="prop-title">100% Gratuito</h3>
-            <p class="prop-desc">Educación técnica pública y accesible para todos.</p>
-          </div>
-        </div>
-        <div class="prop-card">
-          <div class="prop-icon">🛠️</div>
-          <div>
-            <h3 class="prop-title">Salida Laboral</h3>
-            <p class="prop-desc">Capacitación práctica adaptada al mercado actual.</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- 4. ¿CÓMO INSCRIBIRSE? -->
-      <section id="inscripcion" class="steps-section">
-        <h2 class="section-title-center">¿Cómo inscribirse?</h2>
-        <div class="steps-grid">
-          <div class="step-card">
-            <span class="step-number">01</span>
-            <h3 class="step-title">Elegí tu curso</h3>
-            <p class="step-desc">Explorá nuestra oferta académica y elegí tu especialidad.</p>
-          </div>
-          <div class="step-card">
-            <span class="step-number">02</span>
-            <h3 class="step-title">Requisitos</h3>
-            <p class="step-desc">Conocé los horarios, vacantes y documentación necesaria.</p>
-          </div>
-          <div class="step-card">
-            <span class="step-number">03</span>
-            <h3 class="step-title">Inscripción</h3>
-            <p class="step-desc">Completá el formulario de preinscripción digital o presencial.</p>
-          </div>
-          <div class="step-card">
-            <span class="step-number">04</span>
-            <h3 class="step-title">¡Comenzá!</h3>
-            <p class="step-desc">Presentá tu documentación y empezá a capacitarte.</p>
-          </div>
-        </div>
-        <a href="https://cursosipfl.trabajo.gba.gob.ar/" target="_blank" rel="noopener noreferrer" class="btn-inscripcion-gold">
-          📝 Iniciar preinscripción en IPFL
-        </a>
-      </section>
-
-      <!-- 5. NOVEDADES Y NOTICIAS -->
-      <section id="noticias" class="news-section">
-        <div class="section-heading">
-          <h2 class="section-title">Noticias y Novedades</h2>
-        </div>
-        <div class="news-grid">
-          <div class="news-card">
-            <div class="news-icon">📰</div>
-            <div>
-              <h3 class="news-title">Inscripciones abiertas</h3>
-              <p class="news-desc">Nueva etapa de inscripción para el próximo ciclo lectivo.</p>
-            </div>
-          </div>
-          <div class="news-card">
-            <div class="news-icon">📢</div>
-            <div>
-              <h3 class="news-title">Inicio de clases</h3>
-              <p class="news-desc">Consultá las comisiones y los horarios de cursada.</p>
-            </div>
-          </div>
-          <div class="news-card">
-            <div class="news-icon">🎓</div>
-            <div>
-              <h3 class="news-title">Entrega de certificados</h3>
-              <p class="news-desc">Fechas de acto de egresados para trayectos finalizados.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-    </main>
-
-    <!-- FOOTER INSTITUCIONAL -->
-    <footer id="contacto" class="main-footer">
-      <div class="footer-container">
-        <div>
-          <h3 class="footer-title-gold">CFP N° 403 "Oscar Smith"</h3>
-          <p class="footer-description">
-            Centro de Formación Profesional de Luján, Buenos Aires. Brindando educación técnica pública, gratuita y de calidad para toda la comunidad.
-          </p>
-        </div>
-
-        <div class="footer-contact-group">
-          <h4 class="footer-title">Contacto y Ubicación</h4>
-          <a href="https://maps.google.com/?q=Lavalle+740+Lujan+Buenos+Aires" target="_blank" rel="noopener" class="contact-link-location">
-            📍 Lavalle 740, Luján, Buenos Aires
-          </a>
-          <a href="mailto:cfp403lujan@abc.gob.ar" class="btn-contact btn-email">
-            ✉️ cfp403lujan@abc.gob.ar
-          </a>
-          <a href="https://wa.me/5492323000000" target="_blank" rel="noopener" class="btn-contact btn-whatsapp">
-            🟢 Enviar WhatsApp
-          </a>
-        </div>
-
-        <div class="footer-community-group">
-          <h4 class="footer-title">Comunidad</h4>
-          <a href="https://instagram.com/cfp403lujan" target="_blank" rel="noopener" class="btn-instagram">
-            📷 @cfp403lujan en Instagram
-          </a>
-        </div>
-      </div>
-
-      <div class="footer-copyright">
-        © 2026 CFP N° 403. Todos los derechos reservados.
-      </div>
-    </footer>
-
-  </div>
-
-  <!-- PANTALLA DE ACCESO / LOGIN -->
-  <div id="login-screen" class="auth-screen" style="display: none;">
-    <div class="auth-card">
-      
-      <div class="auth-header">
-        <img src="logo.png" alt="CFP N° 403 Logo" class="auth-logo">
-        <h2>Acceso al Sistema</h2>
-        <p>CFP N° 403 "Oscar Smith"</p>
-      </div>
-
-      <!-- Pestañas -->
-      <div class="auth-tabs">
-        <button id="tab-btn-login" class="auth-tab active" onclick="UI.toggleAuthTab('login')">Ingresar</button>
-        <button id="tab-btn-register" class="auth-tab" onclick="UI.toggleAuthTab('register')">Solicitar Cuenta</button>
-      </div>
-
-      <!-- Formulario de Login -->
-      <form id="form-login" onsubmit="event.preventDefault(); Auth.iniciarSesion();">
-        <div class="form-group">
-          <label for="role-select">Rol de Ingreso</label>
-          <div class="select-wrapper">
-            <select id="role-select" class="form-control custom-select">
-              <option value="estudiante">Estudiante</option>
-              <option value="docente">Docente</option>
-              <option value="admin">Administrador</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label for="login-user">Usuario / DNI / Email</label>
-          <input type="text" id="login-user" class="form-control" placeholder="Ej: 38123456" required>
-        </div>
-
-        <div class="form-group">
-          <label for="login-pass">Contraseña</label>
-          <input type="password" id="login-pass" class="form-control" placeholder="••••••••" required>
-        </div>
-
-        <button type="submit" class="btn-block btn-gold">Iniciar Sesión</button>
-        <button type="button" class="btn-block btn-outline" style="margin-top: 0.5rem;" onclick="UI.showLanding()">← Volver al Inicio</button>
-      </form>
-
-      <!-- Formulario de Registro -->
-      <form id="form-register" style="display: none;" onsubmit="event.preventDefault(); Auth.solicitarRegistro();">
-        <div class="form-group">
-          <label for="reg-nombre">Nombre y Apellido</label>
-          <input type="text" id="reg-nombre" class="form-control" placeholder="Nombre completo" required>
-        </div>
-        <div class="form-group">
-          <label for="reg-dni">DNI</label>
-          <input type="text" id="reg-dni" class="form-control" placeholder="Sin puntos" required>
-        </div>
-        <div class="form-group">
-          <label for="reg-pass">Contraseña</label>
-          <input type="password" id="reg-pass" class="form-control" placeholder="••••••••" required>
-        </div>
-        <div class="form-group">
-          <label for="reg-rol">Rol Solicitado</label>
-          <select id="reg-rol" class="form-control custom-select">
-            <option value="estudiante">Estudiante</option>
-            <option value="docente">Docente</option>
-          </select>
-        </div>
-        <button type="submit" class="btn-block btn-gold">Enviar Solicitud</button>
-        <button type="button" class="btn-block btn-outline" style="margin-top: 0.5rem;" onclick="UI.showLanding()">← Volver al Inicio</button>
-      </form>
-
-    </div>
-  </div>
-  
-  <!-- 3. DASHBOARD / PLATAFORMA ADMIN -->
-  <div id="app-screen" class="dashboard-layout" style="display: none;">
-    
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
-      <div class="sidebar-brand">
-        <img src="logo.png" alt="CFP N° 403">
-        <div class="sidebar-brand-text">
-          <h3>CFP N° 403</h3>
-          <span>Panel de Control</span>
-        </div>
-      </div>
-
-      <nav class="sidebar-nav">
-        <button id="btn-dashboard" class="nav-item-btn active" onclick="UI.showTab('dashboard')">
-          <span class="icon">📊</span> Dashboard
-        </button>
-        <button id="btn-trayectos" class="nav-item-btn" onclick="UI.showTab('trayectos')">
-          <span class="icon">📚</span> Trayectos Formativos
-        </button>
-        <button id="btn-nuevo-trayecto" class="nav-item-btn admin-only" onclick="UI.showTab('nuevo-trayecto')">
-          <span class="icon">➕</span> Cargar Trayecto
-        </button>
-        <button id="btn-certificados" class="nav-item-btn admin-only" onclick="UI.showTab('certificados')">
-          <span class="icon">📜</span> Emitir Certificados
-        </button>
-        <button id="btn-usuarios" class="nav-item-btn admin-only" onclick="UI.showTab('usuarios')">
-          <span class="icon">👥</span> Usuarios y Roles
-        </button>
-      </nav>
-
-      <button class="btn btn-danger" style="margin-top: auto; width: 100%;" onclick="Auth.cerrarSesion()">
-        🚪 Cerrar Sesión
-      </button>
-    </aside>
-
-    <!-- WRAPPER DERECHO: HEADER + CONTENIDO -->
-    <div class="main-wrapper">
-      
-      <!-- HEADER PROFESIONAL -->
-      <header class="admin-header">
-        <div class="admin-header-title">
-          <h2 id="current-section-title">Dashboard</h2>
-        </div>
-        <div class="admin-user-profile">
-          <div class="user-badge">
-            <span class="username" id="display-username">Administrador</span>
-            <span class="role" id="display-role">ADMIN</span>
-          </div>
-        </div>
-      </header>
-
-      <!-- CONTENIDO PRINCIPAL -->
-      <main class="main-content-body">
-
-        <!-- VISTA 1: DASHBOARD DE RESUMEN -->
-        <section id="sec-dashboard" class="section-tab active">
-          <div class="stats-grid">
-            <div class="stat-card">
-              <div class="stat-icon">🎓</div>
-              <div class="stat-info">
-                <h4>Trayectos Activos</h4>
-                <p class="stat-value" id="stat-count-trayectos">--</p>
-              </div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-icon">📖</div>
-              <div class="stat-info">
-                <h4>Módulos Totales</h4>
-                <p class="stat-value" id="stat-count-modulos">--</p>
-              </div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-icon">📜</div>
-              <div class="stat-info">
-                <h4>Certificados</h4>
-                <p class="stat-value">Emitir</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="card-panel">
-            <div class="card-panel-header">
-              <h3>Acciones Rápidas</h3>
-            </div>
-            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-              <button type="button" class="btn btn-primary" onclick="if(window.UsuariosAdmin && UsuariosAdmin.abrirModal) { UsuariosAdmin.abrirModal(); } else if(window.UI && UI.abrirModalNuevoUsuario) { UI.abrirModalNuevoUsuario(); }">
-                + Crear Nuevo Usuario
+        return `
+          <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <td style="padding: 0.85rem 0.75rem;">
+              <strong style="color: #f8fafc; font-size: 0.95rem;">${nombreCompleto}</strong><br>
+              <span style="font-size: 0.8rem; color: #94a3b8;">Usuario / DNI: ${usrIdentificador}</span>
+            </td>
+            <td style="padding: 0.85rem 0.75rem; font-size: 0.85rem; color: #cbd5e1;">
+              ${u.email || 'Sin correo'}
+            </td>
+            <td style="padding: 0.85rem 0.75rem;">
+              <select class="form-control" style="padding: 0.3rem 0.5rem; font-size: 0.85rem; width: auto;" onchange="UsuariosAdmin.cambiarRol('${usrIdentificador}', this.value)">
+                <option value="estudiante" ${u.rol === 'estudiante' ? 'selected' : ''}>Estudiante</option>
+                <option value="docente" ${u.rol === 'docente' ? 'selected' : ''}>Docente</option>
+                <option value="admin" ${u.rol === 'admin' ? 'selected' : ''}>Administrador</option>
+              </select>
+            </td>
+            <td style="padding: 0.85rem 0.75rem;">
+              <span class="badge" style="background: ${esActivo ? 'rgba(34, 197, 94, 0.15)' : 'rgba(234, 179, 8, 0.15)'}; color: ${esActivo ? '#4ade80' : '#facc15'}; border: 1px solid ${esActivo ? 'rgba(34, 197, 94, 0.3)' : 'rgba(234, 179, 8, 0.3)'}; padding: 0.25rem 0.6rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600;">
+                ${estadoRaw}
+              </span>
+            </td>
+            <td style="padding: 0.85rem 0.75rem; text-align: right; display: flex; gap: 0.4rem; justify-content: flex-end; align-items: center;">
+              ${!esActivo ? `
+                <button class="btn btn-gold" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;" onclick="UsuariosAdmin.cambiarEstado('${usrIdentificador}', 'ACTIVO')">
+                  ✓ Aprobar
+                </button>
+              ` : `
+                <button class="btn btn-danger" style="padding: 0.35rem 0.75rem; font-size: 0.8rem; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171;" onclick="UsuariosAdmin.cambiarEstado('${usrIdentificador}', 'PENDIENTE')">
+                  🔒 Inhabilitar
+                </button>
+              `}
+              <button title="Eliminar definitivamente" style="padding: 0.35rem 0.6rem; font-size: 0.8rem; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #f87171; border-radius: 6px; cursor: pointer;" onclick="UsuariosAdmin.eliminarUsuario('${usrIdentificador}', '${nombreCompleto.replace(/'/g, "\\'")}')">
+                🗑️
               </button>
-              <button class="btn btn-secondary" onclick="UI.showTab('trayectos')">Gestionar Trayectos</button>
-              <button class="btn btn-secondary" onclick="UI.showTab('certificados')">Emitir Certificado PDF</button>
-            </div>
-          </div>
-        </section>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    } catch (err) {
+      console.error('Error al cargar usuarios:', err);
+    }
+  },
 
-        <!-- VISTA 2: LISTA DE TRAYECTOS DENTRO DEL DASHBOARD -->
-        <section id="trayectos" class="section-tab" style="display: none;">
-          <div class="card-panel-header">
-            <div>
-              <h2>Trayectos Formativos</h2>
-              <p style="font-size: 0.85rem; color: #94a3b8;">Gestión de la oferta académica e itinerarios de formación</p>
-            </div>
-            <button class="btn btn-primary admin-only" onclick="UI.showTab('nuevo-trayecto')">+ Nuevo Trayecto</button>
-          </div>
-          <!-- Contenedor único para el panel admin -->
-          <div id="lista-trayectos-admin"></div>
-        </section>
-        
-        <!-- VISTA 3: CARGA DE TRAYECTO (FORMULARIO) -->
-        <section id="nuevo-trayecto" class="section-tab admin-only" style="display: none;">
-          <div class="card-panel">
-            <div class="card-panel-header">
-              <h3>Nuevo Trayecto Formativo</h3>
-            </div>
-            <form id="form-trayecto" onsubmit="event.preventDefault(); Trayectos.guardarTrayecto();">
-              
-              <div class="form-grid-2">
-                <div class="form-group">
-                  <label for="trayecto-nombre">Nombre del Trayecto</label>
-                  <input type="text" id="trayecto-nombre" class="form-control" placeholder="Ej: Programación Web" required>
-                </div>
-                <div class="form-group">
-                  <label for="trayecto-sector">Sector Profesional</label>
-                  <input type="text" id="trayecto-sector" class="form-control" placeholder="Ej: Informática y Comunicación">
-                </div>
-              </div>
+  async cargarTrayectosEnModal() {
+    const contenedor = document.getElementById('usr-alta-trayectos');
+    if (!contenedor) return;
 
-              <!-- CAMPOS PARA CERTIFICACIÓN Y RESOLUCIÓN -->
-              <div class="form-grid-2" style="margin-top: 1rem;">
-                <div class="form-group">
-                  <label for="trayecto-certificacion">Certificación Oficial</label>
-                  <input type="text" id="trayecto-certificacion" class="form-control" placeholder="Ej: Programador Web">
-                </div>
-                <div class="form-group">
-                  <label for="trayecto-resolucion">Resolución N° / Disposición</label>
-                  <input type="text" id="trayecto-resolucion" class="form-control" placeholder="Ej: Res. N° 1234/20">
-                </div>
-              </div>
+    contenedor.innerHTML = '<span style="color: #94a3b8; font-size: 0.85rem;">Cargando trayectos...</span>';
 
-              <div class="form-group" style="margin-top: 1rem;">
-                <label for="trayecto-descripcion">Descripción</label>
-                <textarea id="trayecto-descripcion" class="form-control" rows="3" placeholder="Resumen del trayecto..."></textarea>
-              </div>
+    try {
+      const { data: trayectos, error } = await supabase
+        .from('trayectos')
+        .select('*');
 
-              <div class="form-group" style="margin-top: 1rem;">
-                <label for="trayecto-requisitos">Requisitos de Inscripción</label>
-                <textarea id="trayecto-requisitos" class="form-control" rows="2" placeholder="Ej: DNI, mayor de 16 años..."></textarea>
-              </div>
+      if (error) throw error;
 
-              <hr style="margin: 1.5rem 0; border-color: rgba(255,255,255,0.08);">
-              
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                <h4>Módulos Asociados</h4>
-                <button type="button" class="btn btn-secondary" onclick="UI.agregarFilaModulo()">+ Agregar Módulo</button>
-              </div>
+      if (!trayectos || trayectos.length === 0) {
+        contenedor.innerHTML = '<span style="color: #94a3b8; font-size: 0.85rem;">No hay trayectos disponibles aún.</span>';
+        return;
+      }
 
-              <div id="contenedor-modulos">
-                <div class="modulo-item-card">
-                  <div class="form-grid-2">
-                    <input type="text" class="mod-nombre form-control" placeholder="Nombre del Módulo">
-                    <input type="text" class="mod-codigo form-control" placeholder="Código (Ej: GH 0050)">
-                  </div>
-                  <div class="form-grid-2" style="margin-top: 0.75rem;">
-                    <div>
-                      <label style="font-size: 0.75rem;">Fecha Inicio</label>
-                      <input type="date" class="mod-inicio form-control">
-                    </div>
-                    <div>
-                      <label style="font-size: 0.75rem;">Fecha Fin</label>
-                      <input type="date" class="mod-fin form-control">
-                    </div>
-                  </div>
-                </div>
-              </div>
+      contenedor.innerHTML = trayectos.map(t => `
+        <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: #cbd5e1; cursor: pointer; margin-bottom: 0.4rem;">
+          <input type="checkbox" name="trayectos_seleccionados" value="${t.id}">
+          <span>${t.nombre}</span>
+        </label>
+      `).join('');
+    } catch (err) {
+      console.error('Error al cargar trayectos:', err);
+      contenedor.innerHTML = '<span style="color: #f87171; font-size: 0.85rem;">Error al obtener trayectos.</span>';
+    }
+  },
 
-              <button type="submit" class="btn btn-primary" style="margin-top: 1.5rem; width: 100%;">Guardar Trayecto Completo</button>
-            </form>
-          </div>
-        </section>
+  async crearUsuarioManual(e) {
+    if (e && typeof e.preventDefault === 'function') e.preventDefault();
 
-        <!-- VISTA 4: CERTIFICADOS POR LISTADO -->
-        <section id="certificados" class="section-tab admin-only" style="display: none;">
-          <div class="card-panel">
-            <div class="card-panel-header">
-              <div>
-                <h3>Emisión de Certificados de Egresados</h3>
-                <p style="font-size: 0.85rem; color: #94a3b8;">Estudiantes aptos para certificación (Calificación &ge; 70%)</p>
-              </div>
-            </div>
+    if (this.estaProcesando) return;
+    this.estaProcesando = true;
 
-            <!-- TABLA DE ESTUDIANTES PARA ASIGNACIÓN DE N° DE EGRESADO -->
-            <div style="overflow-x: auto; margin-top: 1rem;">
-              <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
-                <thead>
-                  <tr style="border-bottom: 2px solid rgba(255,255,255,0.1); color: #94a3b8;">
-                    <th style="padding: 0.75rem;">Estudiante / DNI</th>
-                    <th style="padding: 0.75rem;">Trayecto Formativo</th>
-                    <th style="padding: 0.75rem;">Nota Final</th>
-                    <th style="padding: 0.75rem;">Estado</th>
-                    <th style="padding: 0.75rem;">N° de Egresado</th>
-                    <th style="padding: 0.75rem; text-align: right;">Acción</th>
-                  </tr>
-                </thead>
-                <tbody id="tabla-nomina-certificados">
-                  <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                    <td style="padding: 0.75rem;">
-                      <strong>NICOLAS DINOVA</strong><br>
-                      <span style="font-size: 0.78rem; color: #94a3b8;">DNI: 92828993</span>
-                    </td>
-                    <td style="padding: 0.75rem;">Programación Web</td>
-                    <td style="padding: 0.75rem;"><span style="color: #4ade80; font-weight: 700;">85%</span></td>
-                    <td style="padding: 0.75rem;"><span class="badge" style="background: rgba(34, 197, 94, 0.2); color: #4ade80; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem;">APROBADO</span></td>
-                    <td style="padding: 0.75rem;">
-                      <input type="text" id="egresado-92828993" class="form-control" placeholder="Ej: EG-2026-001" value="EG-2026-001" style="width: 140px; padding: 0.4rem;">
-                    </td>
-                    <td style="padding: 0.75rem; text-align: right;">
-                      <button class="btn btn-gold" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" 
-                        onclick="emitirCertificadoPDF({
-                          estudianteNombre: 'NICOLAS DINOVA',
-                          estudianteDNI: '92828993',
-                          trayectoNombre: 'Programación Web',
-                          horas: '350',
-                          numEgresado: document.getElementById('egresado-92828993').value
-                        })">
-                        📜 Emitir PDF
-                      </button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </section>
+    const apellido = document.getElementById('usr-alta-apellido')?.value.trim().toUpperCase();
+    const nombre = document.getElementById('usr-alta-nombre')?.value.trim().toUpperCase();
+    const dniVal = document.getElementById('usr-alta-dni')?.value.trim();
+    const email = document.getElementById('usr-alta-email')?.value.trim().toUpperCase();
+    const rol = document.getElementById('usr-alta-rol')?.value || 'estudiante';
 
-        <!-- VISTA: GESTIÓN DE USUARIOS -->
-        <section id="usuarios" class="section-tab admin-only" style="display: none;">
-          <div class="card-panel">
-            <div class="card-panel-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-              <div>
-                <h3 style="margin: 0; font-size: 1.25rem;">Gestión de Usuarios y Solicitudes</h3>
-                <p style="margin: 0.25rem 0 0 0; font-size: 0.85rem; color: #94a3b8;">
-                  Aprobación de registros pendientes, alta manual y asignación de roles.
-                </p>
-              </div>
-              <button type="button" class="btn btn-primary" onclick="if(window.UsuariosAdmin && UsuariosAdmin.abrirModal) { UsuariosAdmin.abrirModal(); } else if(window.UI && UI.abrirModalNuevoUsuario) { UI.abrirModalNuevoUsuario(); }">
-                + Crear Nuevo Usuario
-              </button>
-            </div>
+    if (!nombre || !apellido || !dniVal) {
+      alert('Por favor completá Nombre, Apellido y DNI.');
+      this.estaProcesando = false;
+      return;
+    }
 
-            <div style="overflow-x: auto; margin-top: 1.25rem;">
-              <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
-                <thead>
-                  <tr style="border-bottom: 2px solid rgba(255,255,255,0.1); color: #94a3b8;">
-                    <th style="padding: 0.75rem;">Usuario / DNI</th>
-                    <th style="padding: 0.75rem;">Contacto / Ubicación</th>
-                    <th style="padding: 0.75rem;">Rol</th>
-                    <th style="padding: 0.75rem;">Estado</th>
-                    <th style="padding: 0.75rem; text-align: right;">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody id="tabla-usuarios">
-                  <!-- Carga dinámica desde js/usuarios.js -->
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </section>
+    try {
+      const passHash = this.hashPassword(dniVal);
 
-      </main>
-    </div>
-  </div>
+      const nuevoUsuario = {
+        nombre: nombre,
+        apellido: apellido,
+        usuario: dniVal,
+        pass: passHash,
+        rol: rol,
+        estado: 'ACTIVO'
+      };
 
-  <!-- MODAL PARA ALTA MANUAL DE USUARIO -->
-  <div id="modal-alta-usuario" class="modal-overlay" style="display: none;">
-    <div class="card-panel" style="max-width: 650px; width: 100%; max-height: 90vh; overflow-y: auto; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 1.5rem;">
-      <div class="card-panel-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-        <h3 style="margin: 0;">Crear Nuevo Usuario</h3>
-        <button type="button" class="btn btn-outline" onclick="if(window.UsuariosAdmin && UsuariosAdmin.cerrarModal) { UsuariosAdmin.cerrarModal(); } else { document.getElementById('modal-alta-usuario').classList.remove('open'); document.getElementById('modal-alta-usuario').style.display='none'; }" style="padding: 0.2rem 0.6rem;">✕</button>
-      </div>
+      if (email) nuevoUsuario.email = email;
 
-      <form id="form-alta-usuario">
-  <div class="form-grid-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-    <div class="form-group">
-      <label for="usr-alta-apellido">Apellido *</label>
-      <input type="text" id="usr-alta-apellido" class="form-control" required>
-    </div>
-    <div class="form-group">
-      <label for="usr-alta-nombre">Nombre *</label>
-      <input type="text" id="usr-alta-nombre" class="form-control" required>
-    </div>
-  </div>
-        <div class="form-grid-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.75rem;">
-          <div class="form-group">
-            <label for="usr-alta-dni">DNI / Documento *</label>
-            <input type="text" id="usr-alta-dni" class="form-control" required placeholder="Sin puntos">
-          </div>
-          <div class="form-group">
-            <label for="usr-alta-email">Email</label>
-            <input type="email" id="usr-alta-email" class="form-control" placeholder="correo@ejemplo.com">
-          </div>
-        </div>
+      const { data: usrCreado, error: errUsr } = await supabase
+        .from('usuarios')
+        .insert([nuevoUsuario])
+        .select();
 
-        <div class="form-grid-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.75rem;">
-          <div class="form-group">
-            <label for="usr-alta-rol">Rol asignado</label>
-            <select id="usr-alta-rol" class="form-control custom-select">
-              <option value="estudiante">Estudiante</option>
-              <option value="docente">Docente</option>
-              <option value="admin">Administrador</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="usr-alta-fecha">Fecha de Nacimiento</label>
-            <input type="date" id="usr-alta-fecha" class="form-control">
-          </div>
-        </div>
+      if (errUsr) {
+        alert('Error al crear usuario: ' + errUsr.message);
+        this.estaProcesando = false;
+        return;
+      }
 
-        <div class="form-grid-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.75rem;">
-          <div class="form-group">
-            <label for="usr-alta-domicilio">Domicilio</label>
-            <input type="text" id="usr-alta-domicilio" class="form-control">
-          </div>
-          <div class="form-group">
-            <label for="usr-alta-ciudad">Ciudad</label>
-            <input type="text" id="usr-alta-ciudad" class="form-control" value="Luján">
-          </div>
-        </div>
+      const checkboxes = document.querySelectorAll('input[name="trayectos_seleccionados"]:checked');
+      const trayectoIds = Array.from(checkboxes).map(cb => cb.value);
 
-        <div class="form-grid-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.75rem;">
-          <div class="form-group">
-            <label for="usr-alta-provincia">Provincia</label>
-            <input type="text" id="usr-alta-provincia" class="form-control" value="Buenos Aires">
-          </div>
-          <div class="form-group">
-            <label for="usr-alta-nacionalidad">Nacionalidad</label>
-            <input type="text" id="usr-alta-nacionalidad" class="form-control" value="Argentina">
-          </div>
-        </div>
+      if (trayectoIds.length > 0) {
+        const inscripciones = trayectoIds.map(tId => ({
+          estudiante_user: String(dniVal),
+          trayecto_id: Number(tId)
+        }));
 
-        <div style="margin-top: 1rem;">
-          <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem;">Inscribir en Trayectos:</label>
-          <div id="usr-alta-trayectos" style="background: rgba(0,0,0,0.2); padding: 0.75rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); max-height: 120px; overflow-y: auto;">
-            <!-- Carga dinámica de trayectos -->
-          </div>
-        </div>
+        const { error: errInsc } = await supabase
+          .from('inscripciones')
+          .insert(inscripciones);
 
-        <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem;">
-          <button type="button" class="btn btn-outline" onclick="if(window.UsuariosAdmin && UsuariosAdmin.cerrarModal) { UsuariosAdmin.cerrarModal(); } else { document.getElementById('modal-alta-usuario').classList.remove('open'); document.getElementById('modal-alta-usuario').style.display='none'; }">Cancelar</button>
-          <button type="submit" class="btn btn-primary">Guardar Usuario</button>
-        </div>
-      </form>
-    </div>
-  </div>
+        if (errInsc) {
+          alert('⚠️ Usuario creado pero falló la inscripción: ' + errInsc.message);
+          this.estaProcesando = false;
+          return;
+        }
+      }
 
-  <!-- Librerías Externas -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+      alert(`✅ Usuario ${nombre} ${apellido} guardado correctamente.`);
+      this.cerrarModal();
+      this.cargarUsuarios();
 
-<!-- Lógica Interna -->
-  <script src="js/supabase-config.js" defer></script>
-  <script src="js/pdf-lab.js" defer></script>
-  <script src="js/ui.js?v=30000" defer></script>
-  <script src="js/auth.js?v=30000" defer></script>
-  <script src="js/trayectos.js?v=30000" defer></script>
-  <script src="js/usuarios.js?v=30000" defer></script>
-</body>
-</html>
+    } catch (err) {
+      console.error('Error general:', err);
+      alert('Error inesperado: ' + (err.message || 'Consulte la consola.'));
+    } finally {
+      this.estaProcesando = false;
+    }
+  },
+
+  async cambiarEstado(identificador, nuevoEstado) {
+    try {
+      const { error } = await supabase
+        .from('usuarios')
+        .update({ estado: nuevoEstado })
+        .eq('usuario', identificador);
+
+      if (error) throw error;
+      this.cargarUsuarios();
+    } catch (err) {
+      console.error('Error al actualizar estado:', err);
+    }
+  },
+
+  async cambiarRol(identificador, nuevoRol) {
+    try {
+      const { error } = await supabase
+        .from('usuarios')
+        .update({ rol: nuevoRol })
+        .eq('usuario', identificador);
+
+      if (error) throw error;
+    } catch (err) {
+      console.error('Error al actualizar rol:', err);
+    }
+  },
+
+  async eliminarUsuario(identificador, nombreMostrar) {
+    const confirmar = confirm(`⚠️ ¿Estás seguro de que querés eliminar definitivamente a "${nombreMostrar}"?\nEsta acción no se puede deshacer.`);
+    if (!confirmar) return;
+
+    try {
+      const idStr = String(identificador);
+
+      // 1. Limpiar inscripciones
+      await supabase
+        .from('inscripciones')
+        .delete()
+        .eq('estudiante_user', idStr);
+
+      // 2. Comprobar si es un UUID válido
+      const esUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idStr);
+
+      // 3. Eliminar usuario limpiamente por el campo correcto
+      let query = supabase.from('usuarios').delete();
+      if (esUUID) {
+        query = query.eq('id', idStr);
+      } else {
+        query = query.eq('usuario', idStr);
+      }
+
+      const { error } = await query;
+
+      if (error) throw error;
+
+      alert(`🗑 Usuario "${nombreMostrar}" eliminado correctamente.`);
+      this.cargarUsuarios();
+    } catch (err) {
+      console.error('Error al eliminar usuario:', err);
+      alert('Error al eliminar usuario: ' + (err.message || 'Ocurrió un error inesperado.'));
+    }
+  }
+}; // <-- Cierre correcto del objeto UsuariosAdmin
+
+// Escuchador global
+document.addEventListener('submit', function(e) {
+  if (e.target && e.target.id === 'form-alta-usuario') {
+    e.preventDefault();
+    UsuariosAdmin.crearUsuarioManual(e);
+  }
+});
+
+UsuariosAdmin.cargarTrayectosModal = UsuariosAdmin.cargarTrayectosEnModal;
+UsuariosAdmin.cargarTrayectos = UsuariosAdmin.cargarTrayectosEnModal;
+
+window.UsuariosAdmin = UsuariosAdmin;
+window.Usuarios = UsuariosAdmin;
+window.crearUsuarioManual = (e) => UsuariosAdmin.crearUsuarioManual(e);
+window.cerrarModal = () => UsuariosAdmin.cerrarModal();
+window.abrirModal = () => UsuariosAdmin.abrirModal();
