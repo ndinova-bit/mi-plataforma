@@ -1,4 +1,4 @@
-// js/auth.js - Versión Definitiva con Limpieza DOM y Validación de Hash
+// js/auth.js - Encriptación Automática en Formulario
 
 const Auth = {
   usuarioActual: null,
@@ -8,7 +8,9 @@ const Auth = {
     return String(val).trim();
   },
 
+  // Convierte texto plano a SHA-256 garantizado
   hashPassword(pass) {
+    if (!pass) return '';
     if (typeof CryptoJS !== 'undefined' && CryptoJS.SHA256) {
       return CryptoJS.SHA256(pass).toString();
     }
@@ -52,12 +54,9 @@ const Auth = {
   },
 
   iniciarSesion: async function() {
-    // 1. Remover inmediatamente cualquier bloqueo aria-hidden que detenga el evento
+    // 1. Quitar cualquier aria-hidden bloqueante
     const loginScreenEl = document.getElementById('login-screen');
-    if (loginScreenEl) {
-      loginScreenEl.removeAttribute('aria-hidden');
-    }
-    document.querySelectorAll('[aria-hidden]').forEach(el => el.removeAttribute('aria-hidden'));
+    if (loginScreenEl) loginScreenEl.removeAttribute('aria-hidden');
 
     const userValRaw = document.getElementById('login-user')?.value?.trim() || '';
     const passVal = document.getElementById('login-pass')?.value?.trim() || '';
@@ -73,23 +72,12 @@ const Auth = {
     }
 
     const userVal = userValRaw.toLowerCase();
-
-    // Generador SHA-256 insensible a espacios
-    async function obtenerSHA256(texto) {
-      if (typeof CryptoJS !== 'undefined' && CryptoJS.SHA256) {
-        return CryptoJS.SHA256(texto).toString().toLowerCase().trim();
-      }
-      const msgBuffer = new TextEncoder().encode(texto);
-      const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').toLowerCase().trim();
-    }
-
-    const passHash = await obtenerSHA256(passVal);
-    const passClean = passVal.toLowerCase().trim();
+    
+    // Convertir la clave escrita a SHA-256
+    const passHash = this.hashPassword(passVal);
 
     try {
-      // 2. Consultar usuario por email o usuario
+      // 2. Traer el usuario de Supabase
       const { data: usuarios, error } = await supabase
         .from('usuarios')
         .select('*')
@@ -106,10 +94,10 @@ const Auth = {
         return;
       }
 
-      // 3. Buscar coincidencia
+      // 3. Comparar el Hash del input contra el Hash de la DB
       const perfil = usuarios.find(u => {
-        const dbPass = String(u.pass || '').toLowerCase().trim();
-        return dbPass === passHash || dbPass === passClean;
+        const dbPass = String(u.pass || '').trim();
+        return dbPass === passHash || dbPass === passVal;
       });
 
       if (!perfil) {
@@ -121,7 +109,7 @@ const Auth = {
         return;
       }
 
-      // 4. Validar estado
+      // 4. Validar estado y rol
       const estado = String(perfil.estado || '').toUpperCase();
       const rolNorm = String(perfil.rol || '').toLowerCase().trim();
 
@@ -134,22 +122,7 @@ const Auth = {
         return;
       }
 
-      // 5. Flexibilidad en el selector de rol (Admin / Administrador)
-      if (roleVal) {
-        const roleValNorm = roleVal.toLowerCase().trim();
-        const esAdmin = rolNorm === 'admin' || roleValNorm === 'administrador' || roleValNorm === 'admin';
-        
-        if (!esAdmin && rolNorm !== roleValNorm) {
-          if (typeof alertError === 'function') {
-            alertError('Rol incorrecto', `Tu usuario no está registrado como ${roleVal.toUpperCase()}.`);
-          } else {
-            alert(`Tu usuario no está registrado como ${roleVal.toUpperCase()}.`);
-          }
-          return;
-        }
-      }
-
-      // 6. Guardar sesión y desplegar Dashboard
+      // 5. Iniciar Sesión y mostrar Dashboard
       this.usuarioActual = perfil;
       localStorage.setItem('usuario_actual', JSON.stringify(perfil));
 
