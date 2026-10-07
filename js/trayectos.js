@@ -3,6 +3,7 @@
    Archivo: js/trayectos.js
    ========================================================================== */
 
+
 const Trayectos = {
   listaTrayectos: [],
 
