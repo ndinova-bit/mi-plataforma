@@ -1,4 +1,4 @@
-// js/auth.js - Estructura segura sin errores de sintaxis
+// js/auth.js - Estructura corregida sin errores de sintaxis
 
 const Auth = {
   usuarioActual: null,
