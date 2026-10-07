@@ -1,4 +1,4 @@
-// js/auth.js - Versión Robusta con Doble Validación de Hash
+// js/auth.js - Versión Definitiva con Limpieza DOM y Validación de Hash
 
 const Auth = {
   usuarioActual: null,
@@ -51,7 +51,14 @@ const Auth = {
     console.log("Solicitando registro...");
   },
 
-iniciarSesion: async function() {
+  iniciarSesion: async function() {
+    // 1. Remover inmediatamente cualquier bloqueo aria-hidden que detenga el evento
+    const loginScreenEl = document.getElementById('login-screen');
+    if (loginScreenEl) {
+      loginScreenEl.removeAttribute('aria-hidden');
+    }
+    document.querySelectorAll('[aria-hidden]').forEach(el => el.removeAttribute('aria-hidden'));
+
     const userValRaw = document.getElementById('login-user')?.value?.trim() || '';
     const passVal = document.getElementById('login-pass')?.value?.trim() || '';
     const roleVal = document.getElementById('role-select')?.value || '';
@@ -67,22 +74,22 @@ iniciarSesion: async function() {
 
     const userVal = userValRaw.toLowerCase();
 
-    // Generador SHA-256 infalible
+    // Generador SHA-256 insensible a espacios
     async function obtenerSHA256(texto) {
       if (typeof CryptoJS !== 'undefined' && CryptoJS.SHA256) {
-        return CryptoJS.SHA256(texto).toString();
+        return CryptoJS.SHA256(texto).toString().toLowerCase().trim();
       }
       const msgBuffer = new TextEncoder().encode(texto);
       const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
       const hashArray = Array.from(new Uint8Array(hashBuffer));
-      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').toLowerCase().trim();
     }
 
-    // Convertir la contraseña ingresada a SHA-256
     const passHash = await obtenerSHA256(passVal);
+    const passClean = passVal.toLowerCase().trim();
 
     try {
-      // 1. Consultar usuario por email o usuario
+      // 2. Consultar usuario por email o usuario
       const { data: usuarios, error } = await supabase
         .from('usuarios')
         .select('*')
@@ -99,8 +106,11 @@ iniciarSesion: async function() {
         return;
       }
 
-      // 2. Buscar coincidencia (compara contra el Hash generado o contra Texto Plano como backup)
-      const perfil = usuarios.find(u => u.pass === passHash || u.pass === passVal);
+      // 3. Buscar coincidencia
+      const perfil = usuarios.find(u => {
+        const dbPass = String(u.pass || '').toLowerCase().trim();
+        return dbPass === passHash || dbPass === passClean;
+      });
 
       if (!perfil) {
         if (typeof alertError === 'function') {
@@ -111,7 +121,7 @@ iniciarSesion: async function() {
         return;
       }
 
-      // 3. Validar estado
+      // 4. Validar estado
       const estado = String(perfil.estado || '').toUpperCase();
       const rolNorm = String(perfil.rol || '').toLowerCase().trim();
 
@@ -124,7 +134,7 @@ iniciarSesion: async function() {
         return;
       }
 
-      // 4. Flexibilidad en el selector de rol (Admin / Administrador)
+      // 5. Flexibilidad en el selector de rol (Admin / Administrador)
       if (roleVal) {
         const roleValNorm = roleVal.toLowerCase().trim();
         const esAdmin = rolNorm === 'admin' || roleValNorm === 'administrador' || roleValNorm === 'admin';
@@ -139,7 +149,7 @@ iniciarSesion: async function() {
         }
       }
 
-      // 5. Guardar sesión y desplegar Dashboard
+      // 6. Guardar sesión y desplegar Dashboard
       this.usuarioActual = perfil;
       localStorage.setItem('usuario_actual', JSON.stringify(perfil));
 
