@@ -1,6 +1,7 @@
 const UsuariosAdmin = {
   estaProcesando: false,
 
+  
   // Función auxiliar para encriptar claves
   hashPassword(pass) {
     if (!pass) return '';
