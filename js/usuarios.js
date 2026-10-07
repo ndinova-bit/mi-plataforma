@@ -29,8 +29,8 @@ const UsuariosAdmin = {
     this.estaProcesando = false;
   },
 
-  async cargarUsuarios() {
-    const tbody = document.getElementById('tabla-usuarios');
+  async cargar() {
+    const tbody = document.getElementById('tabla-');
     if (!tbody) return;
 
     tbody.innerHTML = `
