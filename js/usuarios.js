@@ -29,8 +29,8 @@ const UsuariosAdmin = {
     this.estaProcesando = false;
   },
 
-  async cargar() {
-    const tbody = document.getElementById('tabla-');
+  async cargarUsuarios() {
+    const tbody = document.getElementById('tabla-usuarios');
     if (!tbody) return;
 
     tbody.innerHTML = `
@@ -159,14 +159,13 @@ const UsuariosAdmin = {
     }
 
     try {
-      // Aplicamos el hash SHA-256 sobre el DNI usado como clave inicial
       const passHash = this.hashPassword(dniVal);
 
       const nuevoUsuario = {
         nombre: nombre,
         apellido: apellido,
         usuario: dniVal,
-        pass: passHash, // Se guarda encriptada
+        pass: passHash,
         rol: rol,
         estado: 'ACTIVO'
       };
@@ -250,7 +249,7 @@ const UsuariosAdmin = {
     try {
       const idStr = String(identificador);
 
-      // 1. Limpiar inscripciones vinculadas
+      // 1. Limpiar inscripciones
       await supabase
         .from('inscripciones')
         .delete()
@@ -278,9 +277,9 @@ const UsuariosAdmin = {
       alert('Error al eliminar usuario: ' + (err.message || 'Ocurrió un error inesperado.'));
     }
   }
-};
+}; // <-- Cierre correcto del objeto UsuariosAdmin
 
-// Escuchador global del submit para conectar con la vista HTML existente
+// Escuchador global
 document.addEventListener('submit', function(e) {
   if (e.target && e.target.id === 'form-alta-usuario') {
     e.preventDefault();
