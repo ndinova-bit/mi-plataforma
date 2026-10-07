@@ -1,4 +1,4 @@
-// js/auth.js - Estructura corregida sin errores de sintaxis
+// js/auth.js - Versión definitiva corregida
 
 const Auth = {
   usuarioActual: null,
@@ -20,11 +20,6 @@ const Auth = {
     if (perfilRaw) {
       try {
         let perfil = JSON.parse(perfilRaw);
-        if (perfil) {
-          if (perfil.usuario) perfil.usuario = this.limpiarIdentificador(perfil.usuario);
-          localStorage.setItem('usuario_actual', JSON.stringify(perfil));
-        }
-
         this.usuarioActual = perfil;
 
         if (typeof notify === 'function') {
@@ -70,10 +65,12 @@ const Auth = {
       return;
     }
 
-    const userVal = userValRaw.toLowerCase().trim();
+    // Mantenemos el email intacto en minúsculas
+    const userVal = userValRaw.toLowerCase();
     const passHash = this.hashPassword(passVal);
 
     try {
+      // Buscar usuario por email o usuario y por el Hash de contraseña
       const { data: usuarios, error } = await supabase
         .from('usuarios')
         .select('id, nombre, apellido, usuario, email, rol, estado')
@@ -93,8 +90,7 @@ const Auth = {
 
       let perfil = usuarios[0];
 
-      if (perfil.usuario) perfil.usuario = this.limpiarIdentificador(perfil.usuario);
-
+      // Validar estado
       const estado = String(perfil.estado || '').toUpperCase();
       const rolNorm = String(perfil.rol || '').toLowerCase().trim();
 
@@ -107,20 +103,33 @@ const Auth = {
         return;
       }
 
-      if (roleVal && rolNorm !== roleVal.toLowerCase()) {
-        if (typeof alertError === 'function') {
-          alertError('Rol incorrecto', `Tu usuario no está registrado como ${roleVal.toUpperCase()}.`);
-        } else {
-          alert(`Tu usuario no está registrado como ${roleVal.toUpperCase()}.`);
+      // Validar rol de forma flexible (administrador / admin)
+      if (roleVal) {
+        const roleValNorm = roleVal.toLowerCase().trim();
+        const esAdmin = rolNorm === 'admin' || roleValNorm === 'administrador' || roleValNorm === 'admin';
+        
+        if (!esAdmin && rolNorm !== roleValNorm) {
+          if (typeof alertError === 'function') {
+            alertError('Rol incorrecto', `Tu usuario no está registrado como ${roleVal.toUpperCase()}.`);
+          } else {
+            alert(`Tu usuario no está registrado como ${roleVal.toUpperCase()}.`);
+          }
+          return;
         }
-        return;
       }
 
+      // Guardar sesión
       this.usuarioActual = perfil;
       localStorage.setItem('usuario_actual', JSON.stringify(perfil));
 
       if (typeof notify === 'function') {
         notify('success', `¡Bienvenido/a ${perfil.nombre || perfil.usuario}!`);
+      }
+
+      // Ocultar pantalla de login y mostrar dashboard
+      const loginScreen = document.getElementById('login-screen');
+      if (loginScreen) {
+        loginScreen.style.setProperty('display', 'none', 'important');
       }
 
       if (typeof UI !== 'undefined' && typeof UI.mostrarDashboard === 'function') {
