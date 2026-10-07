@@ -70,7 +70,7 @@ const Auth = {
       return;
     }
 
-    const userVal = this.limpiarIdentificador(userValRaw);
+    const userVal = userValRaw.toLowerCase().trim();
     const passHash = this.hashPassword(passVal);
 
     try {
