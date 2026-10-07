@@ -1,4 +1,4 @@
-// js/auth.js - Versión definitiva corregida
+// js/auth.js - Versión final limpia
 
 const Auth = {
   usuarioActual: null,
@@ -65,12 +65,11 @@ const Auth = {
       return;
     }
 
-    // Mantenemos el email intacto en minúsculas
+    // Conservar el formato exacto del email/usuario en minúsculas
     const userVal = userValRaw.toLowerCase();
     const passHash = this.hashPassword(passVal);
 
     try {
-      // Buscar usuario por email o usuario y por el Hash de contraseña
       const { data: usuarios, error } = await supabase
         .from('usuarios')
         .select('id, nombre, apellido, usuario, email, rol, estado')
@@ -103,7 +102,7 @@ const Auth = {
         return;
       }
 
-      // Validar rol de forma flexible (administrador / admin)
+      // Flexibilidad en el rol (admin / administrador)
       if (roleVal) {
         const roleValNorm = roleVal.toLowerCase().trim();
         const esAdmin = rolNorm === 'admin' || roleValNorm === 'administrador' || roleValNorm === 'admin';
@@ -126,7 +125,7 @@ const Auth = {
         notify('success', `¡Bienvenido/a ${perfil.nombre || perfil.usuario}!`);
       }
 
-      // Ocultar pantalla de login y mostrar dashboard
+      // Ocultar pantalla de login y desplegar dashboard
       const loginScreen = document.getElementById('login-screen');
       if (loginScreen) {
         loginScreen.style.setProperty('display', 'none', 'important');
