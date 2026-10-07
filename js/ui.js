@@ -16,14 +16,16 @@ const UI = {
   },
 
   // Muestra la pantalla o modal de Login centrado
-  showLoginScreen() {
+showLoginScreen() {
     const landing = document.getElementById('landing-screen') || document.querySelector('.public-landing');
     const login = document.getElementById('login-screen');
     const app = document.getElementById('app-screen');
 
     if (landing) landing.style.setProperty('display', 'none', 'important');
     if (app) app.style.setProperty('display', 'none', 'important');
+    
     if (login) {
+      login.removeAttribute('aria-hidden'); // <--- AQUI: Remueve el bloqueo de accesibilidad
       login.style.setProperty('display', 'flex', 'important');
       login.style.setProperty('justify-content', 'center', 'important');
       login.style.setProperty('align-items', 'center', 'important');
