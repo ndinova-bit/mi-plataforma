@@ -405,14 +405,17 @@
           <div id="lista-trayectos-admin"></div>
         </section>
         
-        <!-- VISTA 3: CARGA DE TRAYECTO (FORMULARIO) -->
+    <!-- VISTA 3: CARGA / EDICIÓN DE TRAYECTO (FORMULARIO) -->
         <section id="nuevo-trayecto" class="section-tab admin-only" style="display: none;">
           <div class="card-panel">
             <div class="card-panel-header">
-              <h3>Nuevo Trayecto Formativo</h3>
+              <h3 id="titulo-form-trayecto">Nuevo Trayecto Formativo</h3>
             </div>
             <form id="form-trayecto" onsubmit="event.preventDefault(); Trayectos.guardarTrayecto();">
               
+              <!-- CAMPO OCULTO PARA EL ID AL EDITAR -->
+              <input type="hidden" id="trayecto-id" value="">
+
               <div class="form-grid-2">
                 <div class="form-group">
                   <label for="trayecto-nombre">Nombre del Trayecto *</label>
