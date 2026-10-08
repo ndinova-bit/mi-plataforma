@@ -1,17 +1,17 @@
 /* ==========================================================================
-   MÓDULO DE TRAYECTOS FORMATIVOS POR CICLO LECTIVO
+   MÓDULO DE TRAYECTOS FORMATIVOS POR CICLO LECTIVO (CON EDICIÓN)
    Archivo: js/trayectos.js
    ========================================================================== */
 
 const Trayectos = {
   listaTrayectos: [],
 
-  // Genera las opciones del filtro dinámicamente
+  // Popula el desplegable con el año en curso dinámico
   poblarDesplegableCiclos() {
     const selectFiltro = document.getElementById('filtro-ciclo-lectivo');
     if (!selectFiltro) return;
 
-    const anioActual = new Date().getFullYear(); // 2026
+    const anioActual = new Date().getFullYear();
     const anioInicio = 2024;
     const anioFin = anioActual + 10;
 
@@ -31,7 +31,7 @@ const Trayectos = {
     }
   },
 
-  // Carga los trayectos con filtrado inteligente
+  // Carga los trayectos filtrados
   async cargarTrayectos() {
     try {
       const selectCiclo = document.getElementById('filtro-ciclo-lectivo');
@@ -45,8 +45,6 @@ const Trayectos = {
       const esEstudiante = rolNorm === 'estudiante';
 
       const anioActual = new Date().getFullYear();
-
-      // Si existe el filtro (Panel Admin) usa su valor; si no existe (Web Pública) usa el AÑO ACTUAL
       let cicloSeleccionado = selectCiclo ? selectCiclo.value : String(anioActual);
 
       if (esEstudiante) {
@@ -87,7 +85,6 @@ const Trayectos = {
 
         this.listaTrayectos = trayectosEstudiante || [];
       } else {
-        // Admins y Visitantes Públicos
         let query = supabase
           .from('trayectos')
           .select(`*, modulos (*)`);
@@ -148,7 +145,6 @@ const Trayectos = {
       grid.style.gap = '1.5rem';
       grid.style.width = '100%';
 
-      // Ocultar botones admin en la landing pública para evitar confusiones
       const mostrarAccionesAdmin = isAdmin && !esVistaPublica;
 
       this.listaTrayectos.forEach(trayecto => {
@@ -164,7 +160,10 @@ const Trayectos = {
 
         const accionesAdmin = mostrarAccionesAdmin ? `
           <div style="margin-top: 1.25rem; padding-top: 0.75rem; border-top: 1px solid rgba(255,255,255,0.08); display: flex; gap: 0.5rem; justify-content: flex-end;">
-            <button class="btn btn-outline" style="padding: 0.3rem 0.7rem; font-size: 0.8rem;" onclick="Trayectos.eliminarTrayecto('${trayecto.id}')">
+            <button class="btn btn-outline" style="padding: 0.3rem 0.7rem; font-size: 0.8rem; color: #38bdf8; border-color: rgba(56,189,248,0.4);" onclick="Trayectos.editarTrayecto('${trayecto.id}')">
+              ✏️ Editar
+            </button>
+            <button class="btn btn-outline" style="padding: 0.3rem 0.7rem; font-size: 0.8rem; color: #f87171; border-color: rgba(248,113,113,0.4);" onclick="Trayectos.eliminarTrayecto('${trayecto.id}')">
               🗑️ Eliminar
             </button>
           </div>
@@ -264,7 +263,32 @@ const Trayectos = {
     });
   },
 
+  // Carga un trayecto existente en el formulario para editar
+  editarTrayecto(id) {
+    const trayecto = this.listaTrayectos.find(t => String(t.id) === String(id));
+    if (!trayecto) return;
+
+    if (typeof UI !== 'undefined' && UI.showTab) {
+      UI.showTab('nuevo-trayecto');
+    }
+
+    // Cambiar título del formulario
+    const tituloForm = document.getElementById('titulo-form-trayecto');
+    if (tituloForm) tituloForm.innerText = 'Editar Trayecto Formativo';
+
+    // Rellenar campos
+    if (document.getElementById('trayecto-id')) document.getElementById('trayecto-id').value = trayecto.id;
+    if (document.getElementById('trayecto-nombre')) document.getElementById('trayecto-nombre').value = trayecto.nombre || '';
+    if (document.getElementById('trayecto-ciclo')) document.getElementById('trayecto-ciclo').value = trayecto.ciclo_lectivo || new Date().getFullYear();
+    if (document.getElementById('trayecto-sector')) document.getElementById('trayecto-sector').value = trayecto.sector || '';
+    if (document.getElementById('trayecto-certificacion')) document.getElementById('trayecto-certificacion').value = trayecto.certificacion || '';
+    if (document.getElementById('trayecto-resolucion')) document.getElementById('trayecto-resolucion').value = trayecto.resolucion || '';
+    if (document.getElementById('trayecto-descripcion')) document.getElementById('trayecto-descripcion').value = trayecto.descripcion || '';
+    if (document.getElementById('trayecto-requisitos')) document.getElementById('trayecto-requisitos').value = trayecto.requisitos || '';
+  },
+
   async guardarTrayecto() {
+    const idExistente = document.getElementById('trayecto-id')?.value;
     const nombre = document.getElementById('trayecto-nombre')?.value.trim();
     const cicloVal = document.getElementById('trayecto-ciclo')?.value;
     const sector = document.getElementById('trayecto-sector')?.value.trim();
@@ -279,60 +303,50 @@ const Trayectos = {
     }
 
     try {
-      const { data: trayectoGuardado, error: errTrayecto } = await supabase
-        .from('trayectos')
-        .insert([{ 
-          nombre, 
-          ciclo_lectivo: Number(cicloVal) || new Date().getFullYear(),
-          sector, 
-          certificacion, 
-          resolucion, 
-          descripcion, 
-          requisitos 
-        }])
-        .select()
-        .single();
+      const datosTrayecto = {
+        nombre, 
+        ciclo_lectivo: Number(cicloVal) || new Date().getFullYear(),
+        sector, 
+        certificacion, 
+        resolucion, 
+        descripcion, 
+        requisitos 
+      };
 
-      if (errTrayecto) throw errTrayecto;
+      let trayectoGuardado = null;
 
-      const modulosCards = document.querySelectorAll('#contenedor-modulos .modulo-card, #contenedor-modulos .modulo-item-card');
-      const modulosAInsertar = [];
+      if (idExistente) {
+        // ACTUALIZAR TRAYECTO EXISTENTE
+        const { data, error } = await supabase
+          .from('trayectos')
+          .update(datosTrayecto)
+          .eq('id', idExistente)
+          .select()
+          .single();
 
-      modulosCards.forEach(card => {
-        const modNombre = card.querySelector('.mod-nombre')?.value.trim();
-        const modCodigo = card.querySelector('.mod-codigo')?.value.trim();
-        const modInicio = card.querySelector('.mod-inicio')?.value || null;
-        const modFin = card.querySelector('.mod-fin')?.value || null;
+        if (error) throw error;
+        trayectoGuardado = data;
+        alert('Trayecto actualizado con éxito.');
+      } else {
+        // CREAR NUEVO TRAYECTO
+        const { data, error } = await supabase
+          .from('trayectos')
+          .insert([datosTrayecto])
+          .select()
+          .single();
 
-        if (modNombre) {
-          modulosAInsertar.push({
-            trayecto_id: trayectoGuardado.id,
-            nombre: modNombre,
-            codigo: modCodigo,
-            fecha_inicio: modInicio || null,
-            fecha_fin: modFin || null
-          });
-        }
-      });
-
-      if (modulosAInsertar.length > 0) {
-        const { error: errModulos } = await supabase
-          .from('modulos')
-          .insert(modulosAInsertar);
-
-        if (errModulos) throw errModulos;
+        if (error) throw error;
+        trayectoGuardado = data;
+        alert('Trayecto guardado con éxito.');
       }
 
-      alert('Trayecto guardado con éxito.');
-      
+      // Limpieza de formulario
       const form = document.getElementById('form-trayecto');
       if (form) form.reset();
+      if (document.getElementById('trayecto-id')) document.getElementById('trayecto-id').value = '';
 
-      const contenedorMod = document.getElementById('contenedor-modulos');
-      if (contenedorMod) contenedorMod.innerHTML = '';
-      if (typeof UI !== 'undefined' && UI.agregarFilaModulo) {
-        UI.agregarFilaModulo();
-      }
+      const tituloForm = document.getElementById('titulo-form-trayecto');
+      if (tituloForm) tituloForm.innerText = 'Nuevo Trayecto Formativo';
 
       await this.cargarTrayectos();
 
