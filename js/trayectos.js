@@ -6,12 +6,12 @@
 const Trayectos = {
   listaTrayectos: [],
 
-  // Popula el filtro del panel admin con los próximos años y el año actual seleccionado por defecto
+  // Genera las opciones del filtro dinámicamente
   poblarDesplegableCiclos() {
     const selectFiltro = document.getElementById('filtro-ciclo-lectivo');
     if (!selectFiltro) return;
 
-    const anioActual = new Date().getFullYear(); // Detecta automáticamente el año (ej: 2026)
+    const anioActual = new Date().getFullYear(); // 2026
     const anioInicio = 2024;
     const anioFin = anioActual + 10;
 
@@ -20,7 +20,7 @@ const Trayectos = {
     let opcionesHTML = `<option value="TODOS">Todos los Ciclos</option>`;
 
     for (let anio = anioFin; anio >= anioInicio; anio--) {
-      const esAnioActual = anio === anioActual ? 'selected' : '';
+      const esAnioActual = (anio === anioActual) ? 'selected' : '';
       opcionesHTML += `<option value="${anio}" ${esAnioActual}>Ciclo Lectivo ${anio}</option>`;
     }
 
@@ -31,7 +31,7 @@ const Trayectos = {
     }
   },
 
-  // Carga los trayectos
+  // Carga los trayectos con filtrado inteligente
   async cargarTrayectos() {
     try {
       const selectCiclo = document.getElementById('filtro-ciclo-lectivo');
@@ -46,7 +46,7 @@ const Trayectos = {
 
       const anioActual = new Date().getFullYear();
 
-      // Si hay select usa su valor; si no (ej. vista pública sin login), usa el AÑO ACTUAL por defecto
+      // Si existe el filtro (Panel Admin) usa su valor; si no existe (Web Pública) usa el AÑO ACTUAL
       let cicloSeleccionado = selectCiclo ? selectCiclo.value : String(anioActual);
 
       if (esEstudiante) {
@@ -87,7 +87,7 @@ const Trayectos = {
 
         this.listaTrayectos = trayectosEstudiante || [];
       } else {
-        // Visitantes Públicos y Admins
+        // Admins y Visitantes Públicos
         let query = supabase
           .from('trayectos')
           .select(`*, modulos (*)`);
@@ -148,6 +148,9 @@ const Trayectos = {
       grid.style.gap = '1.5rem';
       grid.style.width = '100%';
 
+      // Ocultar botones admin en la landing pública para evitar confusiones
+      const mostrarAccionesAdmin = isAdmin && !esVistaPublica;
+
       this.listaTrayectos.forEach(trayecto => {
         const card = document.createElement('div');
         card.className = 'course-card fade-in';
@@ -159,7 +162,7 @@ const Trayectos = {
         card.style.flexDirection = 'column';
         card.style.justifyContent = 'space-between';
 
-        const accionesAdmin = isAdmin ? `
+        const accionesAdmin = mostrarAccionesAdmin ? `
           <div style="margin-top: 1.25rem; padding-top: 0.75rem; border-top: 1px solid rgba(255,255,255,0.08); display: flex; gap: 0.5rem; justify-content: flex-end;">
             <button class="btn btn-outline" style="padding: 0.3rem 0.7rem; font-size: 0.8rem;" onclick="Trayectos.eliminarTrayecto('${trayecto.id}')">
               🗑️ Eliminar
