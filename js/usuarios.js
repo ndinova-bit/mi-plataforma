@@ -279,29 +279,35 @@ async eliminarUsuario(identificador, nombreMostrar) {
       const passGuardada = perfilAdmin.pass || perfilAdmin.password || perfilAdmin.passHash || '';
       const passIngresadaTrim = passIngresada.trim();
 
-      // Si tenemos la clave en sesión y no coincide, frenamos antes de tocar la base de datos
       if (passGuardada && passIngresadaTrim !== passGuardada && typeof this.hashPassword === 'function' && this.hashPassword(passIngresadaTrim) !== passGuardada) {
         alert('⛔ Contraseña incorrecta. No se pudo autorizar la eliminación.');
         return;
       }
 
-      // 6. Intentar borrado por RPC primero, y si no por consulta directa a la tabla
+      // Convertir la clave ingresada a Hash para enviar a Supabase
+      const hashParaRpc = (typeof this.hashPassword === 'function') ? this.hashPassword(passIngresadaTrim) : passIngresadaTrim;
+
+      // 6. Intentar borrado por RPC usando el Hash
       let errFinal = null;
       const { error: rpcError } = await supabase.rpc('eliminar_usuario_admin', { 
         p_id: idStr,
-        p_admin_pass: passIngresadaTrim
+        p_admin_pass: hashParaRpc
       });
 
       if (rpcError) {
+        console.warn('RPC con error, intentando borrado directo en tabla:', rpcError);
+        
         // Fallback a borrado directo
         const { error: deleteError } = await supabase
           .from('usuarios')
           .delete()
           .eq('id', idStr);
 
+        // Guardamos únicamente el error de la tabla (si existiera)
         errFinal = deleteError;
       }
 
+      // Si hubo un error real al borrar de la tabla, recién ahí lanzamos la excepción
       if (errFinal) throw errFinal;
 
       alert(`🗑️ Usuario "${usuarioABorrar}" eliminado correctamente.`);
