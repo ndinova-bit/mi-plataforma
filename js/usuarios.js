@@ -1,8 +1,7 @@
 const UsuariosAdmin = {
   estaProcesando: false,
 
-  
-  hashPassword(pass) {
+    hashPassword(pass) {
     if (!pass) return '';
     return typeof CryptoJS !== 'undefined' 
       ? CryptoJS.SHA256(pass).toString() 
