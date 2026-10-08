@@ -6,6 +6,29 @@
 const Trayectos = {
   listaTrayectos: [],
 
+  // --- AGREGAR AQUÍ LA NUEVA FUNCIÓN ---
+  poblarDesplegableCiclos() {
+    const selectFiltro = document.getElementById('filtro-ciclo-lectivo');
+    if (!selectFiltro) return;
+
+    const seleccionActual = selectFiltro.value || 'TODOS';
+    const anioActual = new Date().getFullYear(); 
+    const anioInicio = 2024;
+    const anioFin = anioActual + 20; // Carga automáticamente los próximos 20 años
+
+    let opcionesHTML = `<option value="TODOS">Todos los Ciclos</option>`;
+
+    for (let anio = anioFin; anio >= anioInicio; anio--) {
+      opcionesHTML += `<option value="${anio}">${anio}</option>`;
+    }
+
+    selectFiltro.innerHTML = opcionesHTML;
+    selectFiltro.value = seleccionActual;
+  },
+
+const Trayectos = {
+  listaTrayectos: [],
+
   // Carga los trayectos según el rol y filtro de ciclo lectivo
   async cargarTrayectos() {
     try {
@@ -336,11 +359,14 @@ const Trayectos = {
   }
 };
 
+// Evento al cargar el documento
 document.addEventListener('DOMContentLoaded', () => {
-  if (typeof Trayectos !== 'undefined' && Trayectos.cargarTrayectos) {
-    Trayectos.cargarTrayectos();
+  if (typeof Trayectos !== 'undefined') {
+    Trayectos.poblarDesplegableCiclos(); // Popula los 20 años en el desplegable
+    Trayectos.cargarTrayectos();        // Carga los trayectos
   }
 });
 
+// Exportación global
 window.Trayectos = Trayectos;
 window.TrayectosAdmin = Trayectos;
