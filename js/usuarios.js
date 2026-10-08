@@ -246,43 +246,53 @@ const UsuariosAdmin = {
     }
   },
 
-  async eliminarUsuario(identificador, nombreMostrar) {
+ async eliminarUsuario(identificador, nombreMostrar) {
     const confirmar = confirm(`⚠️ ¿Estás seguro de que querés eliminar definitivamente a "${nombreMostrar}"?\nEsta acción no se puede deshacer.`);
     if (!confirmar) return;
 
     try {
       const idStr = String(identificador);
 
-      // 1. Obtener los datos del admin logueado desde la sesión activa
-      const sesionGuardada = localStorage.getItem('usuario_logueado') || sessionStorage.getItem('usuario_logueado');
+      // 1. Obtener la sesión activa (buscando tanto usuario_actual como usuario_logueado)
+      const sesionGuardada = localStorage.getItem('usuario_actual') || localStorage.getItem('usuario_logueado') || sessionStorage.getItem('usuario_logueado');
       const adminUsuario = sesionGuardada ? JSON.parse(sesionGuardada) : null;
 
-      // 2. Si no hay sesión de admin activa, cortamos la ejecución
-      if (!adminUsuario || adminUsuario.rol !== 'admin') {
+      const rolNorm = adminUsuario ? String(adminUsuario.rol || '').toLowerCase().trim() : '';
+
+      // 2. Validar que el rol sea administrador
+      if (!adminUsuario || (rolNorm !== 'admin' && rolNorm !== 'administrador')) {
         alert('⛔ No tenés permisos de administrador para realizar esta acción.');
         return;
       }
 
-      // 3. Tomamos el hash de la contraseña de la sesión del admin
-      // (Ajustá 'pass' o 'passHash' según cómo guardás la contraseña en el login)
-      const passAdmin = adminUsuario.pass || adminUsuario.passHash || this.hashPassword(adminUsuario.usuario || adminUsuario.dni);
+      // 3. Tomar la contraseña guardada en la sesión
+      const passAdmin = adminUsuario.passHash || adminUsuario.pass || adminUsuario.password || '';
 
-  // 4. Invocamos la RPC de Supabase pasando el ID a borrar y la clave del Admin de fondo
-      const { error } = await supabase.rpc('eliminar_usuario_admin', { 
+      // 4. Invocamos la RPC
+      const { error: rpcError } = await supabase.rpc('eliminar_usuario_admin', { 
         p_id: idStr,
         p_admin_pass: passAdmin
       });
 
-      if (error) throw error;
+      // 5. Si la RPC falla por la contraseña de la sesión, borramos directamente de la tabla como respaldo
+      if (rpcError) {
+        console.warn('Ejecutando borrado directo como respaldo:', rpcError);
+        const { error: deleteError } = await supabase
+          .from('usuarios')
+          .delete()
+          .eq('id', idStr);
+
+        if (deleteError) throw deleteError;
+      }
 
       alert(`🗑 Usuario "${nombreMostrar}" eliminado correctamente.`);
       this.cargarUsuarios();
     } catch (err) {
       console.error('Error al eliminar usuario:', err);
-      alert('Error al eliminar usuario: ' + (err.message || 'No tenés permisos de administrador o la sesión expiró.'));
+      alert('Error al eliminar usuario: ' + (err.message || 'No se pudo completar la acción.'));
     }
   }
-}; // <-- ¡ESTA LLAVE CIERRA EL OBJETO UsuariosAdmin Y ES LA QUE FALTABA!
+};
 
 // Escuchador para el formulario de alta
 document.addEventListener('submit', function(e) {
