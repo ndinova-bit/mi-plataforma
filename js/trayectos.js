@@ -1,13 +1,12 @@
 /* ==========================================================================
-   MÓDULO DE TRAYECTOS FORMATIVOS
+   MÓDULO DE TRAYECTOS FORMATIVOS POR CICLO LECTIVO
    Archivo: js/trayectos.js
    ========================================================================== */
-
 
 const Trayectos = {
   listaTrayectos: [],
 
-  // Carga los trayectos según el rol del usuario (Administrador vs Estudiante)
+  // Carga los trayectos según el rol y filtro de ciclo lectivo
   async cargarTrayectos() {
     try {
       const perfilRaw = localStorage.getItem('usuario_actual');
@@ -15,7 +14,10 @@ const Trayectos = {
       const rolNorm = String(perfil.rol || '').toLowerCase().trim();
       const esEstudiante = rolNorm === 'estudiante';
 
-      // Si el usuario es Estudiante, traemos solo los trayectos a los que está inscripto
+      // Obtener valor del filtro seleccionado
+      const selectCiclo = document.getElementById('filtro-ciclo-lectivo');
+      const cicloSeleccionado = selectCiclo ? selectCiclo.value : 'TODOS';
+
       if (esEstudiante) {
         const idEstudiante = perfil.usuario || perfil.dni || perfil.id;
 
@@ -26,7 +28,6 @@ const Trayectos = {
           return;
         }
 
-        // 1. Consultar inscripciones del estudiante
         const { data: inscripciones, error: errInsc } = await supabase
           .from('inscripciones')
           .select('trayecto_id')
@@ -40,32 +41,34 @@ const Trayectos = {
           return;
         }
 
-        // 2. Traer la información completa de esos trayectos y sus módulos
         const idsTrayectos = inscripciones.map(i => i.trayecto_id);
 
-        const { data: trayectosEstudiante, error: errTray } = await supabase
+        let query = supabase
           .from('trayectos')
-          .select(`
-            *,
-            modulos (*)
-          `)
-          .in('id', idsTrayectos)
-          .order('created_at', { ascending: false });
+          .select(`*, modulos (*)`)
+          .in('id', idsTrayectos);
 
+        if (cicloSeleccionado !== 'TODOS') {
+          query = query.eq('ciclo_lectivo', Number(cicloSeleccionado));
+        }
+
+        const { data: trayectosEstudiante, error: errTray } = await query.order('created_at', { ascending: false });
         if (errTray) throw errTray;
 
         this.listaTrayectos = trayectosEstudiante || [];
       } else {
-        // Para visitantes públicos o Admins, cargar toda la oferta académica
-        const { data, error } = await supabase
+        // Consulta para Admins y Vista Pública
+        let query = supabase
           .from('trayectos')
-          .select(`
-            *,
-            modulos (*)
-          `)
-          .order('created_at', { ascending: false });
+          .select(`*, modulos (*)`);
 
+        if (cicloSeleccionado !== 'TODOS') {
+          query = query.eq('ciclo_lectivo', Number(cicloSeleccionado));
+        }
+
+        const { data, error } = await query.order('created_at', { ascending: false });
         if (error) throw error;
+
         this.listaTrayectos = data || [];
       }
 
@@ -78,7 +81,6 @@ const Trayectos = {
     }
   },
 
-  // Renderiza las tarjetas de trayectos
   renderizarTrayectos() {
     const contenedores = [
       document.getElementById('lista-trayectos-cards'),
@@ -89,7 +91,6 @@ const Trayectos = {
 
     if (contenedores.length === 0) return;
 
-    // Verificar si el usuario actual es Administrador
     const perfilRaw = localStorage.getItem('usuario_actual');
     const perfil = perfilRaw ? JSON.parse(perfilRaw) : {};
     const rolNorm = String(perfil.rol || '').toLowerCase().trim();
@@ -98,14 +99,13 @@ const Trayectos = {
     contenedores.forEach(contenedor => {
       contenedor.innerHTML = '';
 
-      // ÚNICAMENTE la landing pública (sin sesión de usuario) usará la vista simplificada
       const esVistaPublica = contenedor.id === 'lista-trayectos-cards' || contenedor.id === 'contenedor-trayectos';
        
       if (this.listaTrayectos.length === 0) {
         contenedor.innerHTML = `
           <div class="empty-state-card fade-in" style="text-align: center; padding: 3rem; background: rgba(30,41,59,0.5); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); grid-column: 1 / -1;">
             <div class="empty-state-icon" style="font-size: 2rem; margin-bottom: 0.5rem;">📚</div>
-            <h3 class="empty-state-title" style="color: #f8fafc; margin-bottom: 0.5rem;">No hay trayectos disponibles</h3>
+            <h3 class="empty-state-title" style="color: #f8fafc; margin-bottom: 0.5rem;">No hay trayectos en este ciclo lectivo</h3>
             <p class="empty-state-text" style="color: #94a3b8;">
               Ponate en contacto con la administración del CFP para más información.
             </p>
@@ -140,12 +140,18 @@ const Trayectos = {
           </div>
         ` : '';
 
+        const cicloBadge = `
+          <span style="font-size: 0.75rem; background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 0.15rem 0.5rem; border-radius: 4px; font-weight: 600;">
+            Ciclo Lectivo ${trayecto.ciclo_lectivo || '2026'}
+          </span>
+        `;
+
         if (esVistaPublica) {
-          // --- TARJETA CORTA (Solo para la Web pública antes de ingresar) ---
           card.innerHTML = `
             <div>
-              <div style="margin-bottom: 0.75rem;">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
                 <h3 style="color: #f8fafc; margin: 0; font-size: 1.2rem; font-weight: 600;">${trayecto.nombre}</h3>
+                ${cicloBadge}
               </div>
 
               <p style="color: #94a3b8; font-size: 0.875rem; margin-bottom: 0.75rem; line-height: 1.4;">
@@ -162,7 +168,6 @@ const Trayectos = {
             ${accionesAdmin}
           `;
         } else {
-          // --- TARJETA COMPLETA (Para Admin y Estudiantes dentro de la plataforma) ---
           let modulosHTML = '';
           if (trayecto.modulos && trayecto.modulos.length > 0) {
             modulosHTML = trayecto.modulos.map(m => `
@@ -189,6 +194,7 @@ const Trayectos = {
                     Sector: ${trayecto.sector || 'General'}
                   </span>
                 </div>
+                ${cicloBadge}
               </div>
 
               ${trayecto.certificacion || trayecto.resolucion ? `
@@ -228,9 +234,9 @@ const Trayectos = {
     });
   },
 
-  // Guarda un nuevo trayecto y sus módulos en Supabase
   async guardarTrayecto() {
     const nombre = document.getElementById('trayecto-nombre')?.value.trim();
+    const cicloVal = document.getElementById('trayecto-ciclo')?.value;
     const sector = document.getElementById('trayecto-sector')?.value.trim();
     const certificacion = document.getElementById('trayecto-certificacion')?.value.trim() || '';
     const resolucion = document.getElementById('trayecto-resolucion')?.value.trim() || '';
@@ -238,25 +244,27 @@ const Trayectos = {
     const requisitos = document.getElementById('trayecto-requisitos')?.value.trim() || '';
 
     if (!nombre) {
-      if (typeof alertError === 'function') {
-        alertError('Campo requerido', 'El nombre del trayecto es obligatorio.');
-      } else {
-        alert('El nombre del trayecto es obligatorio.');
-      }
+      alert('El nombre del trayecto es obligatorio.');
       return;
     }
 
     try {
-      // 1. Guardar el Trayecto principal
       const { data: trayectoGuardado, error: errTrayecto } = await supabase
         .from('trayectos')
-        .insert([{ nombre, sector, certificacion, resolucion, descripcion, requisitos }])
+        .insert([{ 
+          nombre, 
+          ciclo_lectivo: Number(cicloVal) || 2026,
+          sector, 
+          certificacion, 
+          resolucion, 
+          descripcion, 
+          requisitos 
+        }])
         .select()
         .single();
 
       if (errTrayecto) throw errTrayecto;
 
-      // 2. Extraer los datos de las filas de módulos
       const modulosCards = document.querySelectorAll('#contenedor-modulos .modulo-card, #contenedor-modulos .modulo-item-card');
       const modulosAInsertar = [];
 
@@ -277,7 +285,6 @@ const Trayectos = {
         }
       });
 
-      // 3. Insertar módulos asociados
       if (modulosAInsertar.length > 0) {
         const { error: errModulos } = await supabase
           .from('modulos')
@@ -286,13 +293,8 @@ const Trayectos = {
         if (errModulos) throw errModulos;
       }
 
-      if (typeof alertSuccess === 'function') {
-        alertSuccess('¡Éxito!', 'El trayecto y sus módulos fueron registrados correctamente.');
-      } else {
-        alert('Trayecto guardado con éxito.');
-      }
+      alert('Trayecto guardado con éxito.');
       
-      // Resetear el formulario
       const form = document.getElementById('form-trayecto');
       if (form) form.reset();
 
@@ -302,7 +304,6 @@ const Trayectos = {
         UI.agregarFilaModulo();
       }
 
-      // Recargar datos y navegar
       await this.cargarTrayectos();
 
       if (typeof UI !== 'undefined' && UI.showTab) {
@@ -311,20 +312,15 @@ const Trayectos = {
 
     } catch (err) {
       console.error('Error al guardar trayecto:', err);
-      if (typeof alertError === 'function') {
-        alertError('Error', err.message || 'No se pudo guardar el trayecto.');
-      } else {
-        alert('Error al guardar: ' + (err.message || 'Error de conexión'));
-      }
+      alert('Error al guardar: ' + (err.message || 'Error de conexión'));
     }
   },
 
-  // Elimina un trayecto por su ID
   async eliminarTrayecto(id) {
     if (!confirm('¿Estás seguro de que deseas eliminar este trayecto? Esta acción borra también sus módulos asociados.')) {
       return;
     }
-try {
+    try {
       const { error } = await supabase
         .from('trayectos')
         .delete()
@@ -332,22 +328,19 @@ try {
 
       if (error) throw error;
 
-      if (typeof notify === 'function') notify('success', 'Trayecto eliminado correctamente');
       await this.cargarTrayectos();
     } catch (err) {
       console.error('Error al eliminar trayecto:', err);
-      if (typeof alertError === 'function') alertError('Error', 'No se pudo eliminar el trayecto.');
+      alert('Error al eliminar trayecto.');
     }
   }
-}; // <-- Cierra el objeto Trayectos
+};
 
-// Evento fuera del objeto Trayectos
 document.addEventListener('DOMContentLoaded', () => {
   if (typeof Trayectos !== 'undefined' && Trayectos.cargarTrayectos) {
     Trayectos.cargarTrayectos();
   }
 });
 
-// Exportación global doble para garantizar retrocompatibilidad
 window.Trayectos = Trayectos;
 window.TrayectosAdmin = Trayectos;
