@@ -248,39 +248,35 @@ const UsuariosAdmin = {
 
 async eliminarUsuario(identificador, nombreMostrar) {
     const usuarioABorrar = nombreMostrar || identificador;
+
+    // 1. Primer aviso de confirmación
     const confirmar = confirm(`⚠️ ¿Estás seguro de que querés eliminar definitivamente a "${usuarioABorrar}"?\nEsta acción no se puede deshacer.`);
     if (!confirmar) return;
+
+    // 2. Pedimos la contraseña del Administrador para validar la acción
+    const passIngresada = prompt(`🔐 Confirmación de Seguridad:\nIngresá tu contraseña de Administrador para confirmar la eliminación de "${usuarioABorrar}":`);
+    
+    if (!passIngresada) {
+      alert('Operación cancelada. Se requiere la contraseña de administrador.');
+      return;
+    }
 
     try {
       const idStr = String(identificador);
 
-      // 1. Leemos la sesión si existe para obtener la contraseña si estuviera guardada
-      const sesionRaw = localStorage.getItem('usuario_actual') || localStorage.getItem('usuario_logueado') || sessionStorage.getItem('usuario_logueado');
-      const perfil = sesionRaw ? JSON.parse(sesionRaw) : {};
-      const passAdmin = perfil.passHash || perfil.pass || perfil.password || '';
-
-      // 2. Intentamos primero borrar por la función RPC de Supabase
-      let { error } = await supabase.rpc('eliminar_usuario_admin', { 
+      // 3. Ejecutamos la función segura RPC en Supabase validando la contraseña ingresada
+      const { data, error } = await supabase.rpc('eliminar_usuario_admin', { 
         p_id: idStr,
-        p_admin_pass: passAdmin
+        p_admin_pass: passIngresada.trim()
       });
 
-      // 3. Si la RPC falla o no encuentra el procedimiento, ejecutamos la consulta directa a la tabla
       if (error) {
-        console.warn('RPC no disponible o rechazada, ejecutando borrado directo:', error.message);
-        const resDirect = await supabase
-          .from('usuarios')
-          .delete()
-          .eq('id', idStr);
-        
-        error = resDirect.error;
+        throw new Error('Contraseña incorrecta o permisos insuficientes.');
       }
-
-      if (error) throw error;
 
       alert(`🗑️ Usuario "${usuarioABorrar}" eliminado correctamente.`);
       
-      // Recargar la tabla de usuarios
+      // Recargar la tabla
       if (typeof this.cargarUsuarios === 'function') {
         await this.cargarUsuarios();
       } else if (typeof UsuariosAdmin !== 'undefined' && UsuariosAdmin.cargarUsuarios) {
@@ -289,7 +285,7 @@ async eliminarUsuario(identificador, nombreMostrar) {
 
     } catch (err) {
       console.error('Error al eliminar usuario:', err);
-      alert('Error al eliminar usuario: ' + (err.message || 'Ocurrió un problema de conexión.'));
+      alert('⛔ No se pudo eliminar: ' + (err.message || 'Verificá tu contraseña de administrador.'));
     }
   }
 };
