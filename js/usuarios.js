@@ -267,7 +267,7 @@ const UsuariosAdmin = {
       // (Ajustá 'pass' o 'passHash' según cómo guardás la contraseña en el login)
       const passAdmin = adminUsuario.pass || adminUsuario.passHash || this.hashPassword(adminUsuario.usuario || adminUsuario.dni);
 
-      // 4. Invocamos la RPC de Supabase pasando el ID a borrar y la clave del Admin de fondo
+  // 4. Invocamos la RPC de Supabase pasando el ID a borrar y la clave del Admin de fondo
       const { error } = await supabase.rpc('eliminar_usuario_admin', { 
         p_id: idStr,
         p_admin_pass: passAdmin
@@ -282,7 +282,9 @@ const UsuariosAdmin = {
       alert('Error al eliminar usuario: ' + (err.message || 'No tenés permisos de administrador o la sesión expiró.'));
     }
   }
+}; // <-- ¡ESTA LLAVE CIERRA EL OBJETO UsuariosAdmin Y ES LA QUE FALTABA!
 
+// Escuchador para el formulario de alta
 document.addEventListener('submit', function(e) {
   if (e.target && e.target.id === 'form-alta-usuario') {
     e.preventDefault();
