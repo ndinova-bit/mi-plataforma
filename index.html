@@ -384,7 +384,7 @@
           </div>
         </section>
 
-      <!-- VISTA 2: LISTA DE TRAYECTOS DENTRO DEL DASHBOARD -->
+     <!-- VISTA 2: LISTA DE TRAYECTOS DENTRO DEL DASHBOARD -->
         <section id="trayectos" class="section-tab" style="display: none;">
           <div class="card-panel-header">
             <div>
@@ -392,9 +392,11 @@
               <p style="font-size: 0.85rem; color: #94a3b8;">Gestión de la oferta académica e itinerarios de formación</p>
             </div>
             <div style="display: flex; gap: 0.75rem; align-items: center;">
-              <!-- FILTRO DINÁMICO POR CICLO LECTIVO -->
+              <!-- FILTRO POR CICLO LECTIVO -->
               <select id="filtro-ciclo-lectivo" class="form-control custom-select" style="width: auto; padding: 0.4rem 0.8rem;" onchange="Trayectos.cargarTrayectos()">
-                <!-- Se poblará dinámicamente desde JavaScript -->
+                <option value="2026" selected>Ciclo Lectivo 2026</option>
+                <option value="2027">Ciclo Lectivo 2027</option>
+                <option value="TODOS">Todos los Ciclos</option>
               </select>
               <button class="btn btn-primary admin-only" onclick="UI.showTab('nuevo-trayecto')">+ Nuevo Trayecto</button>
             </div>
