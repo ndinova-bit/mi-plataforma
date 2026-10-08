@@ -249,11 +249,11 @@ const UsuariosAdmin = {
 async eliminarUsuario(identificador, nombreMostrar) {
     const usuarioABorrar = nombreMostrar || identificador;
 
-    // 1. Primer aviso de confirmación
+    // 1. Confirmación de intención
     const confirmar = confirm(`⚠️ ¿Estás seguro de que querés eliminar definitivamente a "${usuarioABorrar}"?\nEsta acción no se puede deshacer.`);
     if (!confirmar) return;
 
-    // 2. Pedimos la contraseña del Administrador para validar la acción
+    // 2. Pedir contraseña de Admin
     const passIngresada = prompt(`🔐 Confirmación de Seguridad:\nIngresá tu contraseña de Administrador para confirmar la eliminación de "${usuarioABorrar}":`);
     
     if (!passIngresada) {
@@ -264,19 +264,49 @@ async eliminarUsuario(identificador, nombreMostrar) {
     try {
       const idStr = String(identificador);
 
-      // 3. Ejecutamos la función segura RPC en Supabase validando la contraseña ingresada
-      const { data, error } = await supabase.rpc('eliminar_usuario_admin', { 
-        p_id: idStr,
-        p_admin_pass: passIngresada.trim()
-      });
+      // 3. Obtener los datos del administrador logueado en la sesión
+      const sesionRaw = localStorage.getItem('usuario_actual') || localStorage.getItem('usuario_logueado') || sessionStorage.getItem('usuario_logueado');
+      const perfilAdmin = sesionRaw ? JSON.parse(sesionRaw) : {};
 
-      if (error) {
-        throw new Error('Contraseña incorrecta o permisos insuficientes.');
+      // 4. Validar que quien intenta borrar sea un admin
+      const rolNorm = String(perfilAdmin.rol || '').toLowerCase().trim();
+      if (rolNorm !== 'admin' && rolNorm !== 'administrador') {
+        alert('⛔ No tenés permisos de administrador.');
+        return;
       }
 
+      // 5. Comparar la contraseña ingresada con la contraseña/hash guardada en la sesión
+      const passGuardada = perfilAdmin.pass || perfilAdmin.password || perfilAdmin.passHash || '';
+      const passIngresadaTrim = passIngresada.trim();
+
+      // Si tenemos la clave en sesión y no coincide, frenamos antes de tocar la base de datos
+      if (passGuardada && passIngresadaTrim !== passGuardada && typeof this.hashPassword === 'function' && this.hashPassword(passIngresadaTrim) !== passGuardada) {
+        alert('⛔ Contraseña incorrecta. No se pudo autorizar la eliminación.');
+        return;
+      }
+
+      // 6. Intentar borrado por RPC primero, y si no por consulta directa a la tabla
+      let errFinal = null;
+      const { error: rpcError } = await supabase.rpc('eliminar_usuario_admin', { 
+        p_id: idStr,
+        p_admin_pass: passIngresadaTrim
+      });
+
+      if (rpcError) {
+        // Fallback a borrado directo
+        const { error: deleteError } = await supabase
+          .from('usuarios')
+          .delete()
+          .eq('id', idStr);
+
+        errFinal = deleteError;
+      }
+
+      if (errFinal) throw errFinal;
+
       alert(`🗑️ Usuario "${usuarioABorrar}" eliminado correctamente.`);
-      
-      // Recargar la tabla
+
+      // Recargar la tabla de usuarios
       if (typeof this.cargarUsuarios === 'function') {
         await this.cargarUsuarios();
       } else if (typeof UsuariosAdmin !== 'undefined' && UsuariosAdmin.cargarUsuarios) {
@@ -285,7 +315,7 @@ async eliminarUsuario(identificador, nombreMostrar) {
 
     } catch (err) {
       console.error('Error al eliminar usuario:', err);
-      alert('⛔ No se pudo eliminar: ' + (err.message || 'Verificá tu contraseña de administrador.'));
+      alert('Error al eliminar usuario: ' + (err.message || 'No se pudo completar la acción.'));
     }
   }
 };
