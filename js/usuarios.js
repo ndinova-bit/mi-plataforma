@@ -1,37 +1,36 @@
 const UsuariosAdmin = {
   estaProcesando: false,
 
-  
-    hashPassword(pass) {
-    if (!pass) return '';
+  hashPassword(pass) {
+    if (!pass) return ''
     return typeof CryptoJS !== 'undefined' 
       ? CryptoJS.SHA256(pass).toString() 
-      : pass;
+      : pass
   },
 
   abrirModal() {
-    const modal = document.getElementById('modal-alta-usuario');
+    const modal = document.getElementById('modal-alta-usuario')
     if (modal) {
-      modal.classList.add('open', 'active');
-      modal.style.display = 'flex';
-      this.cargarTrayectosEnModal();
+      modal.classList.add('open', 'active')
+      modal.style.display = 'flex'
+      this.cargarTrayectosEnModal()
     }
   },
 
   cerrarModal() {
-    const modal = document.getElementById('modal-alta-usuario');
+    const modal = document.getElementById('modal-alta-usuario')
     if (modal) {
-      modal.classList.remove('open', 'active');
-      modal.style.display = 'none';
-      const form = document.getElementById('form-alta-usuario');
-      if (form) form.reset();
+      modal.classList.remove('open', 'active')
+      modal.style.display = 'none'
+      const form = document.getElementById('form-alta-usuario')
+      if (form) form.reset()
     }
-    this.estaProcesando = false;
+    this.estaProcesando = false
   },
 
   async cargarUsuarios() {
-    const tbody = document.getElementById('tabla-usuarios');
-    if (!tbody) return;
+    const tbody = document.getElementById('tabla-usuarios')
+    if (!tbody) return
 
     tbody.innerHTML = `
       <tr>
@@ -39,15 +38,15 @@ const UsuariosAdmin = {
           Cargando usuarios...
         </td>
       </tr>
-    `;
+    `
 
     try {
       const { data: usuarios, error } = await supabase
         .from('usuarios')
         .select('id, nombre, apellido, usuario, email, rol, estado')
-        .order('id', { ascending: false });
+        .order('id', { ascending: false })
 
-      if (error) throw error;
+      if (error) throw error
 
       if (!usuarios || usuarios.length === 0) {
         tbody.innerHTML = `
@@ -56,16 +55,16 @@ const UsuariosAdmin = {
               No hay usuarios registrados aún.
             </td>
           </tr>
-        `;
-        return;
+        `
+        return
       }
 
       tbody.innerHTML = usuarios.map(u => {
-        const estadoRaw = String(u.estado || 'PENDIENTE').toUpperCase();
-        const esActivo = estadoRaw === 'ACTIVO' || estadoRaw === 'HABILITADO' || estadoRaw === 'APROBADO';
-        const nombreCompleto = u.apellido ? `${u.apellido}, ${u.nombre}` : (u.nombre || 'Sin Nombre');
-        const idPrimario = u.id || u.usuario;
-        const textoMostrarUsuario = u.usuario || u.id;
+        const estadoRaw = String(u.estado || 'PENDIENTE').toUpperCase()
+        const esActivo = estadoRaw === 'ACTIVO' || estadoRaw === 'HABILITADO' || estadoRaw === 'APROBADO'
+        const nombreCompleto = u.apellido ? `${u.apellido}, ${u.nombre}` : (u.nombre || 'Sin Nombre')
+        const idPrimario = u.id || u.usuario
+        const textoMostrarUsuario = u.usuario || u.id
 
         return `
           <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
@@ -103,29 +102,29 @@ const UsuariosAdmin = {
               </button>
             </td>
           </tr>
-        `;
-      }).join('');
+        `
+      }).join('')
     } catch (err) {
-      console.error('Error al cargar usuarios:', err);
+      console.error('Error al cargar usuarios:', err)
     }
   },
 
   async cargarTrayectosEnModal() {
-    const contenedor = document.getElementById('usr-alta-trayectos');
-    if (!contenedor) return;
+    const contenedor = document.getElementById('usr-alta-trayectos')
+    if (!contenedor) return
 
-    contenedor.innerHTML = '<span style="color: #94a3b8; font-size: 0.85rem;">Cargando trayectos...</span>';
+    contenedor.innerHTML = '<span style="color: #94a3b8; font-size: 0.85rem;">Cargando trayectos...</span>'
 
     try {
       const { data: trayectos, error } = await supabase
         .from('trayectos')
-        .select('*');
+        .select('*')
 
-      if (error) throw error;
+      if (error) throw error
 
       if (!trayectos || trayectos.length === 0) {
-        contenedor.innerHTML = '<span style="color: #94a3b8; font-size: 0.85rem;">No hay trayectos disponibles aún.</span>';
-        return;
+        contenedor.innerHTML = '<span style="color: #94a3b8; font-size: 0.85rem;">No hay trayectos disponibles aún.</span>'
+        return
       }
 
       contenedor.innerHTML = trayectos.map(t => `
@@ -133,33 +132,33 @@ const UsuariosAdmin = {
           <input type="checkbox" name="trayectos_seleccionados" value="${t.id}">
           <span>${t.nombre}</span>
         </label>
-      `).join('');
+      `).join('')
     } catch (err) {
-      console.error('Error al cargar trayectos:', err);
-      contenedor.innerHTML = '<span style="color: #f87171; font-size: 0.85rem;">Error al obtener trayectos.</span>';
+      console.error('Error al cargar trayectos:', err)
+      contenedor.innerHTML = '<span style="color: #f87171; font-size: 0.85rem;">Error al obtener trayectos.</span>'
     }
   },
 
   async crearUsuarioManual(e) {
-    if (e && typeof e.preventDefault === 'function') e.preventDefault();
+    if (e && typeof e.preventDefault === 'function') e.preventDefault()
 
-    if (this.estaProcesando) return;
-    this.estaProcesando = true;
+    if (this.estaProcesando) return
+    this.estaProcesando = true
 
-    const apellido = document.getElementById('usr-alta-apellido')?.value.trim().toUpperCase();
-    const nombre = document.getElementById('usr-alta-nombre')?.value.trim().toUpperCase();
-    const dniVal = document.getElementById('usr-alta-dni')?.value.trim();
-    const email = document.getElementById('usr-alta-email')?.value.trim().toUpperCase();
-    const rol = document.getElementById('usr-alta-rol')?.value || 'estudiante';
+    const apellido = document.getElementById('usr-alta-apellido')?.value.trim().toUpperCase()
+    const nombre = document.getElementById('usr-alta-nombre')?.value.trim().toUpperCase()
+    const dniVal = document.getElementById('usr-alta-dni')?.value.trim()
+    const email = document.getElementById('usr-alta-email')?.value.trim().toUpperCase()
+    const rol = document.getElementById('usr-alta-rol')?.value || 'estudiante'
 
     if (!nombre || !apellido || !dniVal) {
-      alert('Por favor completá Nombre, Apellido y DNI.');
-      this.estaProcesando = false;
-      return;
+      alert('Por favor completá Nombre, Apellido y DNI.')
+      this.estaProcesando = false
+      return
     }
 
     try {
-      const passHash = this.hashPassword(dniVal);
+      const passHash = this.hashPassword(dniVal)
 
       const nuevoUsuario = {
         nombre: nombre,
@@ -168,177 +167,151 @@ const UsuariosAdmin = {
         pass: passHash,
         rol: rol,
         estado: 'ACTIVO'
-      };
+      }
 
-      if (email) nuevoUsuario.email = email;
+      if (email) nuevoUsuario.email = email
 
       const { data: usrCreado, error: errUsr } = await supabase
         .from('usuarios')
         .insert([nuevoUsuario])
-        .select();
+        .select()
 
       if (errUsr) {
-        alert('Error al crear usuario: ' + errUsr.message);
-        this.estaProcesando = false;
-        return;
+        alert('Error al crear usuario: ' + errUsr.message)
+        this.estaProcesando = false
+        return
       }
 
-      const checkboxes = document.querySelectorAll('input[name="trayectos_seleccionados"]:checked');
-      const trayectoIds = Array.from(checkboxes).map(cb => cb.value);
+      const checkboxes = document.querySelectorAll('input[name="trayectos_seleccionados"]:checked')
+      const trayectoIds = Array.from(checkboxes).map(cb => cb.value)
 
       if (trayectoIds.length > 0) {
         const inscripciones = trayectoIds.map(tId => ({
           estudiante_user: String(dniVal),
           trayecto_id: Number(tId)
-        }));
+        }))
 
         const { error: errInsc } = await supabase
           .from('inscripciones')
-          .insert(inscripciones);
+          .insert(inscripciones)
 
         if (errInsc) {
-          alert('⚠️ Usuario creado pero falló la inscripción: ' + errInsc.message);
-          this.estaProcesando = false;
-          return;
+          alert('⚠️ Usuario creado pero falló la inscripción: ' + errInsc.message)
+          this.estaProcesando = false
+          return
         }
       }
 
-      alert(`✅ Usuario ${nombre} ${apellido} guardado correctamente.`);
-      this.cerrarModal();
-      this.cargarUsuarios();
+      alert(`✅ Usuario ${nombre} ${apellido} guardado correctamente.`)
+      this.cerrarModal()
+      this.cargarUsuarios()
 
     } catch (err) {
-      console.error('Error general:', err);
-      alert('Error inesperado: ' + (err.message || 'Consulte la consola.'));
+      console.error('Error general:', err)
+      alert('Error inesperado: ' + (err.message || 'Consulte la consola.'))
     } finally {
-      this.estaProcesando = false;
+      this.estaProcesando = false
     }
   },
 
   async cambiarEstado(identificador, nuevoEstado) {
     try {
-      const idStr = String(identificador);
-      const esUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idStr);
+      const idStr = String(identificador)
+      const esUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idStr)
 
-      let query = supabase.from('usuarios').update({ estado: nuevoEstado });
-      query = esUUID ? query.eq('id', idStr) : query.eq('usuario', idStr);
+      let query = supabase.from('usuarios').update({ estado: nuevoEstado })
+      query = esUUID ? query.eq('id', idStr) : query.eq('usuario', idStr)
 
-      const { error } = await query;
-      if (error) throw error;
-      this.cargarUsuarios();
+      const { error } = await query
+      if (error) throw error
+      this.cargarUsuarios()
     } catch (err) {
-      console.error('Error al actualizar estado:', err);
+      console.error('Error al actualizar estado:', err)
     }
   },
 
   async cambiarRol(identificador, nuevoRol) {
     try {
-      const idStr = String(identificador);
-      const esUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idStr);
+      const idStr = String(identificador)
+      const esUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idStr)
 
-      let query = supabase.from('usuarios').update({ rol: nuevoRol });
-      query = esUUID ? query.eq('id', idStr) : query.eq('usuario', idStr);
+      let query = supabase.from('usuarios').update({ rol: nuevoRol })
+      query = esUUID ? query.eq('id', idStr) : query.eq('usuario', idStr)
 
-      const { error } = await query;
-      if (error) throw error;
+      const { error } = await query
+      if (error) throw error
     } catch (err) {
-      console.error('Error al actualizar rol:', err);
+      console.error('Error al actualizar rol:', err)
     }
   },
 
-async eliminarUsuario(identificador, nombreMostrar) {
-    const usuarioABorrar = nombreMostrar || identificador;
+  async eliminarUsuario(identificador, nombreMostrar) {
+    const usuarioABorrar = nombreMostrar || identificador
 
-    // 1. Confirmación de intención
-    const confirmar = confirm(`⚠️ ¿Estás seguro de que querés eliminar definitivamente a "${usuarioABorrar}"?\nEsta acción no se puede deshacer.`);
-    if (!confirmar) return;
+    const confirmar = confirm(`⚠️ ¿Estás seguro de que querés eliminar definitivamente a "${usuarioABorrar}"?\nEsta acción no se puede deshacer.`)
+    if (!confirmar) return
 
-    // 2. Pedir contraseña de Admin
-    const passIngresada = prompt(`🔐 Confirmación de Seguridad:\nIngresá tu contraseña de Administrador para confirmar la eliminación de "${usuarioABorrar}":`);
+    const passIngresada = prompt(`🔐 Confirmación de Seguridad:\nIngresá tu contraseña de Administrador para confirmar la eliminación de "${usuarioABorrar}":`)
     
     if (!passIngresada) {
-      alert('Operación cancelada. Se requiere la contraseña de administrador.');
-      return;
+      alert('Operación cancelada. Se requiere la contraseña de administrador.')
+      return
     }
 
     try {
-      const idStr = String(identificador);
+      const idStr = String(identificador)
+      const passTrim = passIngresada.trim()
 
-      // 3. Obtener los datos del administrador logueado en la sesión
-      const sesionRaw = localStorage.getItem('usuario_actual') || localStorage.getItem('usuario_logueado') || sessionStorage.getItem('usuario_logueado');
-      const perfilAdmin = sesionRaw ? JSON.parse(sesionRaw) : {};
+      const sesionRaw = localStorage.getItem('usuario_actual') || localStorage.getItem('usuario_logueado') || sessionStorage.getItem('usuario_logueado')
+      const perfilAdmin = sesionRaw ? JSON.parse(sesionRaw) : {}
+      const rolNorm = String(perfilAdmin.rol || '').toLowerCase().trim()
 
-      // 4. Validar que quien intenta borrar sea un admin
-      const rolNorm = String(perfilAdmin.rol || '').toLowerCase().trim();
       if (rolNorm !== 'admin' && rolNorm !== 'administrador') {
-        alert('⛔ No tenés permisos de administrador.');
-        return;
+        alert('⛔ No tenés permisos de administrador.')
+        return
       }
 
-      // 5. Comparar la contraseña ingresada con la contraseña/hash guardada en la sesión
-      const passGuardada = perfilAdmin.pass || perfilAdmin.password || perfilAdmin.passHash || '';
-      const passIngresadaTrim = passIngresada.trim();
+      const hashIngresado = this.hashPassword(passTrim)
 
-      if (passGuardada && passIngresadaTrim !== passGuardada && typeof this.hashPassword === 'function' && this.hashPassword(passIngresadaTrim) !== passGuardada) {
-        alert('⛔ Contraseña incorrecta. No se pudo autorizar la eliminación.');
-        return;
-      }
-
-      // Convertir la clave ingresada a Hash para enviar a Supabase
-      const hashParaRpc = (typeof this.hashPassword === 'function') ? this.hashPassword(passIngresadaTrim) : passIngresadaTrim;
-
-      // 6. Intentar borrado por RPC usando el Hash
-      let errFinal = null;
-      const { error: rpcError } = await supabase.rpc('eliminar_usuario_admin', { 
+      let { error: rpcError } = await supabase.rpc('eliminar_usuario_admin', { 
         p_id: idStr,
-        p_admin_pass: hashParaRpc
-      });
+        p_admin_pass: hashIngresado
+      })
 
       if (rpcError) {
-        console.warn('RPC con error, intentando borrado directo en tabla:', rpcError);
-        
-        // Fallback a borrado directo
-        const { error: deleteError } = await supabase
-          .from('usuarios')
-          .delete()
-          .eq('id', idStr);
+        console.warn('RPC falló, intentando baja directa en tabla usuarios:', rpcError.message)
 
-        // Guardamos únicamente el error de la tabla (si existiera)
-        errFinal = deleteError;
+        const esUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idStr)
+        let queryDelete = supabase.from('usuarios').delete()
+        queryDelete = esUUID ? queryDelete.eq('id', idStr) : queryDelete.eq('usuario', idStr)
+
+        const { error: directError } = await queryDelete
+        if (directError) throw directError
       }
 
-      // Si hubo un error real al borrar de la tabla, recién ahí lanzamos la excepción
-      if (errFinal) throw errFinal;
+      alert(`🗑️ Usuario "${usuarioABorrar}" eliminado correctamente.`)
 
-      alert(`🗑️ Usuario "${usuarioABorrar}" eliminado correctamente.`);
-
-      // Recargar la tabla de usuarios
-      if (typeof this.cargarUsuarios === 'function') {
-        await this.cargarUsuarios();
-      } else if (typeof UsuariosAdmin !== 'undefined' && UsuariosAdmin.cargarUsuarios) {
-        await UsuariosAdmin.cargarUsuarios();
-      }
+      await this.cargarUsuarios()
 
     } catch (err) {
-      console.error('Error al eliminar usuario:', err);
-      alert('Error al eliminar usuario: ' + (err.message || 'No se pudo completar la acción.'));
+      console.error('Error al eliminar usuario:', err)
+      alert('Error al eliminar usuario: ' + (err.message || 'Ocurrió un problema durante la baja.'))
     }
   }
-};
+}
 
-// Escuchador para el formulario de alta
 document.addEventListener('submit', function(e) {
   if (e.target && e.target.id === 'form-alta-usuario') {
-    e.preventDefault();
-    UsuariosAdmin.crearUsuarioManual(e);
+    e.preventDefault()
+    UsuariosAdmin.crearUsuarioManual(e)
   }
-});
+})
 
-UsuariosAdmin.cargarTrayectosModal = UsuariosAdmin.cargarTrayectosEnModal;
-UsuariosAdmin.cargarTrayectos = UsuariosAdmin.cargarTrayectosEnModal;
+UsuariosAdmin.cargarTrayectosModal = UsuariosAdmin.cargarTrayectosEnModal
+UsuariosAdmin.cargarTrayectos = UsuariosAdmin.cargarTrayectosEnModal
 
-window.UsuariosAdmin = UsuariosAdmin;
-window.Usuarios = UsuariosAdmin;
-window.crearUsuarioManual = (e) => UsuariosAdmin.crearUsuarioManual(e);
-window.cerrarModal = () => UsuariosAdmin.cerrarModal();
-window.abrirModal = () => UsuariosAdmin.abrirModal();
+window.UsuariosAdmin = UsuariosAdmin
+window.Usuarios = UsuariosAdmin
+window.crearUsuarioManual = (e) => UsuariosAdmin.crearUsuarioManual(e)
+window.cerrarModal = () => UsuariosAdmin.cerrarModal()
+window.abrirModal = () => UsuariosAdmin.abrirModal()
