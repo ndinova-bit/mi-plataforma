@@ -6,17 +6,48 @@
 const Trayectos = {
   listaTrayectos: [],
 
-  // Carga los trayectos filtrados
+  // Popula el filtro del panel admin con los próximos años y el año actual seleccionado por defecto
+  poblarDesplegableCiclos() {
+    const selectFiltro = document.getElementById('filtro-ciclo-lectivo');
+    if (!selectFiltro) return;
+
+    const anioActual = new Date().getFullYear(); // Detecta automáticamente el año (ej: 2026)
+    const anioInicio = 2024;
+    const anioFin = anioActual + 10;
+
+    const seleccionPrevia = selectFiltro.value;
+
+    let opcionesHTML = `<option value="TODOS">Todos los Ciclos</option>`;
+
+    for (let anio = anioFin; anio >= anioInicio; anio--) {
+      const esAnioActual = anio === anioActual ? 'selected' : '';
+      opcionesHTML += `<option value="${anio}" ${esAnioActual}>Ciclo Lectivo ${anio}</option>`;
+    }
+
+    selectFiltro.innerHTML = opcionesHTML;
+
+    if (seleccionPrevia) {
+      selectFiltro.value = seleccionPrevia;
+    }
+  },
+
+  // Carga los trayectos
   async cargarTrayectos() {
     try {
       const selectCiclo = document.getElementById('filtro-ciclo-lectivo');
-      
+      if (selectCiclo && selectCiclo.children.length === 0) {
+        this.poblarDesplegableCiclos();
+      }
+
       const perfilRaw = localStorage.getItem('usuario_actual');
       const perfil = perfilRaw ? JSON.parse(perfilRaw) : {};
       const rolNorm = String(perfil.rol || '').toLowerCase().trim();
       const esEstudiante = rolNorm === 'estudiante';
 
-      const cicloSeleccionado = selectCiclo ? selectCiclo.value : 'TODOS';
+      const anioActual = new Date().getFullYear();
+
+      // Si hay select usa su valor; si no (ej. vista pública sin login), usa el AÑO ACTUAL por defecto
+      let cicloSeleccionado = selectCiclo ? selectCiclo.value : String(anioActual);
 
       if (esEstudiante) {
         const idEstudiante = perfil.usuario || perfil.dni || perfil.id;
@@ -56,7 +87,7 @@ const Trayectos = {
 
         this.listaTrayectos = trayectosEstudiante || [];
       } else {
-        // Visitantes y Admins
+        // Visitantes Públicos y Admins
         let query = supabase
           .from('trayectos')
           .select(`*, modulos (*)`);
@@ -101,9 +132,9 @@ const Trayectos = {
         contenedor.innerHTML = `
           <div class="empty-state-card fade-in" style="text-align: center; padding: 3rem; background: rgba(30,41,59,0.5); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); grid-column: 1 / -1;">
             <div class="empty-state-icon" style="font-size: 2rem; margin-bottom: 0.5rem;">📚</div>
-            <h3 class="empty-state-title" style="color: #f8fafc; margin-bottom: 0.5rem;">No hay trayectos registrados para este ciclo</h3>
+            <h3 class="empty-state-title" style="color: #f8fafc; margin-bottom: 0.5rem;">No hay trayectos disponibles para este ciclo lectivo</h3>
             <p class="empty-state-text" style="color: #94a3b8;">
-              Podés cambiar el filtro a "Todos los Ciclos" o seleccionar otro año.
+              Ponate en contacto con la administración del CFP para más información.
             </p>
           </div>
         `;
@@ -138,7 +169,7 @@ const Trayectos = {
 
         const cicloBadge = `
           <span style="font-size: 0.75rem; background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 0.15rem 0.5rem; border-radius: 4px; font-weight: 600;">
-            Ciclo Lectivo ${trayecto.ciclo_lectivo || 2026}
+            Ciclo Lectivo ${trayecto.ciclo_lectivo || new Date().getFullYear()}
           </span>
         `;
 
@@ -249,7 +280,7 @@ const Trayectos = {
         .from('trayectos')
         .insert([{ 
           nombre, 
-          ciclo_lectivo: Number(cicloVal) || 2026,
+          ciclo_lectivo: Number(cicloVal) || new Date().getFullYear(),
           sector, 
           certificacion, 
           resolucion, 
@@ -334,6 +365,7 @@ const Trayectos = {
 
 document.addEventListener('DOMContentLoaded', () => {
   if (typeof Trayectos !== 'undefined') {
+    Trayectos.poblarDesplegableCiclos();
     Trayectos.cargarTrayectos();
   }
 });
