@@ -6,42 +6,11 @@
 const Trayectos = {
   listaTrayectos: [],
 
-  // Popula el desplegable con el año en curso dinámico
-  poblarDesplegableCiclos() {
-    const selectFiltro = document.getElementById('filtro-ciclo-lectivo');
-    if (!selectFiltro) return;
-
-    const anioActual = new Date().getFullYear(); // Detecta automáticamente el año (ej: 2026, 2027...)
-    const anioInicio = 2024;
-    const anioFin = anioActual + 20;
-
-    // Si el usuario ya eligió una opción guardamos esa, si no, SELECCIONAMOS EL AÑO ACTUAL POR DEFECTO
-    const seleccionPrevia = selectFiltro.value;
-
-    let opcionesHTML = `<option value="TODOS">Todos los Ciclos</option>`;
-
-    for (let anio = anioFin; anio >= anioInicio; anio--) {
-      // Marcamos 'selected' el año actual si no había selección previa
-      const esAnioActual = anio === anioActual ? 'selected' : '';
-      opcionesHTML += `<option value="${anio}" ${esAnioActual}>Ciclo Lectivo ${anio}</option>`;
-    }
-
-    selectFiltro.innerHTML = opcionesHTML;
-
-    if (seleccionPrevia) {
-      selectFiltro.value = seleccionPrevia;
-    }
-  },
-
   // Carga los trayectos filtrados
   async cargarTrayectos() {
     try {
-      // Nos aseguramos que el selector tenga cargadas las opciones
       const selectCiclo = document.getElementById('filtro-ciclo-lectivo');
-      if (selectCiclo && selectCiclo.children.length === 0) {
-        this.poblarDesplegableCiclos();
-      }
-
+      
       const perfilRaw = localStorage.getItem('usuario_actual');
       const perfil = perfilRaw ? JSON.parse(perfilRaw) : {};
       const rolNorm = String(perfil.rol || '').toLowerCase().trim();
@@ -158,3 +127,216 @@ const Trayectos = {
         card.style.display = 'flex';
         card.style.flexDirection = 'column';
         card.style.justifyContent = 'space-between';
+
+        const accionesAdmin = isAdmin ? `
+          <div style="margin-top: 1.25rem; padding-top: 0.75rem; border-top: 1px solid rgba(255,255,255,0.08); display: flex; gap: 0.5rem; justify-content: flex-end;">
+            <button class="btn btn-outline" style="padding: 0.3rem 0.7rem; font-size: 0.8rem;" onclick="Trayectos.eliminarTrayecto('${trayecto.id}')">
+              🗑️ Eliminar
+            </button>
+          </div>
+        ` : '';
+
+        const cicloBadge = `
+          <span style="font-size: 0.75rem; background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 0.15rem 0.5rem; border-radius: 4px; font-weight: 600;">
+            Ciclo Lectivo ${trayecto.ciclo_lectivo || 2026}
+          </span>
+        `;
+
+        if (esVistaPublica) {
+          card.innerHTML = `
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                <h3 style="color: #f8fafc; margin: 0; font-size: 1.2rem; font-weight: 600;">${trayecto.nombre}</h3>
+                ${cicloBadge}
+              </div>
+
+              <p style="color: #94a3b8; font-size: 0.875rem; margin-bottom: 0.75rem; line-height: 1.4;">
+                ${trayecto.descripcion || 'Sin descripción disponible.'}
+              </p>
+
+              ${trayecto.requisitos ? `
+                <div style="background: rgba(251, 191, 36, 0.08); border-left: 3px solid #fbbf24; padding: 0.5rem 0.75rem; border-radius: 4px;">
+                  <strong style="color: #fbbf24; font-size: 0.75rem; display: block;">📋 Requisitos:</strong>
+                  <span style="color: #f8fafc; font-size: 0.8rem;">${trayecto.requisitos}</span>
+                </div>
+              ` : ''}
+            </div>
+            ${accionesAdmin}
+          `;
+        } else {
+          let modulosHTML = '';
+          if (trayecto.modulos && trayecto.modulos.length > 0) {
+            modulosHTML = trayecto.modulos.map(m => `
+              <div class="modulo-card" style="margin-top: 0.5rem; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 0.6rem 0.8rem;">
+                <strong style="color: #f8fafc; font-size: 0.85rem;">${m.nombre}</strong> 
+                <span style="color: #fbbf24; font-size: 0.75rem;">(${m.codigo || 'S/C'})</span>
+                <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 0.2rem;">
+                  📅 ${m.fecha_inicio || 'A definir'} | ${m.fecha_fin || 'A definir'}
+                </div>
+              </div>
+            `).join('');
+          } else {
+            modulosHTML = '<small style="color: #94a3b8;">Sin módulos asignados</small>';
+          }
+
+          const cantidadModulos = trayecto.modulos ? trayecto.modulos.length : 0;
+
+          card.innerHTML = `
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                <div>
+                  <h3 style="color: #f8fafc; margin: 0; font-size: 1.2rem; font-weight: 600;">${trayecto.nombre}</h3>
+                  <span style="font-size: 0.8rem; color: #fbbf24; font-weight: 600;">
+                    Sector: ${trayecto.sector || 'General'}
+                  </span>
+                </div>
+                ${cicloBadge}
+              </div>
+
+              ${trayecto.certificacion || trayecto.resolucion ? `
+                <div style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 0.75rem; background: rgba(0,0,0,0.2); padding: 0.5rem; border-radius: 6px;">
+                  📜 <strong>Certificación:</strong> ${trayecto.certificacion || 'S/D'}<br>
+                  📑 <strong>Resolución:</strong> ${trayecto.resolucion || 'S/D'}
+                </div>
+              ` : ''}
+
+              <p style="color: #94a3b8; font-size: 0.875rem; margin-bottom: 0.75rem; line-height: 1.4;">
+                ${trayecto.descripcion || 'Sin descripción disponible.'}
+              </p>
+
+              ${trayecto.requisitos ? `
+                <div style="background: rgba(251, 191, 36, 0.08); border-left: 3px solid #fbbf24; padding: 0.5rem 0.75rem; border-radius: 4px; margin-bottom: 0.75rem;">
+                  <strong style="color: #fbbf24; font-size: 0.75rem; display: block;">📋 Requisitos:</strong>
+                  <span style="color: #f8fafc; font-size: 0.8rem;">${trayecto.requisitos}</span>
+                </div>
+              ` : ''}
+
+              <div style="font-size: 0.8rem; color: #38bdf8; font-weight: 600; margin-bottom: 0.5rem;">
+                📚 ${cantidadModulos} Módulo(s)
+              </div>
+
+              <div style="margin-top: 0.5rem;">
+                ${modulosHTML}
+              </div>
+            </div>
+            ${accionesAdmin}
+          `;
+        }
+
+        grid.appendChild(card);
+      });
+
+      contenedor.appendChild(grid);
+    });
+  },
+
+  async guardarTrayecto() {
+    const nombre = document.getElementById('trayecto-nombre')?.value.trim();
+    const cicloVal = document.getElementById('trayecto-ciclo')?.value;
+    const sector = document.getElementById('trayecto-sector')?.value.trim();
+    const certificacion = document.getElementById('trayecto-certificacion')?.value.trim() || '';
+    const resolucion = document.getElementById('trayecto-resolucion')?.value.trim() || '';
+    const descripcion = document.getElementById('trayecto-descripcion')?.value.trim() || '';
+    const requisitos = document.getElementById('trayecto-requisitos')?.value.trim() || '';
+
+    if (!nombre) {
+      alert('El nombre del trayecto es obligatorio.');
+      return;
+    }
+
+    try {
+      const { data: trayectoGuardado, error: errTrayecto } = await supabase
+        .from('trayectos')
+        .insert([{ 
+          nombre, 
+          ciclo_lectivo: Number(cicloVal) || 2026,
+          sector, 
+          certificacion, 
+          resolucion, 
+          descripcion, 
+          requisitos 
+        }])
+        .select()
+        .single();
+
+      if (errTrayecto) throw errTrayecto;
+
+      const modulosCards = document.querySelectorAll('#contenedor-modulos .modulo-card, #contenedor-modulos .modulo-item-card');
+      const modulosAInsertar = [];
+
+      modulosCards.forEach(card => {
+        const modNombre = card.querySelector('.mod-nombre')?.value.trim();
+        const modCodigo = card.querySelector('.mod-codigo')?.value.trim();
+        const modInicio = card.querySelector('.mod-inicio')?.value || null;
+        const modFin = card.querySelector('.mod-fin')?.value || null;
+
+        if (modNombre) {
+          modulosAInsertar.push({
+            trayecto_id: trayectoGuardado.id,
+            nombre: modNombre,
+            codigo: modCodigo,
+            fecha_inicio: modInicio || null,
+            fecha_fin: modFin || null
+          });
+        }
+      });
+
+      if (modulosAInsertar.length > 0) {
+        const { error: errModulos } = await supabase
+          .from('modulos')
+          .insert(modulosAInsertar);
+
+        if (errModulos) throw errModulos;
+      }
+
+      alert('Trayecto guardado con éxito.');
+      
+      const form = document.getElementById('form-trayecto');
+      if (form) form.reset();
+
+      const contenedorMod = document.getElementById('contenedor-modulos');
+      if (contenedorMod) contenedorMod.innerHTML = '';
+      if (typeof UI !== 'undefined' && UI.agregarFilaModulo) {
+        UI.agregarFilaModulo();
+      }
+
+      await this.cargarTrayectos();
+
+      if (typeof UI !== 'undefined' && UI.showTab) {
+        UI.showTab('trayectos');
+      }
+
+    } catch (err) {
+      console.error('Error al guardar trayecto:', err);
+      alert('Error al guardar: ' + (err.message || 'Error de conexión'));
+    }
+  },
+
+  async eliminarTrayecto(id) {
+    if (!confirm('¿Estás seguro de que deseas eliminar este trayecto? Esta acción borra también sus módulos asociados.')) {
+      return;
+    }
+    try {
+      const { error } = await supabase
+        .from('trayectos')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      await this.cargarTrayectos();
+    } catch (err) {
+      console.error('Error al eliminar trayecto:', err);
+      alert('Error al eliminar trayecto.');
+    }
+  }
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (typeof Trayectos !== 'undefined') {
+    Trayectos.cargarTrayectos();
+  }
+});
+
+window.Trayectos = Trayectos;
+window.TrayectosAdmin = Trayectos;
