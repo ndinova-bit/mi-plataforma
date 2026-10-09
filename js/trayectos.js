@@ -414,10 +414,10 @@ if (rolNorm === 'docente') {
   }
 };
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   if (typeof Trayectos !== 'undefined') {
     Trayectos.poblarDesplegableCiclos();
-    Trayectos.cargarTrayectos();
+    await Trayectos.cargarTrayectos();
   }
 });
 
