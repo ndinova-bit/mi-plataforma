@@ -147,7 +147,7 @@ const Trayectos = {
 
       const mostrarAccionesAdmin = isAdmin && !esVistaPublica;
 
-      this.listaTrayectos.forEach(trayecto => {
+     this.listaTrayectos.forEach(trayecto => {
         const card = document.createElement('div');
         card.className = 'course-card fade-in';
         card.style.background = '#1e293b';
@@ -158,6 +158,10 @@ const Trayectos = {
         card.style.flexDirection = 'column';
         card.style.justifyContent = 'space-between';
 
+        // 👈 Hacemos la tarjeta clickeable para abrir las clases
+        card.style.cursor = 'pointer';
+        card.onclick = () => ClasesModulo.abrirGestor(trayecto.id, trayecto.nombre);
+        
         const accionesAdmin = mostrarAccionesAdmin ? `
           <div style="margin-top: 1.25rem; padding-top: 0.75rem; border-top: 1px solid rgba(255,255,255,0.08); display: flex; gap: 0.5rem; justify-content: flex-end;">
             <button class="btn btn-outline" style="padding: 0.3rem 0.7rem; font-size: 0.8rem; color: #38bdf8; border-color: rgba(56,189,248,0.4);" onclick="Trayectos.editarTrayecto('${trayecto.id}')">
