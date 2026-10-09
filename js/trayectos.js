@@ -159,8 +159,11 @@ const Trayectos = {
         card.style.justifyContent = 'space-between';
 
         // 👈 Hacemos la tarjeta clickeable para abrir las clases
-        card.style.cursor = 'pointer';
-        card.onclick = () => ClasesModulo.abrirGestor(trayecto.id, trayecto.nombre);
+        // PONÉ ESTO EN SU LUGAR:
+if (rolNorm === 'docente') {
+  card.style.cursor = 'pointer';
+  card.onclick = () => ClasesModulo.abrirGestor(trayecto.id, trayecto.nombre);
+}
         
         const accionesAdmin = mostrarAccionesAdmin ? `
           <div style="margin-top: 1.25rem; padding-top: 0.75rem; border-top: 1px solid rgba(255,255,255,0.08); display: flex; gap: 0.5rem; justify-content: flex-end;">
