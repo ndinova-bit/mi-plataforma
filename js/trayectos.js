@@ -39,7 +39,10 @@ const Trayectos = {
         this.poblarDesplegableCiclos();
       }
 
-      const perfilRaw = localStorage.getItem('usuario_actual');
+      // 1. Obtención segura de sesión (mismo criterio que usuarios.js)
+      const perfilRaw = localStorage.getItem('usuario_actual') || 
+                        localStorage.getItem('usuario_logueado') || 
+                        sessionStorage.getItem('usuario_logueado');
       const perfil = perfilRaw ? JSON.parse(perfilRaw) : {};
       const rolNorm = String(perfil.rol || '').toLowerCase().trim();
       const esEstudiante = rolNorm === 'estudiante';
@@ -87,18 +90,24 @@ const Trayectos = {
         this.listaTrayectos = trayectosEstudiante || [];
 
       } else if (esDocente) {
-        const idDocente = String(perfil.usuario || perfil.dni || perfil.id || '').trim();
+        // 2. Colección limpia de identificadores del docente (DNI, usuario, UUID)
+        const posiblesIDs = [
+          perfil.usuario,
+          perfil.dni,
+          perfil.id
+        ].filter(id => id !== undefined && id !== null && String(id).trim() !== '').map(String);
 
-        if (!idDocente) {
+        if (posiblesIDs.length === 0) {
           this.listaTrayectos = [];
           this.renderizarTrayectos();
           return;
         }
 
+        // 3. Consulta segura con .in() que evita errores de sintaxis en PostgREST
         let query = supabase
           .from('trayectos')
           .select(`*, modulos (*)`)
-          .or(`docente_user.eq.${idDocente},docente_user.eq.${perfil.id || ''}`);
+          .in('docente_user', posiblesIDs);
 
         if (cicloSeleccionado && cicloSeleccionado !== 'TODOS') {
           query = query.eq('ciclo_lectivo', Number(cicloSeleccionado));
@@ -110,6 +119,7 @@ const Trayectos = {
         this.listaTrayectos = trayectosDocente || [];
 
       } else {
+        // Administrador o invitado
         let query = supabase
           .from('trayectos')
           .select(`*, modulos (*)`);
@@ -129,8 +139,8 @@ const Trayectos = {
       console.error('Error al cargar trayectos:', err);
     }
   },
-
-  renderizarTrayectos() {
+   
+renderizarTrayectos() {
     const contenedores = [
       document.getElementById('lista-trayectos-cards'),
       document.getElementById('lista-trayectos-admin'),
@@ -140,7 +150,10 @@ const Trayectos = {
 
     if (contenedores.length === 0) return;
 
-    const perfilRaw = localStorage.getItem('usuario_actual');
+    // Búsqueda segura de la sesión activa en cualquier almacenamiento
+    const perfilRaw = localStorage.getItem('usuario_actual') || 
+                      localStorage.getItem('usuario_logueado') || 
+                      sessionStorage.getItem('usuario_logueado');
     const perfil = perfilRaw ? JSON.parse(perfilRaw) : {};
     const rolNorm = String(perfil.rol || '').toLowerCase().trim();
     const isAdmin = rolNorm === 'admin' || rolNorm === 'administrador';
@@ -184,7 +197,7 @@ const Trayectos = {
         card.style.flexDirection = 'column';
         card.style.justifyContent = 'space-between';
 
-        // Evento de abrir gestor de clases para docente
+        // Asignación de clic al gestor únicamente si el usuario es docente
         if (esDocente) {
           card.style.cursor = 'pointer';
           card.onclick = () => ClasesModulo.abrirGestor(trayecto.id, trayecto.nombre);
