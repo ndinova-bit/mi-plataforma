@@ -31,104 +31,102 @@ const Trayectos = {
     }
   },
 
- // Carga los trayectos filtrados
+// Carga los trayectos filtrados
   async cargarTrayectos() {
     try {
-      const selectCiclo = document.getElementById('filtro-ciclo-lectivo')
+      const selectCiclo = document.getElementById('filtro-ciclo-lectivo');
       if (selectCiclo && selectCiclo.children.length === 0) {
-        this.poblarDesplegableCiclos()
+        this.poblarDesplegableCiclos();
       }
 
-      const perfilRaw = localStorage.getItem('usuario_actual')
-      const perfil = perfilRaw ? JSON.parse(perfilRaw) : {}
-      const rolNorm = String(perfil.rol || '').toLowerCase().trim()
-      const esEstudiante = rolNorm === 'estudiante'
-      const esDocente = rolNorm === 'docente'
+      const perfilRaw = localStorage.getItem('usuario_actual');
+      const perfil = perfilRaw ? JSON.parse(perfilRaw) : {};
+      const rolNorm = String(perfil.rol || '').toLowerCase().trim();
+      const esEstudiante = rolNorm === 'estudiante';
+      const esDocente = rolNorm === 'docente';
 
-      const anioActual = new Date().getFullYear()
-      let cicloSeleccionado = selectCiclo ? selectCiclo.value : String(anioActual)
+      const anioActual = new Date().getFullYear();
+      let cicloSeleccionado = selectCiclo ? selectCiclo.value : String(anioActual);
 
       if (esEstudiante) {
-        const idEstudiante = perfil.usuario || perfil.dni || perfil.id
+        const idEstudiante = perfil.usuario || perfil.dni || perfil.id;
 
         if (!idEstudiante) {
-          this.listaTrayectos = []
-          this.renderizarTrayectos()
-          return
+          this.listaTrayectos = [];
+          this.renderizarTrayectos();
+          return;
         }
 
         const { data: inscripciones, error: errInsc } = await supabase
           .from('inscripciones')
           .select('trayecto_id')
-          .eq('estudiante_user', String(idEstudiante))
+          .eq('estudiante_user', String(idEstudiante));
 
-        if (errInsc) throw errInsc
+        if (errInsc) throw errInsc;
 
         if (!inscripciones || inscripciones.length === 0) {
-          this.listaTrayectos = []
-          this.renderizarTrayectos()
-          return
+          this.listaTrayectos = [];
+          this.renderizarTrayectos();
+          return;
         }
 
-        const idsTrayectos = inscripciones.map(i => i.trayecto_id)
+        const idsTrayectos = inscripciones.map(i => i.trayecto_id);
 
         let query = supabase
           .from('trayectos')
           .select(`*, modulos (*)`)
-          .in('id', idsTrayectos)
+          .in('id', idsTrayectos);
 
         if (cicloSeleccionado && cicloSeleccionado !== 'TODOS') {
-          query = query.eq('ciclo_lectivo', Number(cicloSeleccionado))
+          query = query.eq('ciclo_lectivo', Number(cicloSeleccionado));
         }
 
-        const { data: trayectosEstudiante, error: errTray } = await query.order('created_at', { ascending: false })
-        if (errTray) throw errTray
+        const { data: trayectosEstudiante, error: errTray } = await query.order('created_at', { ascending: false });
+        if (errTray) throw errTray;
 
-        this.listaTrayectos = trayectosEstudiante || []
+        this.listaTrayectos = trayectosEstudiante || [];
 
-} else if (esDocente) {
-        const idDocente = String(perfil.usuario || perfil.dni || perfil.id || '').trim()
+      } else if (esDocente) {
+        const idDocente = String(perfil.usuario || perfil.dni || perfil.id || '').trim();
 
         if (!idDocente) {
-          this.listaTrayectos = []
-          this.renderizarTrayectos()
-          return
+          this.listaTrayectos = [];
+          this.renderizarTrayectos();
+          return;
         }
 
         let query = supabase
           .from('trayectos')
           .select(`*, modulos (*)`)
-          .or(`docente_user.eq.${idDocente},docente_user.eq.${perfil.id || ''}`)
+          .or(`docente_user.eq.${idDocente},docente_user.eq.${perfil.id || ''}`);
 
         if (cicloSeleccionado && cicloSeleccionado !== 'TODOS') {
-          query = query.eq('ciclo_lectivo', Number(cicloSeleccionado))
+          query = query.eq('ciclo_lectivo', Number(cicloSeleccionado));
         }
 
-        const { data: trayectosDocente, error: errDoc } = await query.order('created_at', { ascending: false })
-        if (errDoc) throw errDoc
+        const { data: trayectosDocente, error: errDoc } = await query.order('created_at', { ascending: false });
+        if (errDoc) throw errDoc;
 
-        this.listaTrayectos = trayectosDocente || []
-
-      }
+        this.listaTrayectos = trayectosDocente || [];
 
       } else {
         let query = supabase
           .from('trayectos')
-          .select(`*, modulos (*)`)
+          .select(`*, modulos (*)`);
 
         if (cicloSeleccionado && cicloSeleccionado !== 'TODOS') {
-          query = query.eq('ciclo_lectivo', Number(cicloSeleccionado))
+          query = query.eq('ciclo_lectivo', Number(cicloSeleccionado));
         }
 
-        const { data, error } = await query.order('created_at', { ascending: false })
-        if (error) throw error
+        const { data, error } = await query.order('created_at', { ascending: false });
+        if (error) throw error;
 
-        this.listaTrayectos = data || []
+        this.listaTrayectos = data || [];
       }
 
-      this.renderizarTrayectos()
+      this.renderizarTrayectos();
     } catch (err) {
-      console.error('Error al cargar trayectos:', err)
+      console.error('Error al cargar trayectos:', err);
     }
   },
 
