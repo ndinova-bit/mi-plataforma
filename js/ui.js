@@ -176,40 +176,12 @@ showLoginScreen() {
     }
   },
 
-  // Carga los trayectos vinculados al estudiante
+// Carga los trayectos vinculados al usuario según su rol
   async cargarTrayectosDelUsuario() {
-    const contenedorAdmin = document.getElementById('lista-trayectos-admin');
-    const perfilRaw = localStorage.getItem('usuario_actual');
-    if (!perfilRaw) return;
-    
-    let perfil = JSON.parse(perfilRaw);
-    
-    const rolUsuario = String(perfil.rol || '').toLowerCase().trim();
-    const isAdmin = rolUsuario === 'admin' || rolUsuario === 'administrador';
-
-    if (isAdmin) {
-      if (window.TrayectosAdmin && typeof window.TrayectosAdmin.cargarTrayectos === 'function') {
-        window.TrayectosAdmin.cargarTrayectos();
-      }
-      return;
+    if (window.Trayectos && typeof window.Trayectos.cargarTrayectos === 'function') {
+      await window.Trayectos.cargarTrayectos();
     }
-
-    if (!contenedorAdmin) return;
-    contenedorAdmin.innerHTML = '<p style="color: #94a3b8; text-align: center; padding: 2rem;">Cargando tus trayectos vinculados...</p>';
-
-    try {
-      const usrVal = String(perfil.usuario || '').trim();
-      const dniVal = String(perfil.dni || '').trim();
-
-      const condiciones = [];
-      if (usrVal) condiciones.push(`estudiante_user.eq.${usrVal}`);
-      if (dniVal) condiciones.push(`estudiante_user.eq.${dniVal}`);
-
-      if (condiciones.length === 0) {
-        contenedorAdmin.innerHTML = '<p style="color: #f87171; text-align: center;">No se encontró un usuario válido.</p>';
-        return;
-      }
-
+  },
       // 1. Obtener inscripciones del usuario
       const { data: inscripciones, error: errInsc } = await supabase
         .from('inscripciones')
