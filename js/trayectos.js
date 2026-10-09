@@ -172,23 +172,22 @@ const Trayectos = {
 
       const mostrarAccionesAdmin = isAdmin && !esVistaPublica;
 
-     this.listaTrayectos.forEach(trayecto => {
-        const card = document.createElement('div');
-        card.className = 'course-card fade-in';
-        card.style.background = '#1e293b';
-        card.style.borderRadius = '12px';
-        card.style.padding = '1.5rem';
-        card.style.border = '1px solid rgba(255,255,255,0.1)';
-        card.style.display = 'flex';
-        card.style.flexDirection = 'column';
-        card.style.justifyContent = 'space-between';
+    this.listaTrayectos.forEach(trayecto => {
+  const card = document.createElement('div');
+  card.className = 'course-card fade-in';
+  card.style.background = '#1e293b';
+  card.style.borderRadius = '12px';
+  card.style.padding = '1.5rem';
+  card.style.border = '1px solid rgba(255,255,255,0.1)';
+  card.style.display = 'flex';
+  card.style.flexDirection = 'column';
+  card.style.justifyContent = 'space-between';
 
-        // 👈 Hacemos la tarjeta clickeable para abrir las clases
-        // PONÉ ESTO EN SU LUGAR:
-if (rolNorm === 'docente') {
-  card.style.cursor = 'pointer';
-  card.onclick = () => ClasesModulo.abrirGestor(trayecto.id, trayecto.nombre);
-}
+  // 🔒 Hacemos la tarjeta clickeable para abrir el gestor SI ES DOCENTE
+  if (rolNorm === 'docente') {
+    card.style.cursor = 'pointer';
+    card.onclick = () => ClasesModulo.abrirGestor(trayecto.id, trayecto.nombre);
+  }
         
         const accionesAdmin = mostrarAccionesAdmin ? `
           <div style="margin-top: 1.25rem; padding-top: 0.75rem; border-top: 1px solid rgba(255,255,255,0.08); display: flex; gap: 0.5rem; justify-content: flex-end;">
