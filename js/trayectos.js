@@ -86,28 +86,29 @@ const Trayectos = {
 
         this.listaTrayectos = trayectosEstudiante || []
 
-      } else if (esDocente) {
-        const idDocente = perfil.usuario || perfil.dni || perfil.id
+} else if (esDocente) {
+        const idDocente = String(perfil.usuario || perfil.dni || perfil.id || '').trim();
 
         if (!idDocente) {
-          this.listaTrayectos = []
-          this.renderizarTrayectos()
-          return
+          this.listaTrayectos = [];
+          this.renderizarTrayectos();
+          return;
         }
 
+        // Buscar coincidencia en docente_user (por DNI o por UUID)
         let query = supabase
           .from('trayectos')
           .select(`*, modulos (*)`)
-          .eq('docente_user', String(idDocente))
+          .or(`docente_user.eq.${idDocente},docente_user.eq.${perfil.id || ''}`);
 
         if (cicloSeleccionado && cicloSeleccionado !== 'TODOS') {
-          query = query.eq('ciclo_lectivo', Number(cicloSeleccionado))
+          query = query.eq('ciclo_lectivo', Number(cicloSeleccionado));
         }
 
-        const { data: trayectosDocente, error: errDoc } = await query.order('created_at', { ascending: false })
-        if (errDoc) throw errDoc
+        const { data: trayectosDocente, error: errDoc } = await query.order('created_at', { ascending: false });
+        if (errDoc) throw errDoc;
 
-        this.listaTrayectos = trayectosDocente || []
+        this.listaTrayectos = trayectosDocente || [];
 
       } else {
         let query = supabase
