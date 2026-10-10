@@ -32,6 +32,7 @@ const Trayectos = {
   },
 
   // Puebla el selector de docentes en el formulario de creación/edición
+ // Puebla el selector de docentes en el formulario de creación/edición
   async poblarComboDocentes() {
     const selectDocente = document.getElementById('trayecto-docente');
     if (!selectDocente) return;
@@ -39,19 +40,19 @@ const Trayectos = {
     try {
       const { data: docentes, error } = await supabase
         .from('usuarios')
-        .select('usuario, dni, nombre, apellido')
+        .select('usuario, nombre, apellido')
         .eq('rol', 'docente');
 
       if (error) throw error;
 
       selectDocente.innerHTML = '<option value="">Sin docente asignado</option>';
       (docentes || []).forEach(doc => {
-        const idDocente = String(doc.usuario || doc.dni || '').trim();
+        const idDocente = String(doc.usuario || '').trim();
         if (!idDocente) return;
 
         const nombreCompleto = `${doc.apellido || ''} ${doc.nombre || ''}`.trim() || idDocente;
         const opt = document.createElement('option');
-        opt.value = idDocente; // Guarda "44444444" o el usuario/DNI correspondiente
+        opt.value = idDocente; // Guarda "44444444" o el valor de la columna 'usuario'
         opt.textContent = `${nombreCompleto} (${idDocente})`;
         selectDocente.appendChild(opt);
       });
@@ -59,7 +60,7 @@ const Trayectos = {
       console.error('Error al cargar la lista de docentes:', err);
     }
   },
-
+   
   // Carga los trayectos filtrados
   async cargarTrayectos() {
     try {
