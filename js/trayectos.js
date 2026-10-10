@@ -31,7 +31,7 @@ const Trayectos = {
     }
   },
 
-  // Carga los trayectos filtrados
+// Carga los trayectos filtrados
   async cargarTrayectos() {
     try {
       const selectCiclo = document.getElementById('filtro-ciclo-lectivo');
@@ -39,11 +39,19 @@ const Trayectos = {
         this.poblarDesplegableCiclos();
       }
 
-      // 1. Obtención segura de sesión (mismo criterio que usuarios.js)
-      const perfilRaw = localStorage.getItem('usuario_actual') || 
-                        localStorage.getItem('usuario_logueado') || 
-                        sessionStorage.getItem('usuario_logueado');
-      const perfil = perfilRaw ? JSON.parse(perfilRaw) : {};
+      // Verificamos si estamos en la vista de la Plataforma/App o en la Landing Pública
+      const appScreen = document.getElementById('app-screen');
+      const estaEnPlataforma = appScreen && appScreen.style.display !== 'none';
+
+      // Solo leemos el perfil si el usuario está dentro de la plataforma logueado
+      let perfil = {};
+      if (estaEnPlataforma) {
+        const perfilRaw = localStorage.getItem('usuario_actual') || 
+                          localStorage.getItem('usuario_logueado') || 
+                          sessionStorage.getItem('usuario_logueado');
+        perfil = perfilRaw ? JSON.parse(perfilRaw) : {};
+      }
+
       const rolNorm = String(perfil.rol || '').toLowerCase().trim();
       const esEstudiante = rolNorm === 'estudiante';
       const esDocente = rolNorm === 'docente';
@@ -51,7 +59,7 @@ const Trayectos = {
       const anioActual = new Date().getFullYear();
       let cicloSeleccionado = selectCiclo ? selectCiclo.value : String(anioActual);
 
-      if (esEstudiante) {
+      if (estaEnPlataforma && esEstudiante) {
         const idEstudiante = perfil.usuario || perfil.dni || perfil.id;
 
         if (!idEstudiante) {
@@ -89,8 +97,7 @@ const Trayectos = {
 
         this.listaTrayectos = trayectosEstudiante || [];
 
-      } else if (esDocente) {
-        // 2. Colección limpia de identificadores del docente (DNI, usuario, UUID)
+      } else if (estaEnPlataforma && esDocente) {
         const posiblesIDs = [
           perfil.usuario,
           perfil.dni,
@@ -103,7 +110,6 @@ const Trayectos = {
           return;
         }
 
-        // 3. Consulta segura con .in() que evita errores de sintaxis en PostgREST
         let query = supabase
           .from('trayectos')
           .select(`*, modulos (*)`)
@@ -119,7 +125,7 @@ const Trayectos = {
         this.listaTrayectos = trayectosDocente || [];
 
       } else {
-        // Administrador o invitado
+        // Oferta pública general (Landing) o vista Administrador
         let query = supabase
           .from('trayectos')
           .select(`*, modulos (*)`);
