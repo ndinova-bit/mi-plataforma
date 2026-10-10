@@ -416,8 +416,8 @@ async guardarTrayecto() {
       };
 
       if (idRaw && idRaw !== '') {
-        // Formateo del ID: si es numérico se pasa como número, de lo contrario queda tal cual (UUID)
-        const idQuery = !isNaN(idRaw) ? Number(idRaw) : idRaw;
+        // Asegura que el ID vaya como número para matchear con bigint/integer en Supabase
+        const idQuery = !isNaN(idRaw) ? parseInt(idRaw, 10) : idRaw;
 
         const { error } = await supabase
           .from('trayectos')
