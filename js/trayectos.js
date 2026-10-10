@@ -401,7 +401,7 @@ async guardarTrayecto() {
         docente_user: docenteUser
       };
 
-      if (idExistente) {
+      if (idExistente && String(idExistente).trim() !== '') {
         const { error } = await supabase
           .from('trayectos')
           .update(datosTrayecto)
@@ -436,26 +436,6 @@ async guardarTrayecto() {
       alert('Error al guardar: ' + (err.message || 'Error de conexión'));
     }
   },
-
-  async eliminarTrayecto(id) {
-    if (!confirm('¿Estás seguro de que deseas eliminar este trayecto? Esta acción borra también sus módulos asociados.')) {
-      return;
-    }
-    try {
-      const { error } = await supabase
-        .from('trayectos')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
-      await this.cargarTrayectos();
-    } catch (err) {
-      console.error('Error al eliminar trayecto:', err);
-      alert('Error al eliminar trayecto.');
-    }
-  }
-};
 
 document.addEventListener('DOMContentLoaded', async () => {
   if (typeof Trayectos !== 'undefined') {
