@@ -388,7 +388,7 @@ async guardarTrayecto() {
     const elReq = document.getElementById('trayecto-requisitos');
     const elDocente = document.getElementById('trayecto-docente');
 
-    const idRaw = elId ? elId.value : '';
+    const idRaw = elId ? elId.value.trim() : '';
     const nombre = elNombre ? elNombre.value.trim() : '';
     const cicloVal = elCiclo ? elCiclo.value : '';
     const sector = elSector ? elSector.value.trim() : '';
@@ -404,9 +404,6 @@ async guardarTrayecto() {
     }
 
     try {
-      // Convertimos el ID a Número o UUID según corresponda
-      const idExistente = idRaw !== '' && !isNaN(idRaw) ? Number(idRaw) : idRaw;
-
       const datosTrayecto = {
         nombre: nombre,
         ciclo_lectivo: Number(cicloVal) || new Date().getFullYear(),
@@ -418,20 +415,16 @@ async guardarTrayecto() {
         docente_user: docenteUser || null
       };
 
-      if (idExistente) {
-        const { data, error } = await supabase
+      if (idRaw && idRaw !== '') {
+        // Formateo del ID: si es numérico se pasa como número, de lo contrario queda tal cual (UUID)
+        const idQuery = !isNaN(idRaw) ? Number(idRaw) : idRaw;
+
+        const { error } = await supabase
           .from('trayectos')
           .update(datosTrayecto)
-          .eq('id', idExistente)
-          .select();
+          .eq('id', idQuery);
 
         if (error) throw error;
-
-        if (!data || data.length === 0) {
-          alert('Atención: No se encontró el registro para actualizar o los permisos (RLS) lo bloquearon.');
-          return;
-        }
-
         alert('Trayecto actualizado con éxito.');
       } else {
         const { error } = await supabase
