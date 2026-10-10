@@ -31,13 +31,44 @@ const Trayectos = {
     }
   },
 
-// Carga los trayectos filtrados
+  // Puebla el selector de docentes en el formulario de creación/edición
+  async poblarComboDocentes() {
+    const selectDocente = document.getElementById('trayecto-docente');
+    if (!selectDocente) return;
+
+    try {
+      const { data: docentes, error } = await supabase
+        .from('usuarios')
+        .select('usuario, dni, nombre, apellido')
+        .eq('rol', 'docente');
+
+      if (error) throw error;
+
+      selectDocente.innerHTML = '<option value="">Sin docente asignado</option>';
+      (docentes || []).forEach(doc => {
+        const idDocente = String(doc.usuario || doc.dni || '').trim();
+        if (!idDocente) return;
+
+        const nombreCompleto = `${doc.apellido || ''} ${doc.nombre || ''}`.trim() || idDocente;
+        const opt = document.createElement('option');
+        opt.value = idDocente; // Guarda "44444444" o el usuario/DNI correspondiente
+        opt.textContent = `${nombreCompleto} (${idDocente})`;
+        selectDocente.appendChild(opt);
+      });
+    } catch (err) {
+      console.error('Error al cargar la lista de docentes:', err);
+    }
+  },
+
+  // Carga los trayectos filtrados
   async cargarTrayectos() {
     try {
       const selectCiclo = document.getElementById('filtro-ciclo-lectivo');
       if (selectCiclo && selectCiclo.children.length === 0) {
         this.poblarDesplegableCiclos();
       }
+
+      await this.poblarComboDocentes();
 
       // Verificamos si estamos en la vista de la Plataforma/App o en la Landing Pública
       const appScreen = document.getElementById('app-screen');
@@ -146,7 +177,7 @@ const Trayectos = {
     }
   },
    
-renderizarTrayectos() {
+  renderizarTrayectos() {
     const contenedores = [
       document.getElementById('lista-trayectos-cards'),
       document.getElementById('lista-trayectos-admin'),
@@ -315,13 +346,15 @@ renderizarTrayectos() {
   },
 
   // Carga un trayecto existente en el formulario para editar
-  editarTrayecto(id) {
+  async editarTrayecto(id) {
     const trayecto = this.listaTrayectos.find(t => String(t.id) === String(id));
     if (!trayecto) return;
 
     if (typeof UI !== 'undefined' && UI.showTab) {
       UI.showTab('nuevo-trayecto');
     }
+
+    await this.poblarComboDocentes();
 
     const tituloForm = document.getElementById('titulo-form-trayecto');
     if (tituloForm) tituloForm.innerText = 'Editar Trayecto Formativo';
@@ -334,6 +367,7 @@ renderizarTrayectos() {
     if (document.getElementById('trayecto-resolucion')) document.getElementById('trayecto-resolucion').value = trayecto.resolucion || '';
     if (document.getElementById('trayecto-descripcion')) document.getElementById('trayecto-descripcion').value = trayecto.descripcion || '';
     if (document.getElementById('trayecto-requisitos')) document.getElementById('trayecto-requisitos').value = trayecto.requisitos || '';
+    if (document.getElementById('trayecto-docente')) document.getElementById('trayecto-docente').value = trayecto.docente_user || '';
   },
 
   async guardarTrayecto() {
@@ -345,6 +379,7 @@ renderizarTrayectos() {
     const resolucion = document.getElementById('trayecto-resolucion')?.value.trim() || '';
     const descripcion = document.getElementById('trayecto-descripcion')?.value.trim() || '';
     const requisitos = document.getElementById('trayecto-requisitos')?.value.trim() || '';
+    const docenteUser = document.getElementById('trayecto-docente')?.value.trim() || null;
 
     if (!nombre) {
       alert('El nombre del trayecto es obligatorio.');
@@ -359,7 +394,8 @@ renderizarTrayectos() {
         certificacion, 
         resolucion, 
         descripcion, 
-        requisitos 
+        requisitos,
+        docente_user: docenteUser
       };
 
       let trayectoGuardado = null;
@@ -429,6 +465,7 @@ renderizarTrayectos() {
 document.addEventListener('DOMContentLoaded', async () => {
   if (typeof Trayectos !== 'undefined') {
     Trayectos.poblarDesplegableCiclos();
+    await Trayectos.poblarComboDocentes();
     await Trayectos.cargarTrayectos();
   }
 });
