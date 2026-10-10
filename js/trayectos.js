@@ -371,7 +371,7 @@ const Trayectos = {
     if (document.getElementById('trayecto-docente')) document.getElementById('trayecto-docente').value = trayecto.docente_user || '';
   },
 
-  async guardarTrayecto() {
+async guardarTrayecto() {
     const idExistente = document.getElementById('trayecto-id')?.value;
     const nombre = document.getElementById('trayecto-nombre')?.value.trim();
     const cicloVal = document.getElementById('trayecto-ciclo')?.value;
@@ -399,28 +399,20 @@ const Trayectos = {
         docente_user: docenteUser
       };
 
-      let trayectoGuardado = null;
-
       if (idExistente) {
-        const { data, error } = await supabase
+        const { error } = await supabase
           .from('trayectos')
           .update(datosTrayecto)
-          .eq('id', idExistente)
-          .select()
-          .single();
+          .eq('id', idExistente);
 
         if (error) throw error;
-        trayectoGuardado = data;
         alert('Trayecto actualizado con éxito.');
       } else {
-        const { data, error } = await supabase
+        const { error } = await supabase
           .from('trayectos')
-          .insert([datosTrayecto])
-          .select()
-          .single();
+          .insert([datosTrayecto]);
 
         if (error) throw error;
-        trayectoGuardado = data;
         alert('Trayecto guardado con éxito.');
       }
 
