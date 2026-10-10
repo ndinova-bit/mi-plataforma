@@ -161,4 +161,70 @@ const Trayectos = {
           .from('trayectos')
           .select(`*, modulos (*)`);
 
-        if (cicloSeleccion
+        if (cicloSeleccionado && cicloSeleccionado !== 'TODOS') {
+          query = query.eq('ciclo_lectivo', Number(cicloSeleccionado));
+        }
+
+        const { data, error } = await query.order('created_at', { ascending: false });
+        if (error) throw error;
+
+        this.listaTrayectos = data || [];
+      }
+
+      this.renderizarTrayectos();
+    } catch (err) {
+      console.error('Error al cargar trayectos:', err);
+    }
+  },
+   
+  renderizarTrayectos() {
+    const contenedores = [
+      document.getElementById('lista-trayectos-cards'),
+      document.getElementById('lista-trayectos-admin'),
+      document.getElementById('contenedor-trayectos-estudiante'),
+      document.getElementById('contenedor-trayectos')
+    ].filter(el => el !== null);
+
+    if (contenedores.length === 0) return;
+
+    const perfilRaw = localStorage.getItem('usuario_actual') || 
+                      localStorage.getItem('usuario_logueado') || 
+                      sessionStorage.getItem('usuario_logueado');
+    const perfil = perfilRaw ? JSON.parse(perfilRaw) : {};
+    const rolNorm = String(perfil.rol || '').toLowerCase().trim();
+    const isAdmin = rolNorm === 'admin' || rolNorm === 'administrador';
+    const esDocente = rolNorm === 'docente';
+
+    contenedores.forEach(contenedor => {
+      contenedor.innerHTML = '';
+
+      const esVistaPublica = contenedor.id === 'lista-trayectos-cards' || contenedor.id === 'contenedor-trayectos';
+       
+      if (this.listaTrayectos.length === 0) {
+        contenedor.innerHTML = `
+          <div class="empty-state-card fade-in" style="text-align: center; padding: 3rem; background: rgba(30,41,59,0.5); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); grid-column: 1 / -1;">
+            <div class="empty-state-icon" style="font-size: 2rem; margin-bottom: 0.5rem;">📚</div>
+            <h3 class="empty-state-title" style="color: #f8fafc; margin-bottom: 0.5rem;">No hay trayectos disponibles para este ciclo lectivo</h3>
+            <p class="empty-state-text" style="color: #94a3b8;">
+              Ponate en contacto con la administración del CFP para más información.
+            </p>
+          </div>
+        `;
+        return;
+      }
+
+      const grid = document.createElement('div');
+      grid.className = 'trayectos-grid';
+      grid.style.display = 'grid';
+      grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(320px, 1fr))';
+      grid.style.gap = '1.5rem';
+      grid.style.width = '100%';
+
+      const mostrarAccionesAdmin = isAdmin && !esVistaPublica;
+
+      this.listaTrayectos.forEach(trayecto => {
+        const card = document.createElement('div');
+        card.className = 'course-card fade-in';
+        card.style.background = '#1e293b';
+        card.style.borderRadius = '12px';
+        card.style.padding = '1.5
