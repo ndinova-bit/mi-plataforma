@@ -139,7 +139,7 @@ const Auth = {
         UI.mostrarDashboard(perfil);
       }
 
-    } catch (err) {
+   } catch (err) {
       console.error('Error Auth:', err);
       if (typeof alertError === 'function') {
         alertError('Error al ingresar', 'Credenciales inválidas o problema de conexión.');
@@ -149,3 +149,23 @@ const Auth = {
     }
   }
 };
+
+// ==========================================================================
+// RESTAURACIÓN AUTOMÁTICA DE SESIÓN EN RECARGA (F5)
+// ==========================================================================
+document.addEventListener('DOMContentLoaded', () => {
+  const perfilRaw = localStorage.getItem('usuario_actual') || 
+                    localStorage.getItem('usuario_logueado') || 
+                    sessionStorage.getItem('usuario_logueado');
+  
+  if (perfilRaw) {
+    try {
+      const perfil = JSON.parse(perfilRaw);
+      if (perfil && perfil.rol && typeof UI !== 'undefined' && typeof UI.mostrarDashboard === 'function') {
+        UI.mostrarDashboard(perfil);
+      }
+    } catch (e) {
+      console.error('Error al restaurar la sesión:', e);
+    }
+  }
+});
