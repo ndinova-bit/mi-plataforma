@@ -346,8 +346,7 @@ const Trayectos = {
     });
   },
 
-  // Carga un trayecto existente en el formulario para editar
-  async editarTrayecto(id) {
+async editarTrayecto(id) {
     const trayecto = this.listaTrayectos.find(t => String(t.id) === String(id));
     if (!trayecto) return;
 
@@ -360,7 +359,10 @@ const Trayectos = {
     const tituloForm = document.getElementById('titulo-form-trayecto');
     if (tituloForm) tituloForm.innerText = 'Editar Trayecto Formativo';
 
-    if (document.getElementById('trayecto-id')) document.getElementById('trayecto-id').value = trayecto.id;
+    // ASIGNACIÓN CLAVE DEL ID OCULTO
+    const inputId = document.getElementById('trayecto-id');
+    if (inputId) inputId.value = trayecto.id;
+
     if (document.getElementById('trayecto-nombre')) document.getElementById('trayecto-nombre').value = trayecto.nombre || '';
     if (document.getElementById('trayecto-ciclo')) document.getElementById('trayecto-ciclo').value = trayecto.ciclo_lectivo || new Date().getFullYear();
     if (document.getElementById('trayecto-sector')) document.getElementById('trayecto-sector').value = trayecto.sector || '';
