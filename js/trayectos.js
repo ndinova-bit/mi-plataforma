@@ -377,7 +377,7 @@ const Trayectos = {
     if (elDocente) elDocente.value = trayecto.docente_user || '';
   },
 
-  async guardarTrayecto() {
+async guardarTrayecto() {
     const elId = document.getElementById('trayecto-id');
     const elNombre = document.getElementById('trayecto-nombre');
     const elCiclo = document.getElementById('trayecto-ciclo');
@@ -388,7 +388,7 @@ const Trayectos = {
     const elReq = document.getElementById('trayecto-requisitos');
     const elDocente = document.getElementById('trayecto-docente');
 
-    const idExistente = elId ? elId.value : '';
+    const idRaw = elId ? elId.value : '';
     const nombre = elNombre ? elNombre.value.trim() : '';
     const cicloVal = elCiclo ? elCiclo.value : '';
     const sector = elSector ? elSector.value.trim() : '';
@@ -396,7 +396,7 @@ const Trayectos = {
     const resolucion = elRes ? elRes.value.trim() : '';
     const descripcion = elDesc ? elDesc.value.trim() : '';
     const requisitos = elReq ? elReq.value.trim() : '';
-    const docenteUser = elDocente ? elDocente.value.trim() : null;
+    const docenteUser = elDocente ? elDocente.value.trim() : '';
 
     if (!nombre) {
       alert('El nombre del trayecto es obligatorio.');
@@ -404,24 +404,34 @@ const Trayectos = {
     }
 
     try {
+      // Convertimos el ID a Número o UUID según corresponda
+      const idExistente = idRaw !== '' && !isNaN(idRaw) ? Number(idRaw) : idRaw;
+
       const datosTrayecto = {
-        nombre, 
+        nombre: nombre,
         ciclo_lectivo: Number(cicloVal) || new Date().getFullYear(),
-        sector, 
-        certificacion, 
-        resolucion, 
-        descripcion, 
-        requisitos,
+        sector: sector || null,
+        certificacion: certificacion || null,
+        resolucion: resolucion || null,
+        descripcion: descripcion || null,
+        requisitos: requisitos || null,
         docente_user: docenteUser || null
       };
 
-      if (idExistente && String(idExistente).trim() !== '') {
-        const { error } = await supabase
+      if (idExistente) {
+        const { data, error } = await supabase
           .from('trayectos')
           .update(datosTrayecto)
-          .eq('id', idExistente);
+          .eq('id', idExistente)
+          .select();
 
         if (error) throw error;
+
+        if (!data || data.length === 0) {
+          alert('Atención: No se encontró el registro para actualizar o los permisos (RLS) lo bloquearon.');
+          return;
+        }
+
         alert('Trayecto actualizado con éxito.');
       } else {
         const { error } = await supabase
