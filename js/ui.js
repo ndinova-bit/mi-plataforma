@@ -16,7 +16,7 @@ const UI = {
   },
 
   // Muestra la pantalla o modal de Login centrado
-showLoginScreen() {
+  showLoginScreen() {
     const landing = document.getElementById('landing-screen') || document.querySelector('.public-landing');
     const login = document.getElementById('login-screen');
     const app = document.getElementById('app-screen');
@@ -25,7 +25,7 @@ showLoginScreen() {
     if (app) app.style.setProperty('display', 'none', 'important');
     
     if (login) {
-      login.removeAttribute('aria-hidden'); // <--- AQUI: Remueve el bloqueo de accesibilidad
+      login.removeAttribute('aria-hidden');
       login.style.setProperty('display', 'flex', 'important');
       login.style.setProperty('justify-content', 'center', 'important');
       login.style.setProperty('align-items', 'center', 'important');
@@ -54,23 +54,17 @@ showLoginScreen() {
     }
   },
 
- // Muestra la plataforma adaptada estrictamente al rol del usuario
+  // Muestra la plataforma adaptada estrictamente al rol del usuario
   mostrarDashboard(perfil) {
-    // Si perfil llega vacío o null, intenta recuperarlo de la memoria
     if (!perfil) {
-      perfil = Auth.usuarioActual || JSON.parse(localStorage.getItem('usuario_actual'));
+      perfil = (typeof Auth !== 'undefined' && Auth.usuarioActual) ? Auth.usuarioActual : JSON.parse(localStorage.getItem('usuario_actual'));
     }
 
-    // Si aún así no hay perfil cargado, frena limpiamente
     if (!perfil) return;
 
-    if (perfil) {
-      if (perfil.usuario) perfil.usuario = String(perfil.usuario).split(':')[0].trim();
-      if (perfil.dni) perfil.dni = String(perfil.dni).split(':')[0].trim();
-      localStorage.setItem('usuario_actual', JSON.stringify(perfil));
-    }
-
-    // ... aquí continúa el resto de tu código para mostrar las pantallas y ocultar el login
+    if (perfil.usuario) perfil.usuario = String(perfil.usuario).split(':')[0].trim();
+    if (perfil.dni) perfil.dni = String(perfil.dni).split(':')[0].trim();
+    localStorage.setItem('usuario_actual', JSON.stringify(perfil));
 
     const landing = document.getElementById('landing-screen') || document.querySelector('.public-landing');
     const login = document.getElementById('login-screen');
@@ -80,10 +74,9 @@ showLoginScreen() {
     if (login) login.style.setProperty('display', 'none', 'important');
     if (app) app.style.setProperty('display', 'flex', 'important'); 
 
-   const displayUsername = document.getElementById('display-username');
+    const displayUsername = document.getElementById('display-username');
     const displayRole = document.getElementById('display-role');
 
-    // Muestra Apellido, Nombre (o lo que esté disponible)
     if (displayUsername) {
       let nombreMostrar = perfil.nombre || perfil.usuario || 'USUARIO';
       if (perfil.apellido && perfil.nombre) {
@@ -94,7 +87,6 @@ showLoginScreen() {
       displayUsername.innerText = nombreMostrar;
     }
 
-    // Muestra el Rol (se mantiene tal cual)
     if (displayRole) displayRole.innerText = (perfil.rol || '').toUpperCase();
 
     const rolNorm = (perfil.rol || '').toLowerCase().trim();
@@ -102,7 +94,7 @@ showLoginScreen() {
 
     if (app) app.setAttribute('data-rol', rolNorm);
 
-    // 1. Filtrar visibilidad de botones en la barra lateral
+    // Filtrar visibilidad de botones en la barra lateral
     const btnDashboard = document.getElementById('btn-dashboard');
     const btnNuevoTrayecto = document.getElementById('btn-nuevo-trayecto');
     const btnCertificados = document.getElementById('btn-certificados');
@@ -113,12 +105,10 @@ showLoginScreen() {
     if (btnCertificados) btnCertificados.style.setProperty('display', isAdmin ? 'flex' : 'none', 'important');
     if (btnUsuarios) btnUsuarios.style.setProperty('display', isAdmin ? 'flex' : 'none', 'important');
 
-    // Ocultamiento general de elementos con clase .admin-only
     document.querySelectorAll('.admin-only').forEach(el => {
       el.style.setProperty('display', isAdmin ? (el.tagName === 'BUTTON' ? 'inline-flex' : 'block') : 'none', 'important');
     });
 
-    // 2. Redirección e inicialización según rol
     if (!isAdmin) {
       this.showTab('trayectos');
     } else {
@@ -132,7 +122,6 @@ showLoginScreen() {
     const perfil = perfilRaw ? JSON.parse(perfilRaw) : {};
     const isAdmin = (perfil.rol || '').toLowerCase().trim() === 'admin';
 
-    // Bloqueo de seguridad: impide acceso a pestañas administrativas si no es admin
     if (!isAdmin && (tabId === 'dashboard' || tabId === 'nuevo-trayecto' || tabId === 'certificados' || tabId === 'usuarios')) {
       tabId = 'trayectos';
     }
@@ -172,85 +161,14 @@ showLoginScreen() {
     }
 
     if (tabId === 'trayectos') {
-      this.cargarTrayectosDelUsuario();
+      await this.cargarTrayectosDelUsuario();
     }
   },
 
-// Carga los trayectos vinculados al usuario según su rol
+  // Carga los trayectos vinculados al usuario según su rol delegando en Trayectos
   async cargarTrayectosDelUsuario() {
     if (window.Trayectos && typeof window.Trayectos.cargarTrayectos === 'function') {
       await window.Trayectos.cargarTrayectos();
-    }
-  },
-      // 1. Obtener inscripciones del usuario
-      const { data: inscripciones, error: errInsc } = await supabase
-        .from('inscripciones')
-        .select('*')
-        .or(condiciones.join(','));
-
-      if (errInsc) throw errInsc;
-
-      if (!inscripciones || inscripciones.length === 0) {
-        contenedorAdmin.innerHTML = `
-          <div style="text-align: center; padding: 3rem; background: rgba(30,41,59,0.5); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
-            <h3 style="color: #f8fafc; margin-bottom: 0.5rem;">No estás vinculado a ningún trayecto</h3>
-            <p style="color: #94a3b8;">Ponete en contacto con la administración del CFP para habilitar tu inscripción.</p>
-          </div>
-        `;
-        return;
-      }
-
-      // 2. Obtener todos los trayectos disponibles para hacer el cruce en memoria sin depender de tipos de columna estricta (UUID vs Int)
-      const { data: todosTrayectos, error: errTray } = await supabase
-        .from('trayectos')
-        .select('id, nombre, descripcion, sector, certificacion');
-
-      if (errTray) throw errTray;
-
-      let trayectosMap = {};
-      if (todosTrayectos) {
-        todosTrayectos.forEach(t => {
-          trayectosMap[String(t.id)] = t;
-        });
-      }
-
-      // Si no hace match por ID exacto, mostramos el listado de trayectos activos
-      const trayectosAEncontrar = todosTrayectos || [];
-
-      contenedorAdmin.innerHTML = `
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
-          ${inscripciones.map((i, index) => {
-            // Intentar matchear por id o tomar el trayecto correspondiente por posición/defecto
-            const trayectoMatch = trayectosMap[String(i.trayecto_id)] || trayectosAEncontrar[index] || trayectosAEncontrar[0] || {};
-            
-            return `
-              <div style="background: #1e293b; border-radius: 12px; padding: 1.5rem; border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; justify-content: space-between;">
-                <div>
-                  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
-                    <div>
-                      <h3 style="color: #f8fafc; margin: 0; font-size: 1.2rem; font-weight: 600;">${trayectoMatch.nombre || 'Trayecto Formativo'}</h3>
-                      <span style="font-size: 0.8rem; color: #fbbf24; font-weight: 600;">
-                        Sector: ${trayectoMatch.sector || 'General'}
-                      </span>
-                    </div>
-                    <span style="background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); padding: 0.25rem 0.65rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600;">
-                      CURSANDO
-                    </span>
-                  </div>
-
-                  <p style="color: #94a3b8; font-size: 0.875rem; margin-top: 0.75rem; line-height: 1.4;">
-                    ${trayectoMatch.descripcion || 'Sin descripción disponible.'}
-                  </p>
-                </div>
-              </div>
-            `;
-          }).join('')}
-        </div>
-      `;
-
-    } catch (err) {
-      console.error('Error cargando trayectos del usuario:', err);
-      contenedorAdmin.innerHTML = '<p style="color: #f87171; text-align: center;">Error al obtener tus trayectos.</p>';
     }
   },
 
