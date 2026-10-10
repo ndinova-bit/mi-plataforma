@@ -203,8 +203,8 @@ renderizarTrayectos() {
         card.style.flexDirection = 'column';
         card.style.justifyContent = 'space-between';
 
-        // Asignación de clic al gestor únicamente si el usuario es docente
-        if (esDocente) {
+        // Asignación de clic al gestor únicamente si el usuario es docente Y NO está en la vista pública
+        if (esDocente && !esVistaPublica) {
           card.style.cursor = 'pointer';
           card.onclick = () => ClasesModulo.abrirGestor(trayecto.id, trayecto.nombre);
         }
