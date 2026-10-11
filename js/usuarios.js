@@ -14,6 +14,7 @@ const UsuariosAdmin = {
       modal.classList.add('open', 'active')
       modal.style.display = 'flex'
       this.cargarTrayectosEnModal()
+      this.escucharCambioRol()
     }
   },
 
@@ -26,6 +27,26 @@ const UsuariosAdmin = {
       if (form) form.reset()
     }
     this.estaProcesando = false
+  },
+
+  // Oculta/Muestra el recuadro de trayectos según el rol elegido
+  escucharCambioRol() {
+    const selectRol = document.getElementById('usr-alta-rol')
+    const contenedor = document.getElementById('usr-alta-trayectos')
+    if (!selectRol || !contenedor) return
+
+    const actualizarVista = () => {
+      // La inscripción en trayectos solo aplica a Estudiantes
+      if (selectRol.value === 'estudiante') {
+        contenedor.parentElement.style.display = 'block'
+      } else {
+        contenedor.parentElement.style.display = 'none'
+      }
+    }
+
+    selectRol.removeEventListener('change', actualizarVista)
+    selectRol.addEventListener('change', actualizarVista)
+    actualizarVista()
   },
 
   async cargarUsuarios() {
@@ -182,27 +203,30 @@ const UsuariosAdmin = {
         return
       }
 
-      const checkboxes = document.querySelectorAll('input[name="trayectos_seleccionados"]:checked')
-      const trayectoIds = Array.from(checkboxes).map(cb => cb.value)
+      // Solo si es un Estudiante se procesan las inscripciones
+      if (rol === 'estudiante') {
+        const checkboxes = document.querySelectorAll('input[name="trayectos_seleccionados"]:checked')
+        const trayectoIds = Array.from(checkboxes).map(cb => cb.value)
 
-      if (trayectoIds.length > 0) {
-        const inscripciones = trayectoIds.map(tId => ({
-          estudiante_user: String(dniVal),
-          trayecto_id: Number(tId)
-        }))
+        if (trayectoIds.length > 0) {
+          const inscripciones = trayectoIds.map(tId => ({
+            estudiante_user: String(dniVal),
+            trayecto_id: Number(tId)
+          }))
 
-        const { error: errInsc } = await supabase
-          .from('inscripciones')
-          .insert(inscripciones)
+          const { error: errInsc } = await supabase
+            .from('inscripciones')
+            .insert(inscripciones)
 
-        if (errInsc) {
-          alert('⚠️ Usuario creado pero falló la inscripción: ' + errInsc.message)
-          this.estaProcesando = false
-          return
+          if (errInsc) {
+            alert('⚠️ Usuario creado pero falló la inscripción: ' + errInsc.message)
+            this.estaProcesando = false
+            return
+          }
         }
       }
 
-      alert(`✅ Usuario ${nombre} ${apellido} guardado correctamente.`)
+      alert(`✅ Usuario ${nombre} ${apellido} (${rol.toUpperCase()}) guardado correctamente.`)
       this.cerrarModal()
       this.cargarUsuarios()
 
